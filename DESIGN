@@ -28,7 +28,7 @@ don't think we should have full readtable support like in CL.
 
 We might do something like replace number forms with procedures like this:
 
-	#i... => (exact->inexact ...)
+    #i... => (exact->inexact ...)
     #e... => (inexact->exact ...)
     #b... => (string->integer ... 2)
     #o... => (string->integer ... 8)
@@ -88,15 +88,15 @@ before it is compiled/loaded. Any sub-language can write their own
 definition of this syntax in order to make their library syntax conform
 to Racket's builtin library syntax. Also, since Scheme has only had
 libraries since R6RS, it is still evolving:
-	- (library (my lib) ; R6RS
-	    (export f ...)
-	    (import ...)
-	    (define (f x) ...))
-	- (define-library (my lib) ; R7RS
-	    (export f ...)
-	    (import ...)
-	    (begin
-	      (define (f x) ...)))
+    - (library (my lib) ; R6RS
+        (export f ...)
+        (import ...)
+        (define (f x) ...))
+    - (define-library (my lib) ; R7RS
+        (export f ...)
+        (import ...)
+        (begin
+          (define (f x) ...)))
 These two library syntaxes could be mapped to a droscheme-specific syntax
 or we could pick one and convert the other to it.
 
