@@ -1,0 +1,116 @@
+=== Introduction
+
+This document is supposed to be an overview of the current overall design,
+not to be used for implementation details or specific algorithms. 
+Feel free to discuss or amend any portion of this document.
+
+
+
+=== The vision
+
+To implement as much as possible in scheme; as little as possible in Go.
+
+One of the reasons why (syntax-rules) was invented was to allow this.
+Many parts of scheme expand to fundamental forms, such as: and, or,
+case, cond, when, unless, etc. We should not implement these in Go.
+However, pragmatism can be a good thing, so in a conflict between
+generality and speed, speed should win.
+
+
+
+=== The lexer
+
+Traditionally, lisp and scheme lexers are customizable, allowing '#'
+to be overridden to add syntax to the language, and while this may be
+useful at some point, we may want a staged approach where this is
+available to the end-user through some kind of preprocessing. I
+don't think we should have full readtable support like in CL.
+
+We might do something like replace number forms with procedures like this:
+
+	#i... => (exact->inexact ...)
+    #e... => (inexact->exact ...)
+    #b... => (string->integer ... 2)
+    #o... => (string->integer ... 8)
+    #x... => (string->integer ... 16)
+    ...+... => (make-rectangular ... ...)
+    ...@... => (make-polar ... ...)
+    .../... => (/ ... ...)
+
+before it gets to the parser, so as to simplify the grammar...
+
+
+
+=== The parser
+
+This would be implemented in "scheme.y" and so should take the output
+of the lexer and parse it. 
+
+
+
+=== The program-interpreter
+
+Must have current-environment, and a list of imported libraries,
+and might even split the environment into 2 sections, one for
+procedures and one for syntax, but I don't think thats a good idea.
+
+Procedures should be evaluated using the same method as (eval),
+and could either be implemented in Scheme or the FFI (see below).
+
+
+
+=== The library-installer
+
+This might be too early to think about libraries, the first few versions
+should have some kind of builtin library for testing purposes.
+
+Both R6RS/R7RS require that programs either
+     - (import (rnrs)) ; R6RS
+     - (import (scheme)) ; R7RS
+to get the full functionality of the basic language.
+
+The end goal should be a base language with only the following symbols:
+    - define
+    - if
+    - import
+    - lambda
+    - quote
+    - set!
+available, until one of the above is imported. I'm not sure if it is
+possible, but I'd like to find a way to implement quasiquote, unquote, 
+and unquote-splicing using some kind of scheme code that's
+run on the source tree at some point.
+
+Another thing to consider is that there are hundreds of library syntaxes.
+The way that Racket (DrScheme/MzScheme) solves this is it has a reader
+syntax "#%module-begin" that is automatically wrapped around a library
+before it is compiled/loaded. Any sub-language can write their own
+definition of this syntax in order to make their library syntax conform
+to Racket's builtin library syntax. Also, since Scheme has only had
+libraries since R6RS, it is still evolving:
+	- (library (my lib) ; R6RS
+	    (export f ...)
+	    (import ...)
+	    (define (f x) ...))
+	- (define-library (my lib) ; R7RS
+	    (export f ...)
+	    (import ...)
+	    (begin
+	      (define (f x) ...)))
+These two library syntaxes could be mapped to a droscheme-specific syntax
+or we could pick one and convert the other to it.
+
+
+
+=== The foreign-function-interface
+
+This will probably be needed to bootstrap anyways, so we might as well
+make it well-designed for the end-user. The primary difference here
+with other schemes is that this will be an FFI to Go, not C.
+
+
+
+=== Porting other scheme code
+
+One posibility to get a lot of usability is to port SLIB or something similar
+to be able to work in droscheme.
