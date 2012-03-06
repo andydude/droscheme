@@ -5,18 +5,18 @@ import (
 )
 
 const (
-	TypeCodeNull = iota
+	TypeCodeNull    = iota
 	TypeCodeType    // go:AnyType
 	TypeCodePair    // go:AnyPair   s:pair?
-	TypeCodeBool    // go:bool	    s:boolean?
+	TypeCodeBool    // go:bool      s:boolean?
 	TypeCodeProc    // go:AnyFunc   s:procedure?
 	TypeCodeBinary  // go:AnyBinary s:bytevector?
 	TypeCodeNumber  // go:AnyNumber s:number?
 	TypeCodePort    // go:AnyStream s:port?
-	TypeCodeString  // go:string	s:string?
+	TypeCodeString  // go:string    s:string?
 	TypeCodeSymbol  // go:AnySymbol s:symbol?
 	TypeCodeVector  // go:AnyVector s:vector?
-	TypeCodeChar	// go:uint32	s:char?
+	TypeCodeChar    // go:uint32    s:char?
 	TypeCodeByte    // go:byte
 	TypeCodeRecord  // go:AnyRecord
 	TypeCodeLibrary // go:AnyModule
@@ -28,24 +28,24 @@ const (
 )
 
 const (
-	PortTypeCodeByte = iota
+	PortTypeCodeByte      = iota
 	PortTypeCodeByteIn    // binary intput port
-	PortTypeCodeByteOut	  // binary output port
+	PortTypeCodeByteOut   // binary output port
 	PortTypeCodeByteInOut // binary port
 	PortTypeCodeChar
-	PortTypeCodeCharIn	  // textual input port
-	PortTypeCodeCharOut	  // textual output port
+	PortTypeCodeCharIn    // textual input port
+	PortTypeCodeCharOut   // textual output port
 	PortTypeCodeCharInOut // textual port
 	PortTypeCodeAny
-	PortTypeCodeAnyIn     // nonstandard, <-chan Any
-	PortTypeCodeAnyOut	  // nonstandard, chan<- Any
-	PortTypeCodeAnyInOut  // nonstandard, chan Any
+	PortTypeCodeAnyIn    // nonstandard, <-chan Any
+	PortTypeCodeAnyOut   // nonstandard, chan<- Any
+	PortTypeCodeAnyInOut // nonstandard, chan Any
 
 	PortTypeCodeMax // maximum
 )
 
 const (
-	NumberTypeCodeUnknown = iota
+	NumberTypeCodeUnknown  = iota
 	NumberTypeCodeNatural  // uint64
 	NumberTypeCodeInteger  // int64
 	NumberTypeCodeFloat    // float64
@@ -62,8 +62,8 @@ const (
 // minimal types
 
 //type SType struct {
-//	Code int
-//	Name string
+//  Code int
+//  Name string
 //}
 
 // interfaces
@@ -79,7 +79,7 @@ type Any interface {
 	GetTypeName() string
 	GetTypeInfo() Any
 	Equal(Any) bool
-    Hash() uintptr
+	Hash() uintptr
 }
 
 func IsType(o Any, tag int) bool {
@@ -115,7 +115,7 @@ func IsPair(o Any) bool {
 type Port interface {
 	Any
 	GetPortType() int
-	Read()Any
+	Read() Any
 	Write(Any)
 }
 
@@ -129,19 +129,21 @@ func IsBinaryPort(o Any) bool {
 		return false
 	}
 	var p, ok = o.(Port)
-	if !ok { return false }
+	if !ok {
+		return false
+	}
 
-	 switch p.GetPortType() {
-	 case PortTypeCodeByteIn:
-		 fallthrough
-	 case PortTypeCodeByteOut:
-		 fallthrough
-	 case PortTypeCodeByteInOut:
-		 return true
-	 }
+	switch p.GetPortType() {
+	case PortTypeCodeByteIn:
+		fallthrough
+	case PortTypeCodeByteOut:
+		fallthrough
+	case PortTypeCodeByteInOut:
+		return true
+	}
 
-	 return false
- }
+	return false
+}
 
 func IsTextualPort(o Any) bool
 func IsInputPort(o Any) bool
@@ -164,4 +166,3 @@ func Sub2(x Num, y Num) Num { return x.Sub1(y) }
 func Mul2(x Num, y Num) Num { return x.Mul1(y) }
 func Div2(x Num, y Num) Num { return x.Div1(y) }
 func Mod2(x Num, y Num) Num { return x.Mod1(y) }
-
