@@ -1,0 +1,22 @@
+I've gotten it to compile without much functionality.
+
+The process is as follows (also in Makeall.sh):
+
+(1) make sure parse.go is built
+
+    $ make -f parse.mk
+
+(2) make sure the droscheme package is built
+
+    $ make
+
+(3) if all went well, then install it
+
+    $ make install
+
+(4) if all went well, then build the tools
+
+    $ cd tools
+    $ make
+
+(5) if all went well, then it works!
