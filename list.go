@@ -103,12 +103,6 @@ func (_ SNull) Length() int {
 	return 0
 }
 
-func (_ SNull) IsList() bool {
-	// By definition, all lists are chains of pairs that have 
-	// finite length and are terminated by the empty list. [R6RS]
-	return true
-}
-
 // s:pair type
 
 type SPair struct {
@@ -151,16 +145,16 @@ func (o SPair) Length() int {
 	return 2
 }
 
-func (o SPair) IsList() bool {
+func IsList(o Any) bool {
 	// By definition, all lists are chains of pairs that have 
 	// finite length and are terminated by the empty list. [R6RS]
 
 	// TODO: cycle detection
-	switch o.cdr.GetType() {
-	case TypeCodePair:
-		return o.cdr.(SPair).IsList()
+	switch o.GetType() {
 	case TypeCodeNull:
 		return true
+	case TypeCodePair:
+		return IsList(o.(SPair).cdr)
 	}
 	return false
 }
@@ -257,32 +251,132 @@ func (o SType) GetPortType() int {
 // returns multiple values for argument handling
 // so I don't think we need to export any of these
 
-func unlist1(a Any) Any {
-	return a.(SPair).car
-}
-
-func unlist2(a Any) (y Any, z Any) {
-	y = a.(SPair).car
-	z = a.(SPair).cdr.(SPair).car
-	return
-}
-
-func unlist3(a Any) (x Any, y Any, z Any) {
-	var w = a.(SPair).cdr.(SPair)
-	x = a.(SPair).car
-	y = w.car
-	z = w.cdr.(SPair).car
-	return
-}
-
 func list1(a Any) Any {
 	return SPair{a, SNull{}}
 }
 
-func list2(a Any, b Any) Any {
+func list2(a, b Any) Any {
 	return SPair{a, SPair{b, SNull{}}}
 }
 
-func list3(a Any, b Any, c Any) Any {
+func list3(a, b, c Any) Any {
 	return SPair{a, SPair{b, SPair{c, SNull{}}}}
+}
+
+func list1R(a, rest Any) Any {
+	return SPair{a, rest}
+}
+
+func list2R(a, b, rest Any) Any {
+	return SPair{a, SPair{b, rest}}
+}
+
+func list3R(a, b, c, rest Any) Any {
+	return SPair{a, SPair{b, SPair{c, rest}}}
+}
+
+func unlist1(o Any) Any {
+	return o.(SPair).car
+}
+
+func unlist2(o Any) (a, b Any) {
+	a = o.(SPair).car
+	b = o.(SPair).cdr
+	b = b.(SPair).car
+	return
+}
+
+func unlist3(o Any) (a, b, c Any) {
+	a = o.(SPair).car
+	c = o.(SPair).cdr
+	b = c.(SPair).car
+	c = c.(SPair).cdr
+	return
+}
+
+func unlist1R(o Any) (a Any, r Any) {
+	a = o.(SPair).car
+	r = o.(SPair).cdr
+	return
+}
+
+func unlist2R(o Any) (a Any, b Any, r Any) {
+	a = o.(SPair).car
+	r = o.(SPair).cdr
+	b = r.(SPair).car
+	r = r.(SPair).cdr
+	return
+}
+
+func unlist3R(o Any) (a Any, b Any, c Any, r Any) {
+	a = o.(SPair).car
+	r = o.(SPair).cdr
+	b = r.(SPair).car
+	r = r.(SPair).cdr
+	c = r.(SPair).car
+	r = r.(SPair).cdr
+	return
+}
+
+// trying to make higher-order functions
+
+func proc1(f func(Any) Any) func(Any) Any {
+	return func (o Any) Any {
+		var a = unlist1(o)
+		return f(a)
+	}
+}
+
+func proc2(f func(Any, Any) Any) func(Any) Any {
+	return func (o Any) Any {
+		var a, b = unlist2(o)
+		return f(a, b)
+	}
+}
+
+func proc3(f func(Any, Any, Any) Any) func(Any) Any {
+	return func (o Any) Any {
+		var a, b, c = unlist3(o)
+		return f(a, b, c)
+	}
+}
+
+func proc1R(f func(a, rest Any) Any) func(Any) Any {
+	return func (o Any) Any {
+		var a, rest = unlist1R(o)
+		return f(a, rest)
+	}
+}
+
+func proc2R(f func(a, b, rest Any) Any) func(Any) Any {
+	return func (o Any) Any {
+		var a, b, rest = unlist2R(o)
+		return f(a, b, rest)
+	}
+}
+
+func proc3R(f func(a, b, c, rest Any) Any) func(Any) Any {
+	return func (o Any) Any {
+		var a, b, c, rest = unlist3R(o)
+		return f(a, b, c, rest)
+	}
+}
+
+func unproc1(f func(Any) Any) func(Any) Any {
+	return func (a Any) Any { return f(list1(a)) }
+}
+func unproc2(f func(Any) Any) func(Any, Any) Any {
+	return func (a, b Any) Any { return f(list2(a, b)) }
+}
+func unproc3(f func(Any) Any) func(Any, Any, Any) Any {
+	return func (a, b, c Any) Any { return f(list3(a, b, c)) }
+}
+func unproc1R(f func(Any) Any) func(Any, Any) Any {
+	return func (a, rest Any) Any { return f(list1R(a, rest)) }
+}
+func unproc2R(f func(Any) Any) func(Any, Any, Any) Any {
+	return func (a, b, rest Any) Any { return f(list2R(a, b, rest)) }
+}
+func unproc3R(f func(Any) Any) func(Any, Any, Any, Any) Any {
+	return func (a, b, c, rest Any) Any { return f(list3R(a, b, c, rest)) }
 }
