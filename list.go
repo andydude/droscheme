@@ -1,132 +1,226 @@
 package droscheme
 
-
-// structures and methods
+// structures and methods in this file
 //
 // SBool
 // SChar
 // SNull
 // SPair
-// SBytePort
-// SByteIPort
-// SByteOPort
-// SCharPort
-// SCharIPort
-// SCharOPort
+// SVector
 // SBinary
 // SString
 // SType
+// SBytePort
+// SCharPort
 
+// ----------------------------------------------------------------------
 
-type SType struct {
-	typeName string
-	typeKind TypeCode
-	portKind PortTypeCode
+// The Go language specification requires that methods are defined 
+// in the same package as the reciever type is defined, so if we
+// don't do this, then gc will give us the following error:
+//   "cannot define new methods on non-local type bool"
+// Thus, in order to define methods we need our own type.
+
+// boolean type
+
+type SBool bool
+
+// boolean methods
+
+func IsBool(o Any) bool {
+	var _, ok = o.(SBool)
+	return ok
 }
 
-func (o SType) GetName() string {
-	return o.typeName
-}
-
-func (o SType) GetCode() int {
-	return o.typeCode
-}
-
-type SBool struct {}
-
-func (o SBool) GetName() string {
-	return "boolean"
-}
-
-func (o SBool) GetCode() TypeCode {
+func (o SBool) GetType() int {
 	return TypeCodeBool
 }
 
-func (o SBool) GetHash(Any) HashCode {
+func (o SBool) GetHash() uintptr {
+	if o {
+		return 1
+	}
+	return 0
 }
 
-func (o SBool) Equal(Any, Any) bool {
+func (o SBool) Equal(a Any) bool {
+	return o == a.(SBool)
 }
 
-func (o SBool) Read(IPort) Any {
+// character type
+
+type SChar int 
+
+// character methods
+
+func IsChar(o Any) bool {
+	var _, ok = o.(SChar)
+	return ok
 }
 
-func (o SBool) Write(Any, IPort) {
+func (o SChar) GetType() int {
+	return TypeCodeChar
 }
 
-func (o SBool) WriteDebug(Any) {
-	o.Write(Any, stdout)
+func (o SChar) GetHash() uintptr {
+	return 0 // TODO
 }
 
+func (o SChar) Equal(Any) bool {
+	return false // TODO
+}
 
-
-
+// null type
 
 type SNull struct {}
+
+// null methods
+
+func IsNull(o Any) bool {
+	var _, ok = o.(SNull)
+	return ok
+}
+
+// compare with
+//func IsNull(o Any) bool {
+//	return IsType(o, TypeCodeNull)
+//}
+
+func (o SNull) GetType() int {
+	return TypeCodeNull
+}
+
+func (o SNull) GetHash() uintptr {
+	// TODO
+	return 0
+}
+
+func (_ SNull) Equal(a Any) bool {
+	return false // TODO
+}
 
 func (_ SNull) Length() int {
 	return 0
 }
 
-func (_ SNull) IsProper() bool {
+func (_ SNull) IsList() bool {
+	// By definition, all lists are chains of pairs that have 
+	// finite length and are terminated by the empty list. [R6RS]
 	return true
 }
 
-func (_ SNull) IsNull() bool {
-	return true
-}
-
-func (_ SNull) IsPair() bool {
-	return false
-}
+// s:pair type
 
 type SPair struct {
-	Car Any
-	Cdr Any
+	car Any
+	cdr Any
+}
+
+// s:pair methods
+
+func IsPair(o Any) bool {
+	var _, ok = o.(SPair)
+	return ok
+}
+
+// compare with
+//func IsPair(o Any) bool {
+//	return IsType(o, TypeCodePair)
+//}
+
+func (o SPair) GetType() int {
+	return TypeCodePair
+}
+
+func (o SPair) GetHash() uintptr {
+	return 0 // TODO
+}
+
+func (o SPair) Equal(a Any) bool {
+	return false // TODO
 }
 
 func (o SPair) Length() int {
-	switch o.Cdr.GetType().GetCode() {
+	// TODO: cycle detection
+	switch o.cdr.GetType() {
 	case TypeCodePair:
-		return 1 + o.Cdr.Length()
+		return 1 + o.cdr.(SPair).Length()
 	case TypeCodeNull:
 		return 1
-	default:
-		return 2
 	}
+	return 2
 }
 
-func (o SPair) IsProper() bool {
-	switch o.Cdr.GetType().GetCode() {
+func (o SPair) IsList() bool {
+	// By definition, all lists are chains of pairs that have 
+	// finite length and are terminated by the empty list. [R6RS]
+
+	// TODO: cycle detection
+	switch o.cdr.GetType() {
 	case TypeCodePair:
-		return o.Cdr.Proper()
+		return o.cdr.(SPair).IsList()
 	case TypeCodeNull:
 		return true
-	default:
-		return false
 	}
-}
-
-func (_ SPair) IsNull() bool {
 	return false
 }
 
-func (_ SPair) IsPair() bool {
-	return true
+// s:bytevector type
+
+type SBinary struct {
+	bytes []byte
 }
 
-type BytePort struct {
-	Chan chan byte
-	Peek int // -1 indicates no byte
+func (o SBinary) GetType() int {
+	return TypeCodeVector
 }
 
-func (a BytePort) GetType() Type {
+func (o SBinary) GetHash() uintptr {
+	return 0 // TODO
 }
 
-type CharPort struct {
-	Chan chan int
-	Peek int // -1 indicates no char
+func (o SBinary) Equal(a Any) bool {
+	return false // TODO
 }
+
+// s:bytevector type
+
+type SString struct {
+	text string
+}
+
+func (o SString) GetType() int {
+	return TypeCodeString
+}
+
+func (o SString) GetHash() uintptr {
+	return 0 // TODO
+}
+
+func (o SString) Equal(a Any) bool {
+	return false // TODO
+}
+
+// s:vector type
+
+type SVector struct {
+	items []Any
+	itemtype int
+}
+
+func (o SVector) GetType() int {
+	return TypeCodeVector
+}
+
+func (o SVector) GetHash() uintptr {
+	return 0 // TODO
+}
+
+func (o SVector) Equal(a Any) bool {
+	return false // TODO
+}
+
+// misc
 
 type AnyVec []Any
 type AnyEnv map[string]Any
@@ -138,38 +232,57 @@ type AnyMapping interface {
 	Set(Any, Any)
 }
 
-type AnyNumber interface {
-	Any
-	Add2(AnyNumber)
-	Mul2(AnyNumber)
+// type type
+
+type SType struct {
+	typeName string
+	typeCode int
+	portTypeCode int
+	numberTypeCode int
 }
 
-// functions
+// type functions
 
-func (this uintptr) GetType() TypeCode {
-	return TypeCodeUintptr
+func (o SType) GetType() int {
+	return TypeCodeType
 }
 
-func (this uintptr) IsEqual(that uintptr) bool {
-	return this == that
+// this does not make SType a port because
+// we do not implement the Read/Write methods
+func (o SType) GetPortType() int {
+	//return o.portType
+	return 0 // TODO
 }
 
-func (this string) GetType() TypeCode {
-	return TypeCodeString
+// returns multiple values for argument handling
+// so I don't think we need to export any of these
+
+func unlist1(a Any) Any {
+	return a.(SPair).car
 }
 
-func (this string) GetCode(that uintptr) bool {
-	return len(this)
+func unlist2(a Any) (y Any, z Any) {
+	y = a.(SPair).car
+	z = a.(SPair).cdr.(SPair).car
+	return
 }
 
-func (this AnyPair) GetType() TypeCode {
-	return TypeCodePair
+func unlist3(a Any) (x Any, y Any, z Any) {
+	var w = a.(SPair).cdr.(SPair)
+	x = a.(SPair).car
+	y = w.car
+	z = w.cdr.(SPair).car
+	return
 }
 
-func (this AnyPair) IsEqual(that AnyPair) bool {
-	if this != that {
-		return false
-	}
+func list1(a Any) Any {
+	return SPair{a, SNull{}}
 }
 
+func list2(a Any, b Any) Any {
+	return SPair{a, SPair{b, SNull{}}}
+}
 
+func list3(a Any, b Any, c Any) Any {
+	return SPair{a, SPair{b, SPair{c, SNull{}}}}
+}

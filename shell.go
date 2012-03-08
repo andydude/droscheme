@@ -1,21 +1,26 @@
 package droscheme
 
-func (env AnyDict) Read(source string) Any {
-	return env
+//func (env AnyDict) Read(source string) Any {
+//	return env
+//}
+//
+//func (env AnyDict) Eval(Any) Any {
+//	return env
+//}
+//
+//func Print(tree Syntax) {
+//}
+
+type Env struct {
+	parent *Env
+	bound map[string]Any
 }
 
-func (env AnyDict) Eval(Any) Any {
-	return env
-}
-
-func Print(tree Syntax) {
-}
-
-func ShellEnvironment() AnyDict {
-	return nil
+func ShellEnvironment() Env {
+	return Env{}
 }
 
 func Shell() {
-	var env = ShellEnvironment()
-	Print(env.Eval(env.Read(string)))
+	//var env = ShellEnvironment()
+	//Print(env.Eval(env.Read(string)))
 }
