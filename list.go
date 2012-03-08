@@ -291,6 +291,7 @@ func unlist3(o Any) (a, b, c Any) {
 	c = o.(SPair).cdr
 	b = c.(SPair).car
 	c = c.(SPair).cdr
+	c = c.(SPair).car
 	return
 }
 
