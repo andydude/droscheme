@@ -43,7 +43,7 @@ before it gets to the parser, so as to simplify the grammar...
 
 === The parser
 
-This would be implemented in "scheme.y" and so should take the output
+This would be implemented in "parse.y" and so should take the output
 of the lexer and parse it. 
 
 
