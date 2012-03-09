@@ -21,6 +21,25 @@ package droscheme
 //   "cannot define new methods on non-local type bool"
 // Thus, in order to define methods we need our own type.
 
+// symbol type
+
+type SSymbol struct {
+	name string
+}
+
+func (o SSymbol) GetType() int {
+	return TypeCodeSymbol
+}
+
+func (o SSymbol) GetHash() uintptr {
+	// TODO
+	return 0
+}
+
+func (o SSymbol) Equal(a Any) bool {
+	return o.name == a.(SSymbol).name
+}
+
 // boolean type
 
 type SBool bool
