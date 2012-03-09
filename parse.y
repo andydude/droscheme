@@ -34,31 +34,36 @@ package droscheme
 import (
 	"fmt"
 	"strconv"
-//	"utf8"
+	"strings"
 )
+
+var ret Any // returned value from yyParse
+var err error // return value for parsing errors
 
 %}
 // END includes
 
 // expands to yySymType
-%union
-{
+%union {
     datum Any;
     label int;
 }
+
+%type <datum> datum simpledatum compounddatum datums1 datums0 symbol u8vector list abbreviation
+
 // BEGIN tokens
 
-%token <datum> Id
-%token <datum> Bool
-%token <datum> Number
-%token <datum> Char
-%token <datum> String
-%token <label> Label
+%token <datum> ID
+%token <datum> BOOL
+%token <datum> NUMBER
+%token <datum> CHAR
+%token <datum> STRING
+%token <label> LABEL
 
 //%left Datums1
 //%left Datums0
 
-%start Datum
+%start datum
 
 // END tokens
 %%
@@ -66,262 +71,198 @@ import (
 
 // R7RS 7.1.2. External representations
 
-Datum:
-	SimpleDatum
+datum:
+	simpledatum
 	{
-        //a SimpleDatum
-	//$$ = $1
+	ret = $1
 	}
-|	CompoundDatum
+|	compounddatum
 	{
-        //a CompoundDatum
-	//$$ = $1
+	ret = $1
 	}
-|	Label '=' Datum
+|	LABEL '=' datum
 	{
-        //a LabeledDatum
-	    // set Env.label[n] = datum
 	}
-|	Label '#'
+|	LABEL '#'
 	{
-        //a DatumLabel
-	    // get Env.label[n]
 	}
 
-Datums1:
-	Datum
+simpledatum:
+	BOOL
 	{
-        //an single Datums1
+	// a BOOL
+	$$ = $1
 	}
-|	Datums1 Datum
+|	NUMBER
 	{
-        //an multiple Datums1
+    // a NUMBER
+	$$ = $1
 	}
-// TBD: should we use (Datum Datums1) instead?
-
-Datums0:
-	Datums1
+|	CHAR
 	{
-        //an nonempty Datums0
+	$$ = $1
+        //a CHAR
 	}
-|	/*empty*/
+|	STRING
 	{
-        //an empty Datums0
+	$$ = $1
+        //a STRING
 	}
-
-SimpleDatum:
-	Bool
+|	symbol
 	{
-        //a Bool
-	}
-|	Number
-	{
-        //a Number
-	}
-|	Char
-	{
-        //a Char
-	}
-|	String
-	{
-        //a String
-	}
-|	Symbol
-	{
-        //a Symbol
+	$$ = $1
+	// a symbol
 	}
 // This is our name for bytevector, in case we want to support all SRFI-4 vectors
-|	U8Vector
+|	u8vector
 	{
-        //a U8Vector
+	$$ = $1
+        //a u8vector
 	}
 
-Symbol:
-	Id
+symbol:
+	ID
 	{
-        //an Identifier
+	$$ = $1
 	}
 
-CompoundDatum:
-	List
+compounddatum:
+	list
 	{
-        //a List
+	// a list
+    $$ = $1
 	}
-|	Vector
+|	vector
 	{
         //a Vector
 	}
 
-List:
-	'(' Datums0 ')'
+list:
+	'(' datums0 ')'
 	{
-        //a proper List
+    $$ = $2
 	}
-|	'(' Datums1 '.' Datum ')'
+|	'(' datums1 '.' datum ')'
 	{
-        //an improper List (dotted)
+        //an improper list (dotted)
+	$$ = SPair{$2, $4}
 	}
-|	Abbreviation
+|	abbreviation
+    {
+	$$ = $1
+    }
 
-Abbreviation:
-	'\'' Datum
+datums1:
+	datum
+	{
+	$$ = SPair{$1, SNull{}}
+	}
+|	datum datums1 
+	{
+	$$ = SPair{$1, $2}
+	}
+
+datums0:
+	datums1
+	{
+	$$ = $1
+	}
+|	/*empty*/
+	{
+	$$ = SNull{}
+	}
+
+abbreviation:
+	'\'' datum
 	{
         //a (quote)
 	}
-|	'`' Datum
+|	'`' datum
 	{
         //a (quasiquote)
 	}
-|	',@' Datum
+|	',@' datum
 	{
         //an (unquote-splicing)
 	}
-|	',' Datum
+|	',' datum
 	{
         //an (unquote)
 	}
 
-Vector:
-	VectorParen Datums1 ')'
+vector:
+	vectorparen datums1 ')'
 	{
-        //a Vector literal
+        //a vector literal
 	}
 
-U8Vector:
-	U8VectorParen U8Num ')'
+u8vector:
+	u8vectorparen u8num ')'
 	{
-        //a U8Vector literal
+        //a u8vector literal
 	}
 
-VectorParen:
+vectorparen:
 	'#('
 
-U8VectorParen:
+u8vectorparen:
 	'#u8('
 |	'#vu8('
 
-U8Num:
-	Number
+u8num:
+	NUMBER
 //	Digit
 //|	Digit Digit
 //|	Digit Digit Digit
 
-//Label:
+//LABEL:
 //	'#' Digits1
 
 // END grammar
 %%
 // BEGIN lexer
 
-//type Lexer struct {
-//    port chan Rune
-//    peek rune
-//	lval *yySymType
-//}
-
-// This should probably be int
-//type Rune byte
-
-// This is from units.y example in goyacc source
-//func getrune() int {
-//    var c, n int
-//
-//    if linep >= len(line) {
-//        return 0
-//    }
-//    c, n = utf8.DecodeRuneInString(line[linep:len(line)])
-//    linep += n
-//    if c == '\n' {
-//        c = 0
-//    }
-//    return c
-//}
-
-//func (l Lexer) GetRune() Rune {
-//	l.peek = <-l.port;
-//	return l.peek;
-//}
-
-// func (l Lexer) Lex(lval *yySymType) int {
-//     c := l.GetRune()
-
-// 	if '0' <= c && c <= '9' {
-//         // TODO lex rest of number
-// 		return Number
-// 	}
-
-// 	if 'a' <= c && c <= 'z' {
-//         // TODO lex rest of identifier
-// 		return Id
-// 	}
-
-//     // TODO lex other things
-// 	return (-1)
-// }
-
-// func (l Lexer) Error(s string) {
-// }
-
-// END lexer
-
-// func toPort(s string, port chan Rune) {
-// 	// probably too many runes
-// 	//r := NewString(s)
-// 	//l := r.RuneCount()
-// 	//for var i int := 0; i < l; i++ {
-// 	//	port <- r.At(i)
-// 	//}
-// }
-
-// func ReadDatumFromString(s string) Any {
-// 	port := make(chan Rune, len(s))
-// 	toPort(s, port)
-// 	return ReadDatum(port)
-// }
-
-// func ReadDatum(port chan Rune) Any {
-//     lex := Lexer{port, 0, nil}
-//     yyParse(lex)
-// 	return lex.lval.datum
-// }
-
-type SimpleLexer struct {
+type Lexer struct {
 	input string
 	pos int
-	ch byte
+	ch rune
 }
 
-func (lex *SimpleLexer) consume() {
+func (lex *Lexer) consume() {
 	lex.pos++
-	lex.ch = lex.input[lex.pos]
+	if lex.pos < len(lex.input) {
+		lex.ch = rune(lex.input[lex.pos])
+	} else {
+		lex.ch = -1
+	}
 }
 
-func (lex *SimpleLexer) match(ch byte) {
+func (lex *Lexer) match(ch rune) {
 	if ch != lex.ch {
 		panic("failed to match")
 	}
 	lex.consume()
 }
 
-func (lex *SimpleLexer) eat() byte {
+func (lex *Lexer) eat() rune {
 	ch := lex.ch
 	lex.consume()
 	return ch
 }
 
-func (lex *SimpleLexer) isLetter() bool {
+func (lex *Lexer) isLetter() bool {
 	return 'a' <= lex.ch && lex.ch <= 'z' || 'A' <= lex.ch && lex.ch <= 'Z'
 }
 
-func (lex *SimpleLexer) isNumber() bool {
+func (lex *Lexer) isNUMBER() bool {
 	return '0' <= lex.ch && lex.ch <= '9'
 }
 
-func (lex *SimpleLexer) isIdInitial() bool {
-	return lex.isLetter() || lex.isIdSpecialInitial()
+func (lex *Lexer) isIDInitial() bool {
+	return lex.isLetter() || lex.isIDSpecialInitial()
 }
 
-func (lex *SimpleLexer) isIdSpecialInitial() bool {
+func (lex *Lexer) isIDSpecialInitial() bool {
 	switch lex.ch {
 	case '!', '$', '%', '&', '*', '/', ':', '<', '=', '>', '?', '~', '_', '^':
 		return true
@@ -329,22 +270,22 @@ func (lex *SimpleLexer) isIdSpecialInitial() bool {
 	return false
 }
 
-func (lex *SimpleLexer) isIdSpecialSubsequent() bool {
+func (lex *Lexer) isIDSpecialSubsequent() bool {
 	return lex.ch == '.' || lex.ch == '+' || lex.ch == '-'
 }
 
-func (lex *SimpleLexer) readId() Any {
-	id := []byte{lex.eat()}
-	for lex.isIdInitial() || lex.isNumber() || lex.isIdSpecialSubsequent() {
-		id = append(id, lex.ch)
+func (lex *Lexer) readID() Any {
+	id := []rune{lex.eat()}
+	for lex.isIDInitial() || lex.isNUMBER() || lex.isIDSpecialSubsequent() {
+		id = append(id, lex.eat())
 	}
 	return SSymbol{string(id)}
 }
 
-func (lex *SimpleLexer) readNumber() Any {
-	num := []byte{lex.eat()}
-	for lex.isNumber() {
-		num = append(num, lex.ch)
+func (lex *Lexer) readNUMBER() Any {
+	num := []rune{lex.eat()}
+	for lex.isNUMBER() {
+		num = append(num, lex.eat())
 	}
 	x, err := strconv.ParseInt(string(num), 10, 64)
 	if err != nil {
@@ -353,7 +294,7 @@ func (lex *SimpleLexer) readNumber() Any {
 	return Sint64(x)
 }
 
-func (lex *SimpleLexer) readBool() Any {
+func (lex *Lexer) readBOOL() Any {
 	if lex.ch == 't' {
 		lex.consume()
 		return SBool(true)
@@ -364,53 +305,74 @@ func (lex *SimpleLexer) readBool() Any {
 	panic("Unknown boolean")
 }
 
-func (lex *SimpleLexer) Lex(lval *yySymType) int {
+func (lex *Lexer) isWhitespace() bool {
+	if lex.ch == ' ' || lex.ch == '\t' || lex.ch == '\n' || lex.ch == 'r' {
+		return true
+	}
+	return false
+}
+
+func (lex *Lexer) Lex(lval *yySymType) int {
 	for lex.pos < len(lex.input) {
 		switch {
+		case lex.isWhitespace():
+			lex.consume()
 		case lex.ch == ')':
+			lex.consume()
 			return ')'
 		case lex.ch == '(':
+			lex.consume()
 			return '('
 		case lex.ch == '\'':
+			lex.consume()
 			return '\''
 		case lex.ch == '#':
 			lex.consume()
 			if lex.ch == 't' || lex.ch == 'f' {
-				lval.datum = lex.readBool()
-				lval.label = Bool
-				return Bool
+				lval.datum = lex.readBOOL()
+				lval.label = BOOL
+				return BOOL
 			}
 			return '#'
 		case lex.ch == '+' || lex.ch == '-':
-			lval.datum = lex.readId()
-			lval.label = Id
-			return Id
+			lval.datum = lex.readID()
+			lval.label = ID
+			return ID
 		case lex.ch == '.':
 			lex.match('.')
 			lex.match('.')
 			lex.match('.')
 			lval.datum = SSymbol{"..."}
-			lval.label = Id
-			return Id
-		case lex.isIdInitial():
-			lval.datum = lex.readId()
-			lval.label = Id
-			return Id
-		case lex.isNumber():
-			lval.datum = lex.readNumber()
-			lval.label = Number
-			return Number
+			lval.label = ID
+			return ID
+		case lex.isIDInitial():
+			lval.datum = lex.readID()
+			lval.label = ID
+			return ID
+		case lex.isNUMBER():
+			lval.datum = lex.readNUMBER()
+			lval.label = NUMBER
+			return NUMBER
+		default:
+			lex.consume()
+			return int(lex.ch)
 		}
 	}
-	return int(lex.ch)
+	return -1
 }
 
-func (lex *SimpleLexer) Error(e string) {
-	panic(e)
+func (lex *Lexer) Error(e string) {
+	err = fmt.Errorf("Syntax error at position %d in line %s: %s", lex.pos, lex.input, e)
 }
 
-func Read(input string) Any {
-	lex := &SimpleLexer{input, 0, input[0]}
+func Read(input string) (Any, error) {
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return nil, nil
+	}
+	lex := &Lexer{input, 0, rune(input[0])}
 	yyParse(lex)
-	return nil
+	err2 := err
+	err = nil
+	return ret, err2
 }

@@ -1,5 +1,9 @@
 package droscheme
 
+import (
+	"fmt"
+)
+
 type Sint8 int8
 type Sint16 int16
 type Sint32 int32
@@ -72,6 +76,11 @@ func (o Sint64) Cmp1(n Num) int {
 }
 
 // boring
+
+func (o Sint64) String() string {
+	return fmt.Sprintf("%d", o)
+}
+
 func (o Sint32) Add1(n Num) Num { return Sint32(o + n.(Sint32)) }
 func (o Sint32) Sub1(n Num) Num { return Sint32(o - n.(Sint32)) }
 func (o Sint32) Mul1(n Num) Num { return Sint32(o * n.(Sint32)) }

@@ -1,5 +1,9 @@
 package droscheme
 
+import (
+	"fmt"
+)
+
 // structures and methods in this file
 //
 // SBool
@@ -40,6 +44,10 @@ func (o SSymbol) Equal(a Any) bool {
 	return o.name == a.(SSymbol).name
 }
 
+func (o SSymbol) String() string {
+	return o.name
+}
+
 // boolean type
 
 type SBool bool
@@ -64,6 +72,10 @@ func (o SBool) GetHash() uintptr {
 
 func (o SBool) Equal(a Any) bool {
 	return o == a.(SBool)
+}
+
+func (o SBool) String() string {
+	return fmt.Sprintf("%t", o)
 }
 
 // character type
@@ -122,6 +134,10 @@ func (_ SNull) Length() int {
 	return 0
 }
 
+func (_ SNull) String() string {
+	return "nil"
+}
+
 // s:pair type
 
 type SPair struct {
@@ -162,6 +178,10 @@ func (o SPair) Length() int {
 		return 1
 	}
 	return 2
+}
+
+func (o SPair) String() string {
+	return fmt.Sprintf("(%s . %s)", o.car, o.cdr)
 }
 
 func IsList(o Any) bool {
