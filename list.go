@@ -94,11 +94,12 @@ func (o SChar) GetType() int {
 }
 
 func (o SChar) GetHash() uintptr {
-	return 0 // TODO
+	return uintptr(int(o))
 }
 
-func (o SChar) Equal(Any) bool {
-	return false // TODO
+func (o SChar) Equal(a Any) bool {
+	if !IsChar(a) { return false }
+	return o == a.(SChar)
 }
 
 // null type
@@ -122,20 +123,16 @@ func (o SNull) GetType() int {
 }
 
 func (o SNull) GetHash() uintptr {
-	// TODO
 	return 0
 }
 
 func (_ SNull) Equal(a Any) bool {
-	return false // TODO
-}
-
-func (_ SNull) Length() int {
-	return 0
+	if !IsNull(a) { return false }
+	return true
 }
 
 func (_ SNull) String() string {
-	return "nil"
+	return "()"
 }
 
 // s:pair type
@@ -169,17 +166,6 @@ func (o SPair) Equal(a Any) bool {
 	return false // TODO
 }
 
-func (o SPair) Length() int {
-	// TODO: cycle detection
-	switch o.cdr.GetType() {
-	case TypeCodePair:
-		return 1 + o.cdr.(SPair).Length()
-	case TypeCodeNull:
-		return 1
-	}
-	return 2
-}
-
 func (o SPair) String() string {
 	return fmt.Sprintf("(%s . %s)", o.car, o.cdr)
 }
@@ -188,7 +174,7 @@ func IsList(o Any) bool {
 	// By definition, all lists are chains of pairs that have 
 	// finite length and are terminated by the empty list. [R6RS]
 
-	// TODO: cycle detection
+	// cycle detection (only needed in mutable model)
 	switch o.GetType() {
 	case TypeCodeNull:
 		return true
@@ -196,6 +182,17 @@ func IsList(o Any) bool {
 		return IsList(o.(SPair).cdr)
 	}
 	return false
+}
+
+func Length(o Any) int {
+	// cycle detection (only needed in mutable model)
+	switch o.GetType() {
+	case TypeCodePair:
+		return 1 + Length(o.(SPair).cdr)
+	case TypeCodeNull:
+		return 0
+	}
+	return 1
 }
 
 // s:bytevector type
@@ -216,7 +213,15 @@ func (o SBinary) Equal(a Any) bool {
 	return false // TODO
 }
 
-// s:bytevector type
+func (o SBinary) String() string {
+	var ret string = ""
+	for i := 0; i < len(o.bytes); i++ {
+		ret += fmt.Sprintf(" %s", Sint64(o.bytes[i]))
+	}
+	return fmt.Sprintf("#u8(%s)", ret[1:])
+}
+
+// s:string type
 
 type SString struct {
 	text string
@@ -232,6 +237,10 @@ func (o SString) GetHash() uintptr {
 
 func (o SString) Equal(a Any) bool {
 	return false // TODO
+}
+
+func (o SString) String() string {
+	return fmt.Sprintf("\"%s\"", o.text)
 }
 
 // s:vector type
@@ -251,6 +260,14 @@ func (o SVector) GetHash() uintptr {
 
 func (o SVector) Equal(a Any) bool {
 	return false // TODO
+}
+
+func (o SVector) String() string {
+	var ret string = ""
+	for i := 0; i < len(o.items); i++ {
+		ret += fmt.Sprintf(" %s", o.items[i])
+	}
+	return fmt.Sprintf("#(%s)", ret[1:])
 }
 
 // misc
@@ -314,6 +331,25 @@ func list3R(a, b, c, rest Any) Any {
 	return SPair{a, SPair{b, SPair{c, rest}}}
 }
 
+func listR(most, last Any) Any {
+	//// this would have worked in the mutable model
+	//var lastpair Any
+	//for lastpair = most;
+	//IsPair(lastpair.(SPair).cdr);
+	//lastpair = lastpair.(SPair).cdr {}
+	//lastpair.(SPair).cdr = last
+	//return most
+
+	// immutable model requires reconstruction
+	if IsPair(most) {
+		return SPair{most.(SPair).car, 
+			   listR(most.(SPair).cdr, last)}
+	}
+
+	// assume IsNull
+	return last
+}
+
 func unlist1(o Any) Any {
 	return o.(SPair).car
 }
@@ -330,6 +366,7 @@ func unlist3(o Any) (a, b, c Any) {
 	c = o.(SPair).cdr
 	b = c.(SPair).car
 	c = c.(SPair).cdr
+	c = c.(SPair).car
 	return
 }
 

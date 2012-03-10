@@ -37,6 +37,26 @@ package droscheme
  *   ZZ = 'Z' 
  */
 
+func DtwoZH(a Any) Any {
+       var x, y = unlist2(a)
+       return Mul2(x.(Num), y.(Num))
+}
+
+func DtwoZI(a Any) Any {
+       var x, y = unlist2(a)
+       return Add2(x.(Num), y.(Num))
+}
+
+func DtwoZK(a Any) Any {
+       var x, y = unlist2(a)
+       return Sub2(x.(Num), y.(Num))
+}
+
+func DtwoZM(a Any) Any {
+       var x, y = unlist2(a)
+       return Div2(x.(Num), y.(Num))
+}
+
 func DZH(a Any) Any {
 	// this is a hard one, for now, 2 arguments only
 	var xa, ya = unlist2(a)
@@ -105,6 +125,12 @@ func DbytevectorZKcopyZKpartialZA(a Any) Any
 func DbytevectorZKlength(a Any) Any
 func DbytevectorZKu8ZKref(a Any) Any
 func DbytevectorZKu8ZKsetZA(a Any) Any
+
+// R6RS:bytevector->u8-list
+func DbytevectorZKZRu8ZKlist(a Any) Any {
+	return SNull{}
+}
+
 func DbytevectorZS(a Any) Any
 
 func DcallZKwithZKcurrentZKcontinuation(a Any) Any
@@ -226,7 +252,18 @@ func Dlist(a Any) Any {
 }
 
 func DlistZKZRstring(a Any) Any
-func DlistZKZRvector(a Any) Any
+
+func DlistZKZRvector(a Any) Any {
+	var list = unlist1(a)
+	var vec = []Any{}
+	var cur Any
+	for cur = list; IsPair(cur);
+	    cur = cur.(SPair).cdr {
+		vec = append(vec, cur.(SPair).car)
+	}
+	return SVector{vec, 0}
+}
+
 func DlistZKcopy(a Any) Any
 func DlistZKref(a Any) Any
 func DlistZKsetZA(a Any) Any
@@ -336,7 +373,26 @@ func DtextualZKportZS(a Any) Any {
 }
 
 func Dtruncate(a Any) Any // derived
+
+// R6RS:u8-list->bytevector
+func Du8ZKlistZKZRbytevector(a Any) Any {
+	var list = unlist1(a)
+	var vec = []byte{}
+	var num int64
+	var cur Any
+	for cur = list; IsPair(cur);
+	    cur = cur.(SPair).cdr {
+		num = cur.(SPair).car.(Num).ToI64()
+		if int64(byte(num)) != num {
+			panic("TypeError: expected byte")
+		}
+		vec = append(vec, byte(num))
+	}
+	return SBinary{vec}
+}
+
 func Du8ZKreadyZS(a Any) Any
+
 func Dutf8ZKZRstring(a Any) Any
 func Dvalues(a Any) Any
 func Dvector(a Any) Any

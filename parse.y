@@ -46,10 +46,12 @@ var err error // return value for parsing errors
 // expands to yySymType
 %union {
     datum Any;
-    label int;
+    label int; // this is for recursive structures
+	token int; // this is for token identifiers
 }
 
-%type <datum> datum simpledatum compounddatum datums1 datums0 symbol u8vector list abbreviation
+%type <datum> datum datums1 datums0 simpledatum compounddatum
+%type <datum> symbol list vector u8vector abbreviation
 
 // BEGIN tokens
 
@@ -59,6 +61,8 @@ var err error // return value for parsing errors
 %token <datum> CHAR
 %token <datum> STRING
 %token <label> LABEL
+%token <token> VECTORPAREN
+%token <token> U8VECTORPAREN
 
 //%left Datums1
 //%left Datums0
@@ -74,17 +78,22 @@ var err error // return value for parsing errors
 datum:
 	simpledatum
 	{
-	ret = $1
+	$$ = $1
+	ret = $$
 	}
 |	compounddatum
 	{
-	ret = $1
+	$$ = $1
+	ret = $$
 	}
 |	LABEL '=' datum
 	{
+	//$$.label = $1
+	//$$.datum = $3
 	}
 |	LABEL '#'
 	{
+	//$$.label = $1
 	}
 
 simpledatum:
@@ -134,7 +143,7 @@ compounddatum:
 	}
 |	vector
 	{
-        //a Vector
+    $$ = $1
 	}
 
 list:
@@ -144,8 +153,8 @@ list:
 	}
 |	'(' datums1 '.' datum ')'
 	{
-        //an improper list (dotted)
-	$$ = SPair{$2, $4}
+    //an improper list (dotted)
+	$$ = listR($2, $4)
 	}
 |	abbreviation
     {
@@ -191,29 +200,16 @@ abbreviation:
 	}
 
 vector:
-	vectorparen datums1 ')'
+	VECTORPAREN datums0 ')'
 	{
-        //a vector literal
+	$$ = DlistZKZRvector(list1($2))
 	}
 
 u8vector:
-	u8vectorparen u8num ')'
+	U8VECTORPAREN datums0 ')'
 	{
-        //a u8vector literal
+	$$ = Du8ZKlistZKZRbytevector(list1($2))
 	}
-
-vectorparen:
-	'#('
-
-u8vectorparen:
-	'#u8('
-|	'#vu8('
-
-u8num:
-	NUMBER
-//	Digit
-//|	Digit Digit
-//|	Digit Digit Digit
 
 //LABEL:
 //	'#' Digits1
@@ -305,6 +301,16 @@ func (lex *Lexer) readBOOL() Any {
 	panic("Unknown boolean")
 }
 
+func (lex *Lexer) readU8VECTORPAREN() int {
+	if lex.ch == 'v' {
+		lex.match('v')
+	}
+	lex.match('u')
+	lex.match('8')
+	lex.match('(')
+	return U8VECTORPAREN
+}
+
 func (lex *Lexer) isWhitespace() bool {
 	if lex.ch == ' ' || lex.ch == '\t' || lex.ch == '\n' || lex.ch == 'r' {
 		return true
@@ -330,28 +336,46 @@ func (lex *Lexer) Lex(lval *yySymType) int {
 			lex.consume()
 			if lex.ch == 't' || lex.ch == 'f' {
 				lval.datum = lex.readBOOL()
-				lval.label = BOOL
+				lval.token = BOOL
 				return BOOL
 			}
+			if lex.ch == 'u' || lex.ch == 'v' {
+				lval.token = lex.readU8VECTORPAREN()
+				return U8VECTORPAREN
+			}
+			if lex.ch == '(' {
+				lex.consume()
+				return VECTORPAREN
+			}
 			return '#'
-		case lex.ch == '+' || lex.ch == '-':
-			lval.datum = lex.readID()
-			lval.label = ID
-			return ID
 		case lex.ch == '.':
-			lex.match('.')
-			lex.match('.')
-			lex.match('.')
-			lval.datum = SSymbol{"..."}
-			lval.label = ID
-			return ID
+			lex.consume()
+			if lex.ch == '.' {
+				lex.match('.')
+				lex.match('.')
+				lval.datum = SSymbol{"..."}
+				lval.token = ID
+				return ID
+			} else {
+				return '.'
+			}
 		case lex.isIDInitial():
 			lval.datum = lex.readID()
-			lval.label = ID
+			lval.token = ID
 			return ID
+		case lex.ch == '+' || lex.ch == '-':
+			lex.consume()
+			if lex.isWhitespace() {
+				// if this is the end of the token, then it is an id
+				lval.datum = lex.readID()
+				lval.token = ID
+				return ID
+			}
+			// if this is the beginning of the token, then it is a number
+			fallthrough
 		case lex.isNUMBER():
 			lval.datum = lex.readNUMBER()
-			lval.label = NUMBER
+			lval.token = NUMBER
 			return NUMBER
 		default:
 			lex.consume()
