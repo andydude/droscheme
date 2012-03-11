@@ -38,63 +38,43 @@ package droscheme
  */
 
 func DtwoZH(a Any) Any {
-       var x, y = unlist2(a)
-       return Mul2(x.(Num), y.(Num))
+	var x, y = unlist2(a)
+	return Mul2(x.(Num), y.(Num))
 }
 
 func DtwoZI(a Any) Any {
-       var x, y = unlist2(a)
-       return Add2(x.(Num), y.(Num))
+	var x, y = unlist2(a)
+	return Add2(x.(Num), y.(Num))
 }
 
 func DtwoZK(a Any) Any {
-       var x, y = unlist2(a)
-       return Sub2(x.(Num), y.(Num))
+	var x, y = unlist2(a)
+	return Sub2(x.(Num), y.(Num))
 }
 
 func DtwoZM(a Any) Any {
-       var x, y = unlist2(a)
-       return Div2(x.(Num), y.(Num))
+	var x, y = unlist2(a)
+	return Div2(x.(Num), y.(Num))
 }
 
 func DZH(a Any) Any {
 	// this is a hard one, for now, 2 arguments only
-	var xa, ya = unlist2(a)
-	var x, ok = xa.(Num)
-	if !ok { panic("TypeError") }
-	var y, oj = ya.(Num)
-	if !oj { panic("TypeError") }
-	return Mul2(x, y)
+	return DtwoZH(a)
 }
 
 func DZI(a Any) Any {
 	// this is a hard one, for now, 2 arguments only
-	var xa, ya = unlist2(a)
-	var x, ok = xa.(Num)
-	if !ok { panic("TypeError") }
-	var y, oj = ya.(Num)
-	if !oj { panic("TypeError") }
-	return Add2(x, y)
+	return DtwoZI(a)
 }
 
 func DZK(a Any) Any {
 	// this is a hard one, for now, 2 arguments only
-	var xa, ya = unlist2(a)
-	var x, ok = xa.(Num)
-	if !ok { panic("TypeError") }
-	var y, oj = ya.(Num)
-	if !oj { panic("TypeError") }
-	return Sub2(x, y)
+	return DtwoZK(a)
 }
 
 func DZM(a Any) Any {
 	// this is a hard one, for now, 2 arguments only
-	var xa, ya = unlist2(a)
-	var x, ok = xa.(Num)
-	if !ok { panic("TypeError") }
-	var y, oj = ya.(Num)
-	if !oj { panic("TypeError") }
-	return Div2(x, y)
+	return DtwoZM(a)
 }
 
 func Dabs(a Any) Any // derived, should be written in scheme
@@ -107,8 +87,8 @@ func Dapply(a Any) Any {
 }
 
 func Dassoc(a Any) Any // derived
-func Dassq(a Any) Any // derived
-func Dassv(a Any) Any // derived
+func Dassq(a Any) Any  // derived
+func Dassv(a Any) Any  // derived
 
 func DbinaryZKportZS(a Any) Any {
 	return SBool(IsBinaryPort(unlist1(a)))
@@ -139,20 +119,19 @@ func DcallZKwithZKvalues(a Any) Any
 func DcallZMcc(a Any) Any
 
 func Dcar(a Any) Any {
-	var p, ok = unlist1(a).(SPair)
-	if !ok { panic("TypeError: expected Pair") }
-	return p.car
+	return unlist1(a).(SPair).car
 }
 
 func Dcdr(a Any) Any {
-	var p, ok = unlist1(a).(SPair)
-	if !ok { panic("TypeError: expected Pair") }
-	return p.cdr
+	return unlist1(a).(SPair).cdr
 }
 
 func Dceiling(a Any) Any
 
-func DcharZKZRinteger(a Any) Any
+func DcharZKZRinteger(a Any) Any {
+	return Sint64(a.(SChar))
+}
+
 func DcharZKreadyZS(a Any) Any
 func DcharZPZQZS(a Any) Any
 func DcharZPZS(a Any) Any
@@ -171,7 +150,7 @@ func DcomplexZS(a Any) Any
 
 func Dcons(a Any) Any {
 	var b, c = unlist2(a)
-	return SPair{b, c}
+	return list1R(b, c)
 }
 
 func DcurrentZKerrorZKport(a Any) Any
@@ -189,7 +168,7 @@ func DeqZS(a Any) Any {
 func DequalZS(a Any) Any {
 	var x, y = unlist2(a)
 	return SBool(x.Equal(y))
-	
+
 }
 
 func DeqvZS(a Any) Any {
@@ -204,7 +183,9 @@ func DerrorZKobjectZS(a Any) Any
 
 func DevenZS(a Any) Any {
 	var n, ok = unlist1(a).(Num)
-	if !ok { return SBool(false) }
+	if !ok {
+		return SBool(false)
+	}
 	//if !IsInteger(n) { return SBool(false) }
 	var mod = n.Mod1(n.FromI64(2)).Cmp1(n.FromI64(0))
 	return SBool(mod == 0)
@@ -216,9 +197,11 @@ func DexactZKintegerZS(a Any) Any
 
 func DexactZS(a Any) Any {
 	var n, ok = a.(Num)
-	if !ok { return SBool(false) }
+	if !ok {
+		return SBool(false)
+	}
 	var t = n.GetNumberType()
-	return SBool(t & NumberTypeCodeInexact == 0)
+	return SBool(t&NumberTypeCodeInexact == 0)
 }
 
 func Dexpt(a Any) Any // derived
@@ -232,19 +215,30 @@ func DinexactZKZRexact(a Any) Any
 
 func DinexactZS(a Any) Any {
 	var n, ok = a.(Num)
-	if !ok { return SBool(false) }
+	if !ok {
+		return SBool(false)
+	}
 	var t = n.GetNumberType()
-	return SBool(t & NumberTypeCodeInexact != 0)
+	return SBool(t&NumberTypeCodeInexact != 0)
 }
 
 func DinputZKportZS(a Any) Any {
 	return SBool(IsInputPort(unlist1(a)))
 }
 
-func DintegerZKZRchar(a Any) Any
-func DintegerZS(a Any) Any
+func DintegerZKZRchar(a Any) Any {
+	return SChar(a.(Num).ToI64())
+}
+
+func DintegerZS(a Any) Any {
+	return SBool(IsInteger(unlist1(a)))
+}
+
 func Dlcm(a Any) Any // derived
-func Dlength(a Any) Any
+
+func Dlength(a Any) Any {
+	return Sint64(Length(unlist1(a)))
+}
 
 // this is the easiest function ever
 func Dlist(a Any) Any {
@@ -254,20 +248,42 @@ func Dlist(a Any) Any {
 func DlistZKZRstring(a Any) Any
 
 func DlistZKZRvector(a Any) Any {
-	var list = unlist1(a)
 	var vec = []Any{}
-	var cur Any
-	for cur = list; IsPair(cur);
-	    cur = cur.(SPair).cdr {
+	for cur := unlist1(a); IsPair(cur); cur = cur.(SPair).cdr {
 		vec = append(vec, cur.(SPair).car)
 	}
 	return SVector{vec, 0}
 }
 
-func DlistZKcopy(a Any) Any
-func DlistZKref(a Any) Any
-func DlistZKsetZA(a Any) Any
-func DlistZKtail(a Any) Any
+func DlistZKcopy(a Any) Any {
+	// in mutable model we need to copy
+	// in immutable model we don't
+	return unlist1(a)
+}
+
+func DlistZKref(a Any) Any {
+	list, ka := unlist2(a)
+	k := ka.(Num).ToI64()
+	for cur := list; IsPair(cur); k, cur = k-1, cur.(SPair).cdr {
+		if k == 0 {
+			return cur.(SPair).car
+		}
+	}
+	panic("TypeError: what")
+}
+
+func DlistZKsetZA(a Any) Any // only in mutable model
+
+func DlistZKtail(a Any) Any {
+	list, ka := unlist2(a)
+	k := ka.(Num).ToI64()
+	for cur := list; IsPair(cur); k, cur = k-1, cur.(SPair).cdr {
+		if k == 0 {
+			return cur.(SPair).cdr
+		}
+	}
+	panic("TypeError: what")
+}
 
 func DlistZS(a Any) Any {
 	return SBool(IsList(unlist1(a)))
@@ -299,7 +315,9 @@ func Dnumerator(a Any) Any
 
 func DoddZS(a Any) Any {
 	var n, ok = unlist1(a).(Num)
-	if !ok { return SBool(false) }
+	if !ok {
+		return SBool(false)
+	}
 	//if !IsInteger(n) { return SBool(false) }
 	var mod = n.Mod1(n.FromI64(2)).Cmp1(n.FromI64(0))
 	return SBool(mod != 0)
@@ -340,7 +358,7 @@ func DreadZKline(a Any) Any
 func DreadZKu8(a Any) Any
 func DrealZS(a Any) Any
 func Dremainder(a Any) Any // derived
-func Dreverse(a Any) Any // derived
+func Dreverse(a Any) Any   // derived
 func Dround(a Any) Any
 func DsetZKcarZA(a Any) Any
 func DsetZKcdrZA(a Any) Any
@@ -376,13 +394,9 @@ func Dtruncate(a Any) Any // derived
 
 // R6RS:u8-list->bytevector
 func Du8ZKlistZKZRbytevector(a Any) Any {
-	var list = unlist1(a)
 	var vec = []byte{}
-	var num int64
-	var cur Any
-	for cur = list; IsPair(cur);
-	    cur = cur.(SPair).cdr {
-		num = cur.(SPair).car.(Num).ToI64()
+	for cur := unlist1(a); IsPair(cur); cur = cur.(SPair).cdr {
+		num := cur.(SPair).car.(Num).ToI64()
 		if int64(byte(num)) != num {
 			panic("TypeError: expected byte")
 		}

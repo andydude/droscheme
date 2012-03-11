@@ -33,7 +33,6 @@ package droscheme
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -63,9 +62,6 @@ var err error // return value for parsing errors
 %token <label> LABEL
 %token <token> VECTORPAREN
 %token <token> U8VECTORPAREN
-
-//%left Datums1
-//%left Datums0
 
 %start datum
 
@@ -99,34 +95,28 @@ datum:
 simpledatum:
 	BOOL
 	{
-	// a BOOL
 	$$ = $1
 	}
 |	NUMBER
 	{
-    // a NUMBER
 	$$ = $1
 	}
 |	CHAR
 	{
 	$$ = $1
-        //a CHAR
 	}
 |	STRING
 	{
 	$$ = $1
-        //a STRING
 	}
 |	symbol
 	{
 	$$ = $1
-	// a symbol
 	}
 // This is our name for bytevector, in case we want to support all SRFI-4 vectors
 |	u8vector
 	{
 	$$ = $1
-        //a u8vector
 	}
 
 symbol:
@@ -138,7 +128,6 @@ symbol:
 compounddatum:
 	list
 	{
-	// a list
     $$ = $1
 	}
 |	vector
@@ -153,7 +142,6 @@ list:
 	}
 |	'(' datums1 '.' datum ')'
 	{
-    //an improper list (dotted)
 	$$ = listR($2, $4)
 	}
 |	abbreviation
@@ -164,11 +152,11 @@ list:
 datums1:
 	datum
 	{
-	$$ = SPair{$1, SNull{}}
+	$$ = list1($1)
 	}
 |	datum datums1 
 	{
-	$$ = SPair{$1, $2}
+	$$ = list1R($1, $2)
 	}
 
 datums0:
@@ -178,25 +166,25 @@ datums0:
 	}
 |	/*empty*/
 	{
-	$$ = SNull{}
+	$$ = list0()
 	}
 
 abbreviation:
 	'\'' datum
 	{
-        //a (quote)
+	$$ = list1R(SSymbol{"quote"}, $2)
 	}
 |	'`' datum
 	{
-        //a (quasiquote)
+	$$ = list1R(SSymbol{"quasiquote"}, $2)
 	}
 |	',@' datum
 	{
-        //an (unquote-splicing)
+	$$ = list1R(SSymbol{"unquote-splicing"}, $2)
 	}
 |	',' datum
 	{
-        //an (unquote)
+	$$ = list1R(SSymbol{"unquote"}, $2)
 	}
 
 vector:
@@ -218,171 +206,12 @@ u8vector:
 %%
 // BEGIN lexer
 
-type Lexer struct {
-	input string
-	pos int
-	ch rune
-}
-
-func (lex *Lexer) consume() {
-	lex.pos++
-	if lex.pos < len(lex.input) {
-		lex.ch = rune(lex.input[lex.pos])
-	} else {
-		lex.ch = -1
-	}
-}
-
-func (lex *Lexer) match(ch rune) {
-	if ch != lex.ch {
-		panic("failed to match")
-	}
-	lex.consume()
-}
-
-func (lex *Lexer) eat() rune {
-	ch := lex.ch
-	lex.consume()
-	return ch
-}
-
-func (lex *Lexer) isLetter() bool {
-	return 'a' <= lex.ch && lex.ch <= 'z' || 'A' <= lex.ch && lex.ch <= 'Z'
-}
-
-func (lex *Lexer) isNUMBER() bool {
-	return '0' <= lex.ch && lex.ch <= '9'
-}
-
-func (lex *Lexer) isIDInitial() bool {
-	return lex.isLetter() || lex.isIDSpecialInitial()
-}
-
-func (lex *Lexer) isIDSpecialInitial() bool {
-	switch lex.ch {
-	case '!', '$', '%', '&', '*', '/', ':', '<', '=', '>', '?', '~', '_', '^':
-		return true
-	}
-	return false
-}
-
-func (lex *Lexer) isIDSpecialSubsequent() bool {
-	return lex.ch == '.' || lex.ch == '+' || lex.ch == '-'
-}
-
-func (lex *Lexer) readID() Any {
-	id := []rune{lex.eat()}
-	for lex.isIDInitial() || lex.isNUMBER() || lex.isIDSpecialSubsequent() {
-		id = append(id, lex.eat())
-	}
-	return SSymbol{string(id)}
-}
-
-func (lex *Lexer) readNUMBER() Any {
-	num := []rune{lex.eat()}
-	for lex.isNUMBER() {
-		num = append(num, lex.eat())
-	}
-	x, err := strconv.ParseInt(string(num), 10, 64)
-	if err != nil {
-		panic("Invalid number")
-	}
-	return Sint64(x)
-}
-
-func (lex *Lexer) readBOOL() Any {
-	if lex.ch == 't' {
-		lex.consume()
-		return SBool(true)
-	} else if lex.ch == 'f' {
-		lex.consume()
-		return SBool(false)
-	}
-	panic("Unknown boolean")
-}
-
-func (lex *Lexer) readU8VECTORPAREN() int {
-	if lex.ch == 'v' {
-		lex.match('v')
-	}
-	lex.match('u')
-	lex.match('8')
-	lex.match('(')
-	return U8VECTORPAREN
-}
-
-func (lex *Lexer) isWhitespace() bool {
-	if lex.ch == ' ' || lex.ch == '\t' || lex.ch == '\n' || lex.ch == 'r' {
-		return true
-	}
-	return false
-}
-
 func (lex *Lexer) Lex(lval *yySymType) int {
-	for lex.pos < len(lex.input) {
-		switch {
-		case lex.isWhitespace():
-			lex.consume()
-		case lex.ch == ')':
-			lex.consume()
-			return ')'
-		case lex.ch == '(':
-			lex.consume()
-			return '('
-		case lex.ch == '\'':
-			lex.consume()
-			return '\''
-		case lex.ch == '#':
-			lex.consume()
-			if lex.ch == 't' || lex.ch == 'f' {
-				lval.datum = lex.readBOOL()
-				lval.token = BOOL
-				return BOOL
-			}
-			if lex.ch == 'u' || lex.ch == 'v' {
-				lval.token = lex.readU8VECTORPAREN()
-				return U8VECTORPAREN
-			}
-			if lex.ch == '(' {
-				lex.consume()
-				return VECTORPAREN
-			}
-			return '#'
-		case lex.ch == '.':
-			lex.consume()
-			if lex.ch == '.' {
-				lex.match('.')
-				lex.match('.')
-				lval.datum = SSymbol{"..."}
-				lval.token = ID
-				return ID
-			} else {
-				return '.'
-			}
-		case lex.isIDInitial():
-			lval.datum = lex.readID()
-			lval.token = ID
-			return ID
-		case lex.ch == '+' || lex.ch == '-':
-			lex.consume()
-			if lex.isWhitespace() {
-				// if this is the end of the token, then it is an id
-				lval.datum = lex.readID()
-				lval.token = ID
-				return ID
-			}
-			// if this is the beginning of the token, then it is a number
-			fallthrough
-		case lex.isNUMBER():
-			lval.datum = lex.readNUMBER()
-			lval.token = NUMBER
-			return NUMBER
-		default:
-			lex.consume()
-			return int(lex.ch)
-		}
-	}
-	return -1
+	tok := lex.nextToken()
+	// can we use copy() instead?
+	lval.datum = tok.datum
+	lval.token = tok.token
+	return lval.token
 }
 
 func (lex *Lexer) Error(e string) {
@@ -394,7 +223,7 @@ func Read(input string) (Any, error) {
 	if input == "" {
 		return nil, nil
 	}
-	lex := &Lexer{input, 0, rune(input[0])}
+	lex := newLexer(input)
 	yyParse(lex)
 	err2 := err
 	err = nil

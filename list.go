@@ -80,7 +80,7 @@ func (o SBool) String() string {
 
 // character type
 
-type SChar int 
+type SChar int
 
 // character methods
 
@@ -98,13 +98,15 @@ func (o SChar) GetHash() uintptr {
 }
 
 func (o SChar) Equal(a Any) bool {
-	if !IsChar(a) { return false }
+	if !IsChar(a) {
+		return false
+	}
 	return o == a.(SChar)
 }
 
 // null type
 
-type SNull struct {}
+type SNull struct{}
 
 // null methods
 
@@ -127,7 +129,9 @@ func (o SNull) GetHash() uintptr {
 }
 
 func (_ SNull) Equal(a Any) bool {
-	if !IsNull(a) { return false }
+	if !IsNull(a) {
+		return false
+	}
 	return true
 }
 
@@ -246,7 +250,7 @@ func (o SString) String() string {
 // s:vector type
 
 type SVector struct {
-	items []Any
+	items    []Any
 	itemtype int
 }
 
@@ -285,9 +289,9 @@ type AnyMapping interface {
 // type type
 
 type SType struct {
-	typeName string
-	typeCode int
-	portTypeCode int
+	typeName       string
+	typeCode       int
+	portTypeCode   int
 	numberTypeCode int
 }
 
@@ -306,6 +310,10 @@ func (o SType) GetPortType() int {
 
 // returns multiple values for argument handling
 // so I don't think we need to export any of these
+
+func list0() Any {
+	return SNull{}
+}
 
 func list1(a Any) Any {
 	return SPair{a, SNull{}}
@@ -342,8 +350,8 @@ func listR(most, last Any) Any {
 
 	// immutable model requires reconstruction
 	if IsPair(most) {
-		return SPair{most.(SPair).car, 
-			   listR(most.(SPair).cdr, last)}
+		return SPair{most.(SPair).car,
+			listR(most.(SPair).cdr, last)}
 	}
 
 	// assume IsNull
@@ -397,62 +405,62 @@ func unlist3R(o Any) (a Any, b Any, c Any, r Any) {
 // trying to make higher-order functions
 
 func proc1(f func(Any) Any) func(Any) Any {
-	return func (o Any) Any {
+	return func(o Any) Any {
 		var a = unlist1(o)
 		return f(a)
 	}
 }
 
 func proc2(f func(Any, Any) Any) func(Any) Any {
-	return func (o Any) Any {
+	return func(o Any) Any {
 		var a, b = unlist2(o)
 		return f(a, b)
 	}
 }
 
 func proc3(f func(Any, Any, Any) Any) func(Any) Any {
-	return func (o Any) Any {
+	return func(o Any) Any {
 		var a, b, c = unlist3(o)
 		return f(a, b, c)
 	}
 }
 
 func proc1R(f func(a, rest Any) Any) func(Any) Any {
-	return func (o Any) Any {
+	return func(o Any) Any {
 		var a, rest = unlist1R(o)
 		return f(a, rest)
 	}
 }
 
 func proc2R(f func(a, b, rest Any) Any) func(Any) Any {
-	return func (o Any) Any {
+	return func(o Any) Any {
 		var a, b, rest = unlist2R(o)
 		return f(a, b, rest)
 	}
 }
 
 func proc3R(f func(a, b, c, rest Any) Any) func(Any) Any {
-	return func (o Any) Any {
+	return func(o Any) Any {
 		var a, b, c, rest = unlist3R(o)
 		return f(a, b, c, rest)
 	}
 }
 
 func unproc1(f func(Any) Any) func(Any) Any {
-	return func (a Any) Any { return f(list1(a)) }
+	return func(a Any) Any { return f(list1(a)) }
 }
 func unproc2(f func(Any) Any) func(Any, Any) Any {
-	return func (a, b Any) Any { return f(list2(a, b)) }
+	return func(a, b Any) Any { return f(list2(a, b)) }
 }
 func unproc3(f func(Any) Any) func(Any, Any, Any) Any {
-	return func (a, b, c Any) Any { return f(list3(a, b, c)) }
+	return func(a, b, c Any) Any { return f(list3(a, b, c)) }
 }
 func unproc1R(f func(Any) Any) func(Any, Any) Any {
-	return func (a, rest Any) Any { return f(list1R(a, rest)) }
+	return func(a, rest Any) Any { return f(list1R(a, rest)) }
 }
 func unproc2R(f func(Any) Any) func(Any, Any, Any) Any {
-	return func (a, b, rest Any) Any { return f(list2R(a, b, rest)) }
+	return func(a, b, rest Any) Any { return f(list2R(a, b, rest)) }
 }
 func unproc3R(f func(Any) Any) func(Any, Any, Any, Any) Any {
-	return func (a, b, c, rest Any) Any { return f(list3R(a, b, c, rest)) }
+	return func(a, b, c, rest Any) Any { return f(list3R(a, b, c, rest)) }
 }
