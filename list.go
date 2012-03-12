@@ -274,6 +274,36 @@ func (o SVector) String() string {
 	return fmt.Sprintf("#(%s)", ret[1:])
 }
 
+// procedure type
+
+type SProc struct {
+	call func(Any)Any
+	name string
+}
+
+// procedure methods
+
+func IsProcedure(o Any) bool {
+	return IsType(o, TypeCodeProc)
+}
+
+func (o SProc) GetType() int {
+	return TypeCodeProc
+}
+
+func (o SProc) GetHash() uintptr {
+	return 0 // TODO
+}
+
+func (o SProc) Equal(a Any) bool {
+	return false
+}
+
+func (o SProc) String() string {
+	return fmt.Sprintf("#<procedure:%s>", o.name)
+}
+
+
 // misc
 
 type AnyVec []Any

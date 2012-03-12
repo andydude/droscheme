@@ -306,7 +306,7 @@ func (lex *Lexer) lexSigns() State {
 		return (*Lexer).lexId
 	}
 
-	fmt.Printf("\n-- lexSigns() %s--\n", string(s))
+	//fmt.Printf("\n-- lexSigns() %s--\n", string(s))
 
 	// if this is the beginning of the token, then it is a number
 	switch {
@@ -330,7 +330,7 @@ func (lex *Lexer) lexId() State {
 	for lex.isSubsequent() { lex.next() }
 	lex.backup()
 	str := lex.input[lex.start:lex.pos]
-	fmt.Printf("\n-- lexId() %s--\n", str)
+	//fmt.Printf("\n-- lexId() %s--\n", str)
 	lex.emitId(str)
 	return (*Lexer).lexToken
 }
@@ -344,7 +344,7 @@ func (lex *Lexer) lexNumber() State {
 
 	// TODO: rest of number syntax
 	num := lex.input[lex.start:lex.pos]
-	fmt.Printf("\n-- lexNumber() %s--\n", num)
+	//fmt.Printf("\n-- lexNumber() %s--\n", num)
 	x, err := strconv.Atoi(num)
 	if err != nil {
 		panic(err)
