@@ -17,6 +17,29 @@ type Sfloat64 float64
 type Scomplex64 complex64
 type Scomplex128 complex128
 
+func IsInteger(a Any) bool {
+	if !IsNumber(a) { return false }
+	switch a.(Num).GetNumberType() &^ NumberTypeCodeInexact {
+	case NumberTypeCodeI8:
+		fallthrough
+	case NumberTypeCodeI16:
+		fallthrough
+	case NumberTypeCodeI32:
+		fallthrough
+	case NumberTypeCodeI64:
+		return true
+	}
+	return false
+}
+
+func IsReal(a Any) bool {
+	if !IsNumber(a) { return false }
+	if a.(Num).GetNumberType() & NumberTypeCodeComplex != 0 {
+		return false
+	}
+	return true
+}
+
 // type codes
 func (o Sint8) GetType() int { return TypeCodeNumber }
 func (o Sint8) GetNumberType() int { return NumberTypeCodeI8 }

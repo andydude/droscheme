@@ -31,6 +31,10 @@ type SSymbol struct {
 	name string
 }
 
+func IsSymbol(o Any) bool {
+	return o.GetType() == TypeCodeSymbol
+}
+
 func (o SSymbol) GetType() int {
 	return TypeCodeSymbol
 }
@@ -80,7 +84,7 @@ func (o SBool) String() string {
 
 // character type
 
-type SChar int 
+type SChar int
 
 // character methods
 
@@ -94,16 +98,19 @@ func (o SChar) GetType() int {
 }
 
 func (o SChar) GetHash() uintptr {
-	return 0 // TODO
+	return uintptr(int(o))
 }
 
-func (o SChar) Equal(Any) bool {
-	return false // TODO
+func (o SChar) Equal(a Any) bool {
+	if !IsChar(a) {
+		return false
+	}
+	return o == a.(SChar)
 }
 
 // null type
 
-type SNull struct {}
+type SNull struct{}
 
 // null methods
 
@@ -122,20 +129,18 @@ func (o SNull) GetType() int {
 }
 
 func (o SNull) GetHash() uintptr {
-	// TODO
 	return 0
 }
 
 func (_ SNull) Equal(a Any) bool {
-	return false // TODO
-}
-
-func (_ SNull) Length() int {
-	return 0
+	if !IsNull(a) {
+		return false
+	}
+	return true
 }
 
 func (_ SNull) String() string {
-	return "nil"
+	return "()"
 }
 
 // s:pair type
@@ -169,17 +174,6 @@ func (o SPair) Equal(a Any) bool {
 	return false // TODO
 }
 
-func (o SPair) Length() int {
-	// TODO: cycle detection
-	switch o.cdr.GetType() {
-	case TypeCodePair:
-		return 1 + o.cdr.(SPair).Length()
-	case TypeCodeNull:
-		return 1
-	}
-	return 2
-}
-
 func (o SPair) String() string {
 	return fmt.Sprintf("(%s . %s)", o.car, o.cdr)
 }
@@ -188,7 +182,7 @@ func IsList(o Any) bool {
 	// By definition, all lists are chains of pairs that have 
 	// finite length and are terminated by the empty list. [R6RS]
 
-	// TODO: cycle detection
+	// cycle detection (only needed in mutable model)
 	switch o.GetType() {
 	case TypeCodeNull:
 		return true
@@ -196,6 +190,17 @@ func IsList(o Any) bool {
 		return IsList(o.(SPair).cdr)
 	}
 	return false
+}
+
+func Length(o Any) int {
+	// cycle detection (only needed in mutable model)
+	switch o.GetType() {
+	case TypeCodePair:
+		return 1 + Length(o.(SPair).cdr)
+	case TypeCodeNull:
+		return 0
+	}
+	return 1
 }
 
 // s:bytevector type
@@ -216,7 +221,15 @@ func (o SBinary) Equal(a Any) bool {
 	return false // TODO
 }
 
-// s:bytevector type
+func (o SBinary) String() string {
+	var ret string = ""
+	for i := 0; i < len(o.bytes); i++ {
+		ret += fmt.Sprintf(" %s", Sint64(o.bytes[i]))
+	}
+	return fmt.Sprintf("#u8(%s)", ret[1:])
+}
+
+// s:string type
 
 type SString struct {
 	text string
@@ -234,10 +247,14 @@ func (o SString) Equal(a Any) bool {
 	return false // TODO
 }
 
+func (o SString) String() string {
+	return fmt.Sprintf("\"%s\"", o.text)
+}
+
 // s:vector type
 
 type SVector struct {
-	items []Any
+	items    []Any
 	itemtype int
 }
 
@@ -252,6 +269,44 @@ func (o SVector) GetHash() uintptr {
 func (o SVector) Equal(a Any) bool {
 	return false // TODO
 }
+
+func (o SVector) String() string {
+	var ret string = ""
+	for i := 0; i < len(o.items); i++ {
+		ret += fmt.Sprintf(" %s", o.items[i])
+	}
+	return fmt.Sprintf("#(%s)", ret[1:])
+}
+
+// procedure type
+
+type SProc struct {
+	call func(Any)Any
+	name string
+}
+
+// procedure methods
+
+func IsProcedure(o Any) bool {
+	return IsType(o, TypeCodeProc)
+}
+
+func (o SProc) GetType() int {
+	return TypeCodeProc
+}
+
+func (o SProc) GetHash() uintptr {
+	return 0 // TODO
+}
+
+func (o SProc) Equal(a Any) bool {
+	return false
+}
+
+func (o SProc) String() string {
+	return fmt.Sprintf("#<procedure:%s>", o.name)
+}
+
 
 // misc
 
@@ -268,9 +323,9 @@ type AnyMapping interface {
 // type type
 
 type SType struct {
-	typeName string
-	typeCode int
-	portTypeCode int
+	typeName       string
+	typeCode       int
+	portTypeCode   int
 	numberTypeCode int
 }
 
@@ -289,6 +344,10 @@ func (o SType) GetPortType() int {
 
 // returns multiple values for argument handling
 // so I don't think we need to export any of these
+
+func list0() Any {
+	return SNull{}
+}
 
 func list1(a Any) Any {
 	return SPair{a, SNull{}}
@@ -314,6 +373,25 @@ func list3R(a, b, c, rest Any) Any {
 	return SPair{a, SPair{b, SPair{c, rest}}}
 }
 
+func listR(most, last Any) Any {
+	//// this would have worked in the mutable model
+	//var lastpair Any
+	//for lastpair = most;
+	//IsPair(lastpair.(SPair).cdr);
+	//lastpair = lastpair.(SPair).cdr {}
+	//lastpair.(SPair).cdr = last
+	//return most
+
+	// immutable model requires reconstruction
+	if IsPair(most) {
+		return SPair{most.(SPair).car,
+			listR(most.(SPair).cdr, last)}
+	}
+
+	// assume IsNull
+	return last
+}
+
 func unlist1(o Any) Any {
 	return o.(SPair).car
 }
@@ -330,6 +408,7 @@ func unlist3(o Any) (a, b, c Any) {
 	c = o.(SPair).cdr
 	b = c.(SPair).car
 	c = c.(SPair).cdr
+	c = c.(SPair).car
 	return
 }
 
@@ -360,62 +439,62 @@ func unlist3R(o Any) (a Any, b Any, c Any, r Any) {
 // trying to make higher-order functions
 
 func proc1(f func(Any) Any) func(Any) Any {
-	return func (o Any) Any {
+	return func(o Any) Any {
 		var a = unlist1(o)
 		return f(a)
 	}
 }
 
 func proc2(f func(Any, Any) Any) func(Any) Any {
-	return func (o Any) Any {
+	return func(o Any) Any {
 		var a, b = unlist2(o)
 		return f(a, b)
 	}
 }
 
 func proc3(f func(Any, Any, Any) Any) func(Any) Any {
-	return func (o Any) Any {
+	return func(o Any) Any {
 		var a, b, c = unlist3(o)
 		return f(a, b, c)
 	}
 }
 
 func proc1R(f func(a, rest Any) Any) func(Any) Any {
-	return func (o Any) Any {
+	return func(o Any) Any {
 		var a, rest = unlist1R(o)
 		return f(a, rest)
 	}
 }
 
 func proc2R(f func(a, b, rest Any) Any) func(Any) Any {
-	return func (o Any) Any {
+	return func(o Any) Any {
 		var a, b, rest = unlist2R(o)
 		return f(a, b, rest)
 	}
 }
 
 func proc3R(f func(a, b, c, rest Any) Any) func(Any) Any {
-	return func (o Any) Any {
+	return func(o Any) Any {
 		var a, b, c, rest = unlist3R(o)
 		return f(a, b, c, rest)
 	}
 }
 
 func unproc1(f func(Any) Any) func(Any) Any {
-	return func (a Any) Any { return f(list1(a)) }
+	return func(a Any) Any { return f(list1(a)) }
 }
 func unproc2(f func(Any) Any) func(Any, Any) Any {
-	return func (a, b Any) Any { return f(list2(a, b)) }
+	return func(a, b Any) Any { return f(list2(a, b)) }
 }
 func unproc3(f func(Any) Any) func(Any, Any, Any) Any {
-	return func (a, b, c Any) Any { return f(list3(a, b, c)) }
+	return func(a, b, c Any) Any { return f(list3(a, b, c)) }
 }
 func unproc1R(f func(Any) Any) func(Any, Any) Any {
-	return func (a, rest Any) Any { return f(list1R(a, rest)) }
+	return func(a, rest Any) Any { return f(list1R(a, rest)) }
 }
 func unproc2R(f func(Any) Any) func(Any, Any, Any) Any {
-	return func (a, b, rest Any) Any { return f(list2R(a, b, rest)) }
+	return func(a, b, rest Any) Any { return f(list2R(a, b, rest)) }
 }
 func unproc3R(f func(Any) Any) func(Any, Any, Any, Any) Any {
-	return func (a, b, c, rest Any) Any { return f(list3R(a, b, c, rest)) }
+	return func(a, b, c, rest Any) Any { return f(list3R(a, b, c, rest)) }
 }

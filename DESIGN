@@ -100,6 +100,128 @@ libraries since R6RS, it is still evolving:
 These two library syntaxes could be mapped to a droscheme-specific syntax
 or we could pick one and convert the other to it.
 
+Official description:
+
+  ; R6RS
+
+  (library <library name>
+    (export <export spec> ...)
+    (import <import spec> ...)
+    <library body>)
+
+  <export spec> =
+    <identifier>
+    (rename (<identifier1> <identifier2>) ...) -- I don't think we should support this
+
+  <import spec> =
+    <import set>
+    (for <import set> <import level> ...) -- I don't think we should support this
+
+  <import set> =
+    <library name> -- must support
+    <library reference> -- OMG so complicated, no version support
+    (library <library reference>) -- I don't think we should support this
+    (only <import set> <identifier> ...)    
+    (except <import set> <identifier> ...)    
+    (prefix <import set> <identifier> ...)    
+    (rename <import set> (<identifier1> <identifier2>) ...)    
+
+  ; R7RS
+
+  (define-library <library name>
+    <library declaration> ...)
+
+  <library declaration> =
+    (export <export spec> ...)
+    (import <import spec> ...)
+    (begin <library body>)
+    (include <filename> ...)
+    (include-ci <filename> ...)
+    (cond-expand <cond-expand clause> ...)
+
+  <export spec> =
+    <identifier>
+    (rename <identifier1> <identifier2>) -- I don't think we should support this
+
+  <import spec> =
+    <import set>
+
+  <import set> =
+    <library name>
+    (only <import set> <identifier> ...)    
+    (except <import set> <identifier> ...)    
+    (prefix <import set> <identifier>)
+    (rename <import set> (<identifier1> <identifier2>) ...)  
+
+For example:
+
+ (import
+  (prefix
+   (rename (only (scheme base) = < <= > >=)
+           (= =?) (< <?) (<= <=?) (> >?) (>= >=?))
+   fx))
+
+would import the identifiers: fx=? fx<? fx<=? fx>? fx>=?
+into the current library being defined.
+
+There should be at least two libraries that have all builtin things,
+and the rest of the libraries should match R6RS or R7RS:
+
+(ds base) -- Droscheme derived procedures and syntaxes
+(ds base syntax)
+(ds builtin) -- core procedures and syntaxes -- NOT automatically imported
+(ds builtin syntax) -- no need to import, it's builtin
+(ds io)
+(ds math)
+(scheme base) ; R7RS draft
+(scheme case-lambda)
+(scheme char normalization)
+(scheme char)
+(scheme complex)
+(scheme division)
+(scheme eval)
+(scheme file)
+(scheme inexact)
+(scheme lazy)
+(scheme load)
+(scheme process-context)
+(scheme read)
+(scheme repl)
+(scheme time)
+(scheme write)
+(scheme)
+(srfi 0)
+(srfi 1)
+(srfi 9)
+(srfi 16)
+(srfi 99)
+(rnrs base) ; R6RS final
+(rnrs arithmetic bitwise)
+(rnrs arithmetic fixnums)
+(rnrs arithmetic flonums)
+(rnrs bytevectors)
+(rnrs conditions)
+(rnrs control)
+(rnrs enums)
+(rnrs exceptions)
+(rnrs files)
+(rnrs hashtables)
+(rnrs io ports)
+(rnrs io simple)
+(rnrs lists)
+(rnrs programs)
+(rnrs records inspection)
+(rnrs records procedural)
+(rnrs records syntactic)
+(rnrs sorting)
+(rnrs syntax-case)
+(rnrs unicode)
+(rnrs)
+(rnrs eval)
+(rnrs mutable-pairs)
+(rnrs mutable-strings)
+(rnrs r5rs)
+
 
 
 === The foreign-function-interface

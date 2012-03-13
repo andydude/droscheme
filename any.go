@@ -186,6 +186,10 @@ type Num interface {
 	Shr1(Num) Num
 }
 
+func IsNumber(a Any) bool {
+	return IsType(a, TypeCodeNumber)
+}
+
 func Cmp2(x Num, y Num) int { return x.Cmp1(y) }
 func Add2(x Num, y Num) Num { return x.Add1(y) }
 func Sub2(x Num, y Num) Num { return x.Sub1(y) }
