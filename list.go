@@ -31,6 +31,10 @@ type SSymbol struct {
 	name string
 }
 
+func IsSymbol(o Any) bool {
+	return o.GetType() == TypeCodeSymbol
+}
+
 func (o SSymbol) GetType() int {
 	return TypeCodeSymbol
 }

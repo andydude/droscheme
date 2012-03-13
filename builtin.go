@@ -83,9 +83,10 @@ func Dappend(a Any) Any {
 	return list0()
 }
 
+// (apply proc arg1 ... restargs)
 func Dapply(a Any) Any {
-	// this must be part of s:eval
-	return nil
+	proc, restargs := unlist2(a)
+	return Apply(proc, restargs)
 }
 
 func Dassoc(a Any) Any // derived
@@ -247,6 +248,13 @@ func DerrorZKobjectZKmessage(a Any) Any {
 }
 func DerrorZKobjectZS(a Any) Any {
 	return list0()
+}
+
+func Deval(a Any) Any {
+	expr, _ := unlist1R(a)
+	env := CurrentEnv()
+	out, _ := Eval(expr, env)
+	return out
 }
 
 func DevenZS(a Any) Any {
@@ -692,6 +700,11 @@ func DzeroZS(a Any) Any {
 	return list0()
 }
 
+var globalCurrentEnv Env
+func CurrentEnv() Env {
+	return globalCurrentEnv
+}
+
 // (ds builtin)
 func BuiltinEnv() Env {
 	return Env{
@@ -750,6 +763,7 @@ func BuiltinEnv() Env {
 	"error-object-irritants": SProc{DerrorZKobjectZKirritants, "error-object-irritants"},
 	"error-object-message": SProc{DerrorZKobjectZKmessage, "error-object-message"},
 	"error-object?": SProc{DerrorZKobjectZS, "error-object?"},
+	"eval": SProc{Deval, "eval"},
 	"even?": SProc{DevenZS, "even?"},
 	"exact->inexact": SProc{DexactZKZRinexact, "exact->inexact"},
 	"exact-integer-sqrt": SProc{DexactZKintegerZKsqrt, "exact-integer-sqrt"},

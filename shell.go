@@ -32,6 +32,7 @@ type Env struct {
  * Note that the procedure is NOT included in the list.
  */
 func Apply(proc, args Any) Any {
+	//proc.(SProc).call(args.(SPair).car)
 	return proc.(SProc).call(args)
 }
 
@@ -59,24 +60,66 @@ func EvalRec(expr Any, env Env, recursive bool) (value Any, error evalError) {
 		case t <= TypeCodeBool:
 			return expr, nil
 		case t == TypeCodeSymbol:
-			// (1) check keyword bindings
-			//if IsKeyword(first) {
-			//	return Syntax(env.GetTransform(first), rest)
-			//}
-
 			// (2) check general bindings	
 			// if we got here then it's not syntax
-			return env.bound[expr.(SSymbol).name], nil
+			n := expr.(SSymbol).name
+			return env.bound[n], nil
 		}
 		return expr, nil
 	}
 
+
 	// eval car and cdr
 	cas, cds := unlist1R(expr)
+
+	// (1) check keyword bindings
+	//if IsKeyword(cas) {
+	if IsSymbol(cas) {
+		switch n := cas.(SSymbol).name; {
+		case n == "define":
+			bvar, sval := unlist2(cds)
+			bval, _ := EvalRec(sval, env, true)
+			id := bvar.(SSymbol).name
+			if env.bound[id] != nil {
+				panic("EnvError: define variable must be unbound")
+			}
+			env.bound[id] = bval
+			return list0(), nil
+
+		case n == "define-library":
+		case n == "if":
+		case n == "lambda":
+		case n == "library":
+		case n == "quasiquote":
+		case n == "quasisyntax":
+		case n == "quote":
+			return cds, nil
+		case n == "set!":
+			bvar, sval := unlist2(cds)
+			bval, _ := EvalRec(sval, env, true)
+			id := bvar.(SSymbol).name
+			if env.bound[id] == nil {
+				panic("EnvError: set! variable must be prebound")
+			}
+			env.bound[id] = bval
+			return list0(), nil
+
+		case n == "syntax":
+		case n == "unquote":
+		case n == "unquote-splicing":
+		case n == "unsyntax":
+		case n == "unsyntax-splicing":
+		}
+		//return Syntax(env.GetTransform(first), rest)
+	}
+
 	car, _ := EvalRec(cas, env, false) // starting a new list
 	cdr, _ := EvalRec(cds, env, true) // continuation of this list
 
-	if !recursive && IsProcedure(car) {
+	if !recursive {
+		if !IsProcedure(car) {
+			panic("EvalError: expected procedure")
+		}
 		return Apply(car, cdr), nil
 	}
 
@@ -107,6 +150,7 @@ func Shell() {
 	}()
 
 	env := BuiltinEnv()
+	globalCurrentEnv = env
 	in := bufio.NewReader(os.Stdin)
 
 	//L
