@@ -176,6 +176,7 @@ func (lex *Lexer) lexSpace() State {
 func (lex *Lexer) lexToken() State {
 	switch r := lex.peek(); {
 	case r == eof: return nil
+	case r == '"': return (*Lexer).lexString
 	case r == '#': return (*Lexer).lexHash
 	case r == '.': return (*Lexer).lexDot
 	case r == '+' || r == '-':
@@ -191,6 +192,28 @@ func (lex *Lexer) lexToken() State {
 
 	// default
 	lex.emit(int(lex.next()))
+	return (*Lexer).lexToken
+}
+
+// ⟨string⟩ -> " ⟨string element⟩* "
+func (lex *Lexer) lexString() State {
+	lex.match1('"')
+
+	// not using lex.input[start:pos] to lex the string because
+	// we want to skip escape characters, not include them in
+	// the string contents
+	contents := []rune{}
+	
+	lex.next()
+	for lex.isStringElement() {
+		fmt.Printf("lex.ch == %c\n", lex.ch)
+		contents = append(contents, lex.ch)
+		lex.next()
+	}
+	lex.backup()
+	lex.match1('"')
+
+	lex.emitDatum(STRING, SString{string(contents)})
 	return (*Lexer).lexToken
 }
 
@@ -394,3 +417,19 @@ func (lex *Lexer) isWhitespace() bool {
 	return false
 }
 
+// ⟨string element⟩ -> ⟨any character other than " or \⟩ | \" | \\
+func (lex *Lexer) isStringElement() bool {
+	if lex.ch == '"' {
+		return false
+	}
+	if lex.ch == '\\' {
+		lex.next()
+		if lex.ch == '\\' || lex.ch == '"' {
+			return true
+		}
+		// not a \\ or \"--put it back
+		lex.backup()
+		return false
+	}
+	return true
+}
