@@ -645,7 +645,7 @@ func Dutf8ZKZRstring(a Any) Any {
 	return list0()
 }
 func Dvalues(a Any) Any {
-	return list0()
+	return valuesR(a)
 }
 func Dvector(a Any) Any {
 	return list0()

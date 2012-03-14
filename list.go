@@ -271,6 +271,10 @@ func (o SVector) Equal(a Any) bool {
 }
 
 func (o SVector) String() string {
+	if len(o.items) == 0 {
+		return "#()"
+	}
+
 	var ret string = ""
 	for i := 0; i < len(o.items); i++ {
 		ret += fmt.Sprintf(" %s", o.items[i])
@@ -307,17 +311,31 @@ func (o SProc) String() string {
 	return fmt.Sprintf("#<procedure:%s>", o.name)
 }
 
+// values type
 
-// misc
+type SValues struct {
+	values SVector
+}
 
-type AnyVec []Any
-type AnyEnv map[string]Any
-type AnyMap map[Any]Any
+// values methods
 
-type AnyMapping interface {
-	Any
-	Get(Any) Any
-	Set(Any, Any)
+func (o SValues) GetType() int {
+	return TypeCodeValues
+}
+
+func (o SValues) GetHash() uintptr {
+	return 0 // TODO
+}
+
+func (o SValues) Equal(a Any) bool {
+	return false
+}
+
+func (o SValues) String() string {
+	if len(o.values.items) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("#<values:%s>", o.values)
 }
 
 // type type
@@ -497,4 +515,20 @@ func unproc2R(f func(Any) Any) func(Any, Any, Any) Any {
 }
 func unproc3R(f func(Any) Any) func(Any, Any, Any, Any) Any {
 	return func(a, b, c, rest Any) Any { return f(list3R(a, b, c, rest)) }
+}
+
+// represents no return values
+func values0() Any {
+	return SValues{values: SVector{items: []Any{}}}
+}
+
+// represents 2 return values
+func values2(a, b Any) Any {
+	return SValues{values: SVector{items: []Any{a, b}}}
+}
+
+// represents multiple return values
+func valuesR(rest Any) Any {
+    vec := DlistZKZRvector(list1(rest)).(SVector)
+    return SValues{values: vec}
 }

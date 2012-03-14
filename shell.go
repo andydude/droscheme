@@ -22,6 +22,10 @@ type Env struct {
 	bound map[string]Any
 }
 
+func (env Env) IsBound(id string) bool {
+	return env.bound[id] != nil
+}
+
 /* Apply()
  *
  * a call form is (<proc> <datum> ...)
@@ -78,13 +82,13 @@ func EvalRec(expr Any, env Env, recursive bool) (value Any, error evalError) {
 		switch n := cas.(SSymbol).name; {
 		case n == "define":
 			bvar, sval := unlist2(cds)
-			bval, _ := EvalRec(sval, env, true)
+			bval, _ := Eval(sval, env)
 			id := bvar.(SSymbol).name
 			if env.bound[id] != nil {
 				panic("EnvError: define variable must be unbound")
 			}
 			env.bound[id] = bval
-			return list0(), nil
+			return values0(), nil
 
 		case n == "define-library":
 		case n == "if":
@@ -96,13 +100,13 @@ func EvalRec(expr Any, env Env, recursive bool) (value Any, error evalError) {
 			return cds, nil
 		case n == "set!":
 			bvar, sval := unlist2(cds)
-			bval, _ := EvalRec(sval, env, true)
+			bval, _ := Eval(sval, env)
 			id := bvar.(SSymbol).name
 			if env.bound[id] == nil {
 				panic("EnvError: set! variable must be prebound")
 			}
 			env.bound[id] = bval
-			return list0(), nil
+			return values0(), nil
 
 		case n == "syntax":
 		case n == "unquote":
@@ -174,7 +178,9 @@ func Shell() {
 		}
 
 		//P
-		fmt.Println(out)
+		if out.(fmt.Stringer).String() != "" {
+			fmt.Println(out)
+		}
 	}
 
 	fmt.Println()

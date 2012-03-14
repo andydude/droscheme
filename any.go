@@ -18,6 +18,7 @@ const (
 	TypeCodeVector  // go:SVector   s:vector?
 	TypeCodeRecord  // go:Record                  -- interface
 	TypeCodeLibrary //
+	TypeCodeValues  // multiple return values
 
 	// ... we can add more nonstandard types later
 
