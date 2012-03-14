@@ -142,10 +142,8 @@ func getLine(in *bufio.Reader) (string, error) {
 func Shell() {
 	defer func(){
 		if x := recover(); x != nil {
-			fmt.Println("droscheme: cought exception:")
+			fmt.Println("droscheme: caught exception:")
 			fmt.Println(x)
-		} else {
-			fmt.Println("droscheme: exited cleanly")
 		}
 	}()
 
@@ -162,6 +160,10 @@ func Shell() {
 		if lerr != nil {
 			fmt.Println(lerr)
 			break
+		}
+
+		if val == nil {
+			continue
 		}
 
 		//E
