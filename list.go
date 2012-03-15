@@ -209,8 +209,12 @@ type SBinary struct {
 	bytes []byte
 }
 
+func IsBinary(o Any) bool {
+	return IsType(o, TypeCodeBinary)
+}
+
 func (o SBinary) GetType() int {
-	return TypeCodeVector
+	return TypeCodeBinary
 }
 
 func (o SBinary) GetHash() uintptr {

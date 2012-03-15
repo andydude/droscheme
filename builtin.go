@@ -104,23 +104,32 @@ func DbooleanZS(a Any) Any {
 func DbytevectorZKcopy(a Any) Any {
 	return list0()
 }
+
 func DbytevectorZKcopyZA(a Any) Any {
 	return list0()
 }
+
 func DbytevectorZKcopyZKpartial(a Any) Any {
 	return list0()
 }
+
 func DbytevectorZKcopyZKpartialZA(a Any) Any {
 	return list0()
 }
+
 func DbytevectorZKlength(a Any) Any {
-	return list0()
+	return Sint64(len(unlist1(a).(SBinary).bytes))
 }
+
 func DbytevectorZKu8ZKref(a Any) Any {
-	return list0()
+	o, k := unlist2(a)
+	return Sint64(o.(SBinary).bytes[k.(Num).ToI64()])
 }
+
 func DbytevectorZKu8ZKsetZA(a Any) Any {
-	return list0()
+	o, k, v := unlist3(a)
+	o.(SBinary).bytes[k.(Num).ToI64()] = byte(v.(Num).ToI64())
+	return values0()
 }
 
 // R6RS:bytevector->u8-list
@@ -129,18 +138,21 @@ func DbytevectorZKZRu8ZKlist(a Any) Any {
 }
 
 func DbytevectorZS(a Any) Any {
-	return list0()
+	return SBool(IsBinary(unlist1(a)))
 }
 
 func DcallZKwithZKcurrentZKcontinuation(a Any) Any {
 	return list0()
 }
+
 func DcallZKwithZKport(a Any) Any {
 	return list0()
 }
+
 func DcallZKwithZKvalues(a Any) Any {
 	return list0()
 }
+
 func DcallZMcc(a Any) Any {
 	return list0()
 }
@@ -164,18 +176,23 @@ func DcharZKZRinteger(a Any) Any {
 func DcharZKreadyZS(a Any) Any {
 	return list0()
 }
+
 func DcharZPZQZS(a Any) Any {
 	return list0()
 }
+
 func DcharZPZS(a Any) Any {
 	return list0()
 }
+
 func DcharZQZS(a Any) Any {
 	return list0()
 }
+
 func DcharZRZQZS(a Any) Any {
 	return list0()
 }
+
 func DcharZRZS(a Any) Any {
 	return list0()
 }
@@ -187,12 +204,15 @@ func DcharZS(a Any) Any {
 func DcloseZKinputZKport(a Any) Any {
 	return list0()
 }
+
 func DcloseZKoutputZKport(a Any) Any {
 	return list0()
 }
+
 func DcloseZKport(a Any) Any {
 	return list0()
 }
+
 func DcomplexZS(a Any) Any {
 	return list0()
 }
@@ -205,18 +225,23 @@ func Dcons(a Any) Any {
 func DcurrentZKerrorZKport(a Any) Any {
 	return list0()
 }
+
 func DcurrentZKinputZKport(a Any) Any {
 	return list0()
 }
+
 func DcurrentZKoutputZKport(a Any) Any {
 	return list0()
 }
+
 func Ddenominator(a Any) Any {
 	return list0()
 }
+
 func DdynamicZKwind(a Any) Any {
 	return list0()
 }
+
 func DeofZKobjectZS(a Any) Any {
 	return list0()
 }
@@ -240,12 +265,15 @@ func DeqvZS(a Any) Any {
 func Derror(a Any) Any {
 	return list0()
 }
+
 func DerrorZKobjectZKirritants(a Any) Any {
 	return list0()
 }
+
 func DerrorZKobjectZKmessage(a Any) Any {
 	return list0()
 }
+
 func DerrorZKobjectZS(a Any) Any {
 	return list0()
 }
@@ -270,9 +298,11 @@ func DevenZS(a Any) Any {
 func DexactZKZRinexact(a Any) Any {
 	return list0()
 }
+
 func DexactZKintegerZKsqrt(a Any) Any {
 	return list0()
 }
+
 func DexactZKintegerZS(a Any) Any {
 	return list0()
 }
@@ -293,19 +323,24 @@ func Dexpt(a Any) Any {
 func Dfloor(a Any) Any {
 	return list0()
 }
+
 func DflushZKoutputZKport(a Any) Any {
 	return list0()
 }
+
 func DforZKeach(a Any) Any {
 	return list0()
 }
+
 func Dgcd(a Any) Any // derived
 func DgetZKoutputZKbytevector(a Any) Any {
 	return list0()
 }
+
 func DgetZKoutputZKstring(a Any) Any {
 	return list0()
 }
+
 func DinexactZKZRexact(a Any) Any {
 	return list0()
 }
@@ -391,47 +426,67 @@ func DlistZS(a Any) Any {
 func DmakeZKbytevector(a Any) Any {
 	return list0()
 }
+
 func DmakeZKlist(a Any) Any {
 	return list0()
 }
+
 func DmakeZKparameter(a Any) Any {
 	return list0()
 }
+
 func DmakeZKstring(a Any) Any {
 	return list0()
 }
+
+// (make-vector k fill?)
 func DmakeZKvector(a Any) Any {
-	return list0()
+	_, rest := unlist1R(a)
+	var fill Any = SNull{}
+	if IsPair(rest) {
+		fill = rest.(SPair).car
+	}
+	return fill
 }
+
 func Dmap(a Any) Any {
 	return list0()
 }
+
 func Dmax(a Any) Any {
 	return list0()
 }
+
 func Dmember(a Any) Any {
 	return list0()
 }
+
 func Dmemq(a Any) Any {
 	return list0()
 }
+
 func Dmemv(a Any) Any {
 	return list0()
 }
+
 func Dmin(a Any) Any {
 	return list0()
 }
+
 func Dmodulo(a Any) Any {
 	return list0()
 }
+
 func DnegativeZS(a Any) Any {
-	return list0()
+	return SBool(unlist1(a).(Num).ToF64() < 0)
 }
+
 func Dnewline(a Any) Any {
 	return list0()
 }
+
 func Dnot(a Any) Any {
-	return list0()
+	return SBool(!unlist1(a).(SBool))
 }
 
 func DnullZS(a Any) Any {
@@ -441,9 +496,12 @@ func DnullZS(a Any) Any {
 func DnumberZKZRstring(a Any) Any {
 	return list0()
 }
+
 func DnumberZS(a Any) Any {
-	return list0()
+	_, ok := unlist1(a).(Num)
+	return SBool(ok)
 }
+
 func Dnumerator(a Any) Any {
 	return list0()
 }
@@ -461,12 +519,15 @@ func DoddZS(a Any) Any {
 func DopenZKinputZKbytevector(a Any) Any {
 	return list0()
 }
+
 func DopenZKinputZKstring(a Any) Any {
 	return list0()
 }
+
 func DopenZKoutputZKbytevector(a Any) Any {
 	return list0()
 }
+
 func DopenZKoutputZKstring(a Any) Any {
 	return list0()
 }
@@ -482,9 +543,11 @@ func DpairZS(a Any) Any {
 func DpeekZKchar(a Any) Any {
 	return list0()
 }
+
 func DpeekZKu8(a Any) Any {
 	return list0()
 }
+
 func DportZKopenZS(a Any) Any {
 	return list0()
 }
@@ -494,7 +557,7 @@ func DportZS(a Any) Any {
 }
 
 func DpositiveZS(a Any) Any {
-	return list0()
+	return SBool(unlist1(a).(Num).ToF64() > 0)
 }
 
 func DprocedureZS(a Any) Any {
@@ -504,114 +567,143 @@ func DprocedureZS(a Any) Any {
 func Draise(a Any) Any {
 	return list0()
 }
+
 func DraiseZKcontinuable(a Any) Any {
 	return list0()
 }
+
 func DrationalZS(a Any) Any {
 	return list0()
 }
+
 func Drationalize(a Any) Any {
 	return list0()
 }
+
 func DreadZKbytevector(a Any) Any {
 	return list0()
 }
+
 func DreadZKbytevectorZA(a Any) Any {
 	return list0()
 }
+
 func DreadZKchar(a Any) Any {
 	return list0()
 }
+
 func DreadZKline(a Any) Any {
 	return list0()
 }
+
 func DreadZKu8(a Any) Any {
 	return list0()
 }
+
 func DrealZS(a Any) Any {
 	return list0()
 }
+
 func Dremainder(a Any) Any{
 	return list0()
 }
+
 func Dreverse(a Any) Any {
 	return list0()
 }
+
 func Dround(a Any) Any {
 	return list0()
 }
-func DsetZKcarZA(a Any) Any {
-	return list0()
-}
-func DsetZKcdrZA(a Any) Any {
-	return list0()
-}
+
 func Dstring(a Any) Any {
-	return list0()
+	return DlistZKZRstring(list1(a))
 }
+
 func DstringZKZRlist(a Any) Any {
 	return list0()
 }
+
 func DstringZKZRnumber(a Any) Any {
 	return list0()
 }
+
 func DstringZKZRsymbol(a Any) Any {
 	return list0()
 }
+
 func DstringZKZRutf8(a Any) Any {
-	return list0()
+	return SBinary{bytes: []byte(unlist1(a).(SString).text)}
 }
+
 func DstringZKZRvector(a Any) Any {
 	return list0()
 }
+
 func DstringZKappend(a Any) Any {
 	return list0()
 }
+
 func DstringZKcopy(a Any) Any {
 	return list0()
 }
+
 func DstringZKfillZA(a Any) Any {
 	return list0()
 }
+
 func DstringZKforZKeach(a Any) Any {
 	return list0()
 }
+
 func DstringZKlength(a Any) Any {
 	return list0()
 }
+
 func DstringZKmap(a Any) Any {
 	return list0()
 }
+
 func DstringZKref(a Any) Any {
 	return list0()
 }
+
 func DstringZKsetZA(a Any) Any {
 	return list0()
 }
+
 func DstringZPZQZS(a Any) Any {
 	return list0()
 }
+
 func DstringZPZS(a Any) Any {
 	return list0()
 }
+
 func DstringZQZS(a Any) Any {
 	return list0()
 }
+
 func DstringZRZQZS(a Any) Any {
 	return list0()
 }
+
 func DstringZRZS(a Any) Any {
 	return list0()
 }
+
 func DstringZS(a Any) Any {
 	return list0()
 }
+
 func Dsubstring(a Any) Any {
 	return list0()
 }
+
 func DsymbolZKZRstring(a Any) Any {
 	return list0()
 }
+
 func DsymbolZS(a Any) Any {
 	return list0()
 }
@@ -642,41 +734,56 @@ func Du8ZKreadyZS(a Any) Any {
 }
 
 func Dutf8ZKZRstring(a Any) Any {
-	return list0()
+	return SString{text: string(unlist1(a).(SBinary).bytes)}
 }
+
 func Dvalues(a Any) Any {
 	return valuesR(a)
 }
+
 func Dvector(a Any) Any {
-	return list0()
+	return DlistZKZRvector(list1(a))
 }
+
 func DvectorZKZRlist(a Any) Any {
 	return list0()
 }
+
 func DvectorZKZRstring(a Any) Any {
 	return list0()
 }
+
 func DvectorZKcopy(a Any) Any {
 	return list0()
 }
+
 func DvectorZKfillZA(a Any) Any {
 	return list0()
 }
+
 func DvectorZKforZKeach(a Any) Any {
 	return list0()
 }
+
 func DvectorZKlength(a Any) Any {
-	return list0()
+	return Sint64(len(unlist1(a).(SVector).items))
 }
+
 func DvectorZKmap(a Any) Any {
 	return list0()
 }
+
 func DvectorZKref(a Any) Any {
-	return list0()
+	o, k := unlist2(a)
+	return o.(SVector).items[k.(Num).ToI64()]
 }
-func DvectorZKset(a Any) Any {
-	return list0()
+
+func DvectorZKsetZA(a Any) Any {
+	o, k, v := unlist3(a)
+	o.(SVector).items[k.(Num).ToI64()] = v
+	return values0()
 }
+
 func DvectorZS(a Any) Any {
 	return list0()
 }
@@ -684,20 +791,25 @@ func DvectorZS(a Any) Any {
 func DwithZKexceptionZKhandler(a Any) Any {
 	return list0()
 }
+
 func DwriteZKbytevector(a Any) Any {
 	return list0()
 }
+
 func DwriteZKchar(a Any) Any {
 	return list0()
 }
+
 func DwriteZKpartialZKbytevector(a Any) Any {
 	return list0()
 }
+
 func DwriteZKu8(a Any) Any {
 	return list0()
 }
+
 func DzeroZS(a Any) Any {
-	return list0()
+	return SBool(int64(unlist1(a).(Num).ToI64()) == 0)
 }
 
 var globalCurrentEnv Env
@@ -871,6 +983,7 @@ func BuiltinEnv() Env {
 	"vector-length": SProc{DvectorZKlength, "vector-length"},
 	"vector-map": SProc{DvectorZKmap, "vector-map"},
 	"vector-ref": SProc{DvectorZKref, "vector-ref"},
+	"vector-set!": SProc{DvectorZKsetZA, "vector-set!"},
 	"vector?": SProc{DvectorZS, "vector?"},
 	"with-exception-handler": SProc{DwithZKexceptionZKhandler, "with-exception-handler"},
 	"write-bytevector": SProc{DwriteZKbytevector, "write-bytevector"},
