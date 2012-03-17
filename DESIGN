@@ -35,7 +35,7 @@ We might do something like replace number forms with procedures like this:
     #x... => (string->integer ... 16)
     ...+... => (make-rectangular ... ...)
     ...@... => (make-polar ... ...)
-    .../... => (/ ... ...)
+    .../... => (make/ ... ...)
 
 before it gets to the parser, so as to simplify the grammar...
 
