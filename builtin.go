@@ -297,17 +297,6 @@ func Deval(a Any) Any {
 	return value
 }
 
-func DevenZS(a Any) Any {
-	//var n, ok = unlist1(a).(Num)
-	//if !ok {
-	//	return SBool(false)
-	//}
-	////if !IsInteger(n) { return SBool(false) }
-	//var mod = n.Mod1(n.FromI64(2)).Cmp1(n.FromI64(0))
-	//return SBool(mod == 0)
-	return list0()
-}
-
 func DexactZKZRinexact(a Any) Any {
 	return list0()
 }
@@ -471,12 +460,12 @@ func DmakeZKparameter(a Any) Any {
 
 func DmakeZKpolar(a Any) Any {
 	mag, ang := unlist2(a)
-	return SComplexPolar{mag.(Num), ang.(Num)}
+	return NewComplexPolar(mag.(Num), ang.(Num))
 }
 
 func DmakeZKrectangular(a Any) Any {
 	x, y := unlist2(a)
-	return SComplex{x.(Num), y.(Num)}
+	return NewComplex(x.(Num), y.(Num))
 }
 
 func DmakeZKstring(a Any) Any {
@@ -552,17 +541,6 @@ func DnumberZS(a Any) Any {
 }
 
 func Dnumerator(a Any) Any {
-	return list0()
-}
-
-func DoddZS(a Any) Any {
-	//var n, ok = unlist1(a).(Num)
-	//if !ok {
-	//	return SBool(false)
-	//}
-	////if !IsInteger(n) { return SBool(false) }
-	//var mod = n.Mod1(n.FromI64(2)).Cmp1(n.FromI64(0))
-	//return SBool(mod != 0)
 	return list0()
 }
 
@@ -941,7 +919,7 @@ func BuiltinEnv() Env {
 	"error-object-message": SProc{DerrorZKobjectZKmessage, "error-object-message"},
 	"error-object?": SProc{DerrorZKobjectZS, "error-object?"},
 	"eval": SProc{Deval, "eval"},
-	"even?": SProc{DevenZS, "even?"},
+	//"even?": SProc{DevenZS, "even?"},
 	"exact->inexact": SProc{DexactZKZRinexact, "exact->inexact"},
 	"exact-integer-sqrt": SProc{DexactZKintegerZKsqrt, "exact-integer-sqrt"},
 	"exact-integer?": SProc{DexactZKintegerZS, "exact-integer?"},
@@ -990,7 +968,7 @@ func BuiltinEnv() Env {
 	"number->string": SProc{DnumberZKZRstring, "number->string"},
 	"number?": SProc{DnumberZS, "number?"},
 	"numerator": SProc{Dnumerator, "numerator"},
-	"odd?": SProc{DoddZS, "odd?"},
+	//"odd?": SProc{DoddZS, "odd?"},
 	"open-input-bytevector": SProc{DopenZKinputZKbytevector, "open-input-bytevector"},
 	"open-input-string": SProc{DopenZKinputZKstring, "open-input-string"},
 	"open-output-bytevector": SProc{DopenZKoutputZKbytevector, "open-output-bytevector"},

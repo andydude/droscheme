@@ -48,10 +48,10 @@ const (
 
 const (
 	// machine size numbers
-	NumberTypeCodeI8 = iota
-	NumberTypeCodeI16
-	NumberTypeCodeI32
-	NumberTypeCodeI64
+	NumberTypeCodeS8 = iota
+	NumberTypeCodeS16
+	NumberTypeCodeS32
+	NumberTypeCodeS64
 	NumberTypeCodeExactF32
 	NumberTypeCodeExactF64
 
@@ -59,38 +59,37 @@ const (
 	NumberTypeCodeInteger  // bigint?
 	NumberTypeCodeRational // bigrat?
 	NumberTypeCodeReal     // TBD: func(int)int?
-	NumberTypeCodeMax      // maximum
+	NumberTypeCodeBaseMax  // maximum
 
+	// general number bit field
 	NumberTypeCodeMask     = 0xF
 	NumberTypeCodeComplex  = 0x10
-	NumberTypeCodeReserved = 0x20
+	NumberTypeCodeUnsigned = 0x20
 	NumberTypeCodeCompolar = 0x30
 	NumberTypeCodeInexact  = 0x40
-	NumberTypeCodeUnsigned = 0x80
+	NumberTypeCodeReserved = 0x80
 
-	NumberTypeCodeU8  = NumberTypeCodeUnsigned | NumberTypeCodeI8
-	NumberTypeCodeU16 = NumberTypeCodeUnsigned | NumberTypeCodeI16
-	NumberTypeCodeU32 = NumberTypeCodeUnsigned | NumberTypeCodeI32
-	NumberTypeCodeU64 = NumberTypeCodeUnsigned | NumberTypeCodeI64
+	NumberTypeCodeU8  = NumberTypeCodeUnsigned | NumberTypeCodeS8
+	NumberTypeCodeU16 = NumberTypeCodeUnsigned | NumberTypeCodeS16
+	NumberTypeCodeU32 = NumberTypeCodeUnsigned | NumberTypeCodeS32
+	NumberTypeCodeU64 = NumberTypeCodeUnsigned | NumberTypeCodeS64
 	NumberTypeCodeNatural = NumberTypeCodeUnsigned | NumberTypeCodeInteger
 	NumberTypeCodeExactC64  = NumberTypeCodeComplex | NumberTypeCodeExactF32
 	NumberTypeCodeExactC128 = NumberTypeCodeComplex | NumberTypeCodeExactF64
-
-	// machine size number types are exact by default
-	NumberTypeCodeInexactI8  = NumberTypeCodeInexact | NumberTypeCodeI8
-	NumberTypeCodeInexactI16 = NumberTypeCodeInexact | NumberTypeCodeI16
-	NumberTypeCodeInexactI32 = NumberTypeCodeInexact | NumberTypeCodeI32
-	NumberTypeCodeInexactI64 = NumberTypeCodeInexact | NumberTypeCodeI64
+	NumberTypeCodeInexactS8  = NumberTypeCodeInexact | NumberTypeCodeS8
+	NumberTypeCodeInexactS16 = NumberTypeCodeInexact | NumberTypeCodeS16
+	NumberTypeCodeInexactS32 = NumberTypeCodeInexact | NumberTypeCodeS32
+	NumberTypeCodeInexactS64 = NumberTypeCodeInexact | NumberTypeCodeS64
 	NumberTypeCodeInexactU8  = NumberTypeCodeInexact | NumberTypeCodeU8
 	NumberTypeCodeInexactU16 = NumberTypeCodeInexact | NumberTypeCodeU16
 	NumberTypeCodeInexactU32 = NumberTypeCodeInexact | NumberTypeCodeU32
 	NumberTypeCodeInexactU64 = NumberTypeCodeInexact | NumberTypeCodeU64
-
-	// floating point types are inexact by default
 	NumberTypeCodeF32  = NumberTypeCodeInexact | NumberTypeCodeExactF32
 	NumberTypeCodeF64  = NumberTypeCodeInexact | NumberTypeCodeExactF64
 	NumberTypeCodeC64  = NumberTypeCodeInexact | NumberTypeCodeExactC64
 	NumberTypeCodeC128 = NumberTypeCodeInexact | NumberTypeCodeExactC128
+
+	NumberTypeCodeMax
 )
 
 // interfaces
