@@ -2,6 +2,7 @@ package droscheme
 
 import (
 	"fmt"
+	"errors"
 )
 
 // structures and methods in this file
@@ -84,7 +85,7 @@ func (o SBool) String() string {
 
 // character type
 
-type SChar int
+type SChar rune
 
 // character methods
 
@@ -106,6 +107,10 @@ func (o SChar) Equal(a Any) bool {
 		return false
 	}
 	return o == a.(SChar)
+}
+
+func (o SChar) String() string {
+	return fmt.Sprintf("#\\x%X", int(o))
 }
 
 // null type
@@ -239,6 +244,10 @@ type SString struct {
 	text string
 }
 
+func IsString(a Any) bool {
+	return IsType(a, TypeCodeString)
+}
+
 func (o SString) GetType() int {
 	return TypeCodeString
 }
@@ -260,6 +269,10 @@ func (o SString) String() string {
 type SVector struct {
 	items    []Any
 	itemtype int
+}
+
+func IsVector(a Any) bool {
+	return IsType(a, TypeCodeVector)
 }
 
 func (o SVector) GetType() int {
@@ -362,6 +375,26 @@ func (o SType) GetType() int {
 func (o SType) GetPortType() int {
 	//return o.portType
 	return 0 // TODO
+}
+
+func newEvalError(s string) error {
+	return errors.New("EvalError: " + s)
+}
+
+func newReadError(s string) error {
+	return errors.New("ReadError: " + s)
+}
+
+func newSyntaxError(s string) error {
+	return errors.New("SyntaxError: " + s)
+}
+
+func newTypeError(s string) error {
+	return errors.New("TypeError: " + s)
+}
+
+func newWriteError(s string) error {
+	return errors.New("WriteError: " + s)
 }
 
 // returns multiple values for argument handling

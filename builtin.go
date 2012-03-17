@@ -134,7 +134,18 @@ func DbytevectorZKu8ZKsetZA(a Any) Any {
 
 // R6RS:bytevector->u8-list
 func DbytevectorZKZRu8ZKlist(a Any) Any {
-	return SNull{}
+	return DvectorZKZRlist(list1(DbytevectorZKZRu8ZKvector(a)))
+}
+
+func DbytevectorZKZRu8ZKvector(a Any) Any {
+	bvec := unlist1(a).(SBinary)
+	blen := len(bvec.bytes)
+	vany := DmakeZKvector(list1(Sint64(blen)))
+	v := vany.(SVector)
+	for i := 0; i < blen; i++ {
+		v.items[i] = Sint64(bvec.bytes[i])
+	}
+	return vany
 }
 
 func DbytevectorZS(a Any) Any {
@@ -281,8 +292,11 @@ func DerrorZKobjectZS(a Any) Any {
 func Deval(a Any) Any {
 	expr, _ := unlist1R(a)
 	env := CurrentEnv()
-	out, _ := Eval(expr, env)
-	return out
+	value, err := Eval(expr, env)
+	if err != nil {
+		panic(err)
+	}
+	return value
 }
 
 func DevenZS(a Any) Any {
@@ -403,7 +417,7 @@ func DlistZKref(a Any) Any {
 			return cur.(SPair).car
 		}
 	}
-	panic("TypeError: what")
+	panic(newTypeError("list-ref"))
 }
 
 func DlistZKsetZA(a Any) Any // only in mutable model
@@ -416,7 +430,7 @@ func DlistZKtail(a Any) Any {
 			return cur.(SPair).cdr
 		}
 	}
-	panic("TypeError: what")
+	panic(newTypeError("list-tail"))
 }
 
 func DlistZS(a Any) Any {
@@ -424,11 +438,21 @@ func DlistZS(a Any) Any {
 }
 
 func DmakeZKbytevector(a Any) Any {
-	return list0()
+	k, rest := unlist1R(a)
+	var fill byte = 0
+	if IsPair(rest) {
+		fill = byte(rest.(SPair).car.(Num).ToI64())
+	}
+	n := int(k.(Num).ToI64())
+	v := make([]byte, n, 256)
+	for i := 0; i < n; i++ {
+		v[i] = fill
+	}
+	return SBinary{bytes: v}
 }
 
 func DmakeZKlist(a Any) Any {
-	return list0()
+	return DvectorZKZRlist(list1(DmakeZKvector(a)))
 }
 
 func DmakeZKparameter(a Any) Any {
@@ -441,12 +465,17 @@ func DmakeZKstring(a Any) Any {
 
 // (make-vector k fill?)
 func DmakeZKvector(a Any) Any {
-	_, rest := unlist1R(a)
+	k, rest := unlist1R(a)
 	var fill Any = SNull{}
 	if IsPair(rest) {
 		fill = rest.(SPair).car
 	}
-	return fill
+	n := int(k.(Num).ToI64())
+	v := make([]Any, n, 256)
+	for i := 0; i < n; i++ {
+		v[i] = fill
+	}
+	return SVector{items: v}
 }
 
 func Dmap(a Any) Any {
@@ -693,7 +722,7 @@ func DstringZRZS(a Any) Any {
 }
 
 func DstringZS(a Any) Any {
-	return list0()
+	return SBool(IsString(unlist1(a)))
 }
 
 func Dsubstring(a Any) Any {
@@ -705,7 +734,7 @@ func DsymbolZKZRstring(a Any) Any {
 }
 
 func DsymbolZS(a Any) Any {
-	return list0()
+	return SBool(IsSymbol(unlist1(a)))
 }
 
 func DtextualZKportZS(a Any) Any {
@@ -729,6 +758,10 @@ func Du8ZKlistZKZRbytevector(a Any) Any {
 	return SBinary{vec}
 }
 
+func Du8ZKvectorZKZRbytevector(a Any) Any {
+	return Du8ZKlistZKZRbytevector(list1(DvectorZKZRlist(a)))
+}
+
 func Du8ZKreadyZS(a Any) Any {
 	return list0()
 }
@@ -746,7 +779,11 @@ func Dvector(a Any) Any {
 }
 
 func DvectorZKZRlist(a Any) Any {
-	return list0()
+	vec := unlist1(a).(SVector)
+	if len(vec.items) == 0 {
+		return list0()
+	}
+	return list1R(vec.items[0], DvectorZKZRlist(list1(SVector{items: vec.items[1:]})))
 }
 
 func DvectorZKZRstring(a Any) Any {
@@ -785,7 +822,7 @@ func DvectorZKsetZA(a Any) Any {
 }
 
 func DvectorZS(a Any) Any {
-	return list0()
+	return SBool(IsVector(unlist1(a)))
 }
 
 func DwithZKexceptionZKhandler(a Any) Any {
@@ -834,6 +871,8 @@ func BuiltinEnv() Env {
 	//"assv": SProc{Dassv, "assv"},
 	"binary-port?": SProc{DbinaryZKportZS, "binary-port?"},
 	"boolean?": SProc{DbooleanZS, "boolean?"},
+	"bytevector->u8-list": SProc{DbytevectorZKZRu8ZKlist, "bytevector->u8-list"},
+	"bytevector->u8-vector": SProc{DbytevectorZKZRu8ZKvector, "bytevector->u8-vector"},
 	"bytevector-copy": SProc{DbytevectorZKcopy, "bytevector-copy"},
 	"bytevector-copy!": SProc{DbytevectorZKcopyZA, "bytevector-copy!"},
 	"bytevector-copy-partial": SProc{DbytevectorZKcopyZKpartial, "bytevector-copy-partial"},
@@ -971,6 +1010,8 @@ func BuiltinEnv() Env {
 	"symbol->string": SProc{DsymbolZKZRstring, "symbol->string"},
 	"symbol?": SProc{DsymbolZS, "symbol?"},
 	"textual-port?": SProc{DtextualZKportZS, "textual-port?"},
+	"u8-list->bytevector": SProc{Du8ZKlistZKZRbytevector, "u8-list->bytevector"},
+	"u8-vector->bytevector": SProc{Du8ZKvectorZKZRbytevector, "u8-vector->bytevector"},
 	"u8-ready?": SProc{Du8ZKreadyZS, "u8-ready?"},
 	"utf8->string": SProc{Dutf8ZKZRstring, "utf8->string"},
 	"values": SProc{Dvalues, "values"},

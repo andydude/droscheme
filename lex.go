@@ -206,7 +206,7 @@ func (lex *Lexer) lexString() State {
 	
 	lex.next()
 	for lex.isStringElement() {
-		fmt.Printf("lex.ch == %c\n", lex.ch)
+		//fmt.Printf("lex.ch == %c\n", lex.ch)
 		contents = append(contents, lex.ch)
 		lex.next()
 	}
@@ -214,6 +214,17 @@ func (lex *Lexer) lexString() State {
 	lex.match1('"')
 
 	lex.emitDatum(STRING, SString{string(contents)})
+	return (*Lexer).lexToken
+}
+
+func (lex *Lexer) lexChar() State {
+	// assume we've consumed #\ already
+	ch := lex.next()
+	if ch == 'x' {
+		// TODO
+	} else {
+		lex.emitDatum(CHAR, SChar(ch))
+	}
 	return (*Lexer).lexToken
 }
 
@@ -235,7 +246,7 @@ func (lex *Lexer) lexDot() State {
 	if lex.next() == '.' {
 		if lex.next() == '.' {
 			lex.emitId("...")
-			return (*Lexer).lexSpace
+			return (*Lexer).lexToken
 		} else {
 			panic("expected ...")
 		}
@@ -268,12 +279,14 @@ func (lex *Lexer) lexHash() State {
 	//fmt.Printf("\n-- lexHash() --\n")
 
 	switch r := lex.next(); {
+	case r == '\\':
+		return (*Lexer).lexChar
 	case r == 'f':
 		lex.emitDatum(BOOL, SBool(false))
-		return (*Lexer).lexSpace
+		return (*Lexer).lexToken
 	case r == 't':
 		lex.emitDatum(BOOL, SBool(true))
-		return (*Lexer).lexSpace
+		return (*Lexer).lexToken
 	case r == 'v':
 		lex.next()
 		fallthrough
