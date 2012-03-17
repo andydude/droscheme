@@ -123,12 +123,12 @@ func DbytevectorZKlength(a Any) Any {
 
 func DbytevectorZKu8ZKref(a Any) Any {
 	o, k := unlist2(a)
-	return Sint64(o.(SBinary).bytes[k.(Num).ToI64()])
+	return Sint64(o.(SBinary).bytes[ToFixnum(k)])
 }
 
 func DbytevectorZKu8ZKsetZA(a Any) Any {
 	o, k, v := unlist3(a)
-	o.(SBinary).bytes[k.(Num).ToI64()] = byte(v.(Num).ToI64())
+	o.(SBinary).bytes[ToFixnum(k)] = byte(ToFixnum(v))
 	return values0()
 }
 
@@ -258,19 +258,17 @@ func DeofZKobjectZS(a Any) Any {
 }
 
 func DeqZS(a Any) Any {
-	// TODO: this is to easy
-	return DequalZS(a)
+	return DeqvZS(a)
 }
 
 func DequalZS(a Any) Any {
 	var x, y = unlist2(a)
 	return SBool(x.Equal(y))
-
 }
 
 func DeqvZS(a Any) Any {
-	// TODO: this is to easy
-	return DequalZS(a)
+	var x, y = unlist2(a)
+	return SBool(Equal(x, y))
 }
 
 func Derror(a Any) Any {
@@ -300,13 +298,14 @@ func Deval(a Any) Any {
 }
 
 func DevenZS(a Any) Any {
-	var n, ok = unlist1(a).(Num)
-	if !ok {
-		return SBool(false)
-	}
-	//if !IsInteger(n) { return SBool(false) }
-	var mod = n.Mod1(n.FromI64(2)).Cmp1(n.FromI64(0))
-	return SBool(mod == 0)
+	//var n, ok = unlist1(a).(Num)
+	//if !ok {
+	//	return SBool(false)
+	//}
+	////if !IsInteger(n) { return SBool(false) }
+	//var mod = n.Mod1(n.FromI64(2)).Cmp1(n.FromI64(0))
+	//return SBool(mod == 0)
+	return list0()
 }
 
 func DexactZKZRinexact(a Any) Any {
@@ -355,6 +354,10 @@ func DgetZKoutputZKstring(a Any) Any {
 	return list0()
 }
 
+func Dhash(a Any) Any {
+	return Sint64(int64(Hash(unlist1(a))))
+}
+
 func DinexactZKZRexact(a Any) Any {
 	return list0()
 }
@@ -373,7 +376,7 @@ func DinputZKportZS(a Any) Any {
 }
 
 func DintegerZKZRchar(a Any) Any {
-	return SChar(a.(Num).ToI64())
+	return SChar(ToFixnum(unlist1(a)))
 }
 
 func DintegerZS(a Any) Any {
@@ -411,7 +414,7 @@ func DlistZKcopy(a Any) Any {
 
 func DlistZKref(a Any) Any {
 	list, ka := unlist2(a)
-	k := ka.(Num).ToI64()
+	k := ToFixnum(ka)
 	for cur := list; IsPair(cur); k, cur = k-1, cur.(SPair).cdr {
 		if k == 0 {
 			return cur.(SPair).car
@@ -424,7 +427,7 @@ func DlistZKsetZA(a Any) Any // only in mutable model
 
 func DlistZKtail(a Any) Any {
 	list, ka := unlist2(a)
-	k := ka.(Num).ToI64()
+	k := ToFixnum(ka)
 	for cur := list; IsPair(cur); k, cur = k-1, cur.(SPair).cdr {
 		if k == 0 {
 			return cur.(SPair).cdr
@@ -437,13 +440,20 @@ func DlistZS(a Any) Any {
 	return SBool(IsList(unlist1(a)))
 }
 
+func DmakeZM(a Any) Any {
+	nany, dany := unlist2(a)
+	n := ToFixnum(nany)
+	d := ToFixnum(dany)
+	return NewRational(n, d)
+}
+
 func DmakeZKbytevector(a Any) Any {
 	k, rest := unlist1R(a)
 	var fill byte = 0
 	if IsPair(rest) {
-		fill = byte(rest.(SPair).car.(Num).ToI64())
+		fill = byte(ToFixnum(rest.(SPair).car))
 	}
-	n := int(k.(Num).ToI64())
+	n := int(ToFixnum(k))
 	v := make([]byte, n, 256)
 	for i := 0; i < n; i++ {
 		v[i] = fill
@@ -459,6 +469,16 @@ func DmakeZKparameter(a Any) Any {
 	return list0()
 }
 
+func DmakeZKpolar(a Any) Any {
+	mag, ang := unlist2(a)
+	return SComplexPolar{mag.(Num), ang.(Num)}
+}
+
+func DmakeZKrectangular(a Any) Any {
+	x, y := unlist2(a)
+	return SComplex{x.(Num), y.(Num)}
+}
+
 func DmakeZKstring(a Any) Any {
 	return list0()
 }
@@ -470,7 +490,7 @@ func DmakeZKvector(a Any) Any {
 	if IsPair(rest) {
 		fill = rest.(SPair).car
 	}
-	n := int(k.(Num).ToI64())
+	n := int(ToFixnum(k))
 	v := make([]Any, n, 256)
 	for i := 0; i < n; i++ {
 		v[i] = fill
@@ -507,7 +527,7 @@ func Dmodulo(a Any) Any {
 }
 
 func DnegativeZS(a Any) Any {
-	return SBool(unlist1(a).(Num).ToF64() < 0)
+	return SBool(unlist1(a).(Num).Cmp1(Sfloat64(0)) == -1)
 }
 
 func Dnewline(a Any) Any {
@@ -536,13 +556,14 @@ func Dnumerator(a Any) Any {
 }
 
 func DoddZS(a Any) Any {
-	var n, ok = unlist1(a).(Num)
-	if !ok {
-		return SBool(false)
-	}
-	//if !IsInteger(n) { return SBool(false) }
-	var mod = n.Mod1(n.FromI64(2)).Cmp1(n.FromI64(0))
-	return SBool(mod != 0)
+	//var n, ok = unlist1(a).(Num)
+	//if !ok {
+	//	return SBool(false)
+	//}
+	////if !IsInteger(n) { return SBool(false) }
+	//var mod = n.Mod1(n.FromI64(2)).Cmp1(n.FromI64(0))
+	//return SBool(mod != 0)
+	return list0()
 }
 
 func DopenZKinputZKbytevector(a Any) Any {
@@ -586,7 +607,7 @@ func DportZS(a Any) Any {
 }
 
 func DpositiveZS(a Any) Any {
-	return SBool(unlist1(a).(Num).ToF64() > 0)
+	return SBool(unlist1(a).(Num).Cmp1(Sfloat64(0)) == 1)
 }
 
 func DprocedureZS(a Any) Any {
@@ -618,7 +639,8 @@ func DreadZKbytevectorZA(a Any) Any {
 }
 
 func DreadZKchar(a Any) Any {
-	return list0()
+	port := unlist1(a)
+	return port.(Port).Read()
 }
 
 func DreadZKline(a Any) Any {
@@ -749,7 +771,7 @@ func Dtruncate(a Any) Any {
 func Du8ZKlistZKZRbytevector(a Any) Any {
 	var vec = []byte{}
 	for cur := unlist1(a); IsPair(cur); cur = cur.(SPair).cdr {
-		num := cur.(SPair).car.(Num).ToI64()
+		num := ToFixnum(cur.(SPair).car)
 		if int64(byte(num)) != num {
 			panic("TypeError: expected byte")
 		}
@@ -812,12 +834,12 @@ func DvectorZKmap(a Any) Any {
 
 func DvectorZKref(a Any) Any {
 	o, k := unlist2(a)
-	return o.(SVector).items[k.(Num).ToI64()]
+	return o.(SVector).items[ToFixnum(k)]
 }
 
 func DvectorZKsetZA(a Any) Any {
 	o, k, v := unlist3(a)
-	o.(SVector).items[k.(Num).ToI64()] = v
+	o.(SVector).items[ToFixnum(k)] = v
 	return values0()
 }
 
@@ -834,7 +856,12 @@ func DwriteZKbytevector(a Any) Any {
 }
 
 func DwriteZKchar(a Any) Any {
-	return list0()
+	ch, port := unlist2(a)
+	if !IsChar(ch) {
+		panic(newTypeError("expected char"))
+	}
+	port.(Port).Write(ch)
+	return values0()
 }
 
 func DwriteZKpartialZKbytevector(a Any) Any {
@@ -846,7 +873,7 @@ func DwriteZKu8(a Any) Any {
 }
 
 func DzeroZS(a Any) Any {
-	return SBool(int64(unlist1(a).(Num).ToI64()) == 0)
+	return SBool(unlist1(a).(Num).Cmp1(Sint64(0)) == 0)
 }
 
 var globalCurrentEnv Env
@@ -881,7 +908,6 @@ func BuiltinEnv() Env {
 	"bytevector-u8-ref": SProc{DbytevectorZKu8ZKref, "bytevector-u8-ref"},
 	"bytevector-u8-set!": SProc{DbytevectorZKu8ZKsetZA, "bytevector-u8-set!"},
 	"bytevector?": SProc{DbytevectorZS, "bytevector?"},
-	"call-with-current-continuation": SProc{DcallZKwithZKcurrentZKcontinuation, "call-with-current-continuation"},
 	"call-with-port": SProc{DcallZKwithZKport, "call-with-port"},
 	"call-with-values": SProc{DcallZKwithZKvalues, "call-with-values"},
 	"call/cc": SProc{DcallZMcc, "call/cc"},
@@ -927,6 +953,7 @@ func BuiltinEnv() Env {
 	//"gcd": SProc{Dgcd, "gcd"},
 	"get-output-bytevector": SProc{DgetZKoutputZKbytevector, "get-output-bytevector"},
 	"get-output-string": SProc{DgetZKoutputZKstring, "get-output-string"},
+	"hash": SProc{Dhash, "hash"},
 	"inexact->exact": SProc{DinexactZKZRexact, "inexact->exact"},
 	"inexact?": SProc{DinexactZS, "inexact?"},
 	"input-port?": SProc{DinputZKportZS, "input-port?"},
@@ -942,9 +969,12 @@ func BuiltinEnv() Env {
 	//"list-set!": SProc{DlistZKsetZA, "list-set!"},
 	"list-tail": SProc{DlistZKtail, "list-tail"},
 	"list?": SProc{DlistZS, "list?"},
+	"make/": SProc{DmakeZM, "make/"},
 	"make-bytevector": SProc{DmakeZKbytevector, "make-bytevector"},
 	"make-list": SProc{DmakeZKlist, "make-list"},
 	"make-parameter": SProc{DmakeZKparameter, "make-parameter"},
+	"make-polar": SProc{DmakeZKpolar, "make-polar"},
+	"make-rectangular": SProc{DmakeZKrectangular, "make-rectangular"},
 	"make-string": SProc{DmakeZKstring, "make-string"},
 	"make-vector": SProc{DmakeZKvector, "make-vector"},
 	"map": SProc{Dmap, "map"},

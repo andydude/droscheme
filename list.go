@@ -40,11 +40,6 @@ func (o SSymbol) GetType() int {
 	return TypeCodeSymbol
 }
 
-func (o SSymbol) GetHash() uintptr {
-	// TODO
-	return 0
-}
-
 func (o SSymbol) Equal(a Any) bool {
 	return o.name == a.(SSymbol).name
 }

@@ -1,6 +1,8 @@
 package droscheme
 
-import ()
+import (
+	"reflect"
+)
 
 const (
 	TypeCodeAny = iota // reserved
@@ -50,26 +52,29 @@ const (
 	NumberTypeCodeI16
 	NumberTypeCodeI32
 	NumberTypeCodeI64
-	NumberTypeCodeU8
-	NumberTypeCodeU16
-	NumberTypeCodeU32
-	NumberTypeCodeU64
 	NumberTypeCodeExactF32
 	NumberTypeCodeExactF64
-	NumberTypeCodeExactC64
-	NumberTypeCodeExactC128
 
 	// abstract numbers are exact by default
-	NumberTypeCodeNatural  // bignat?
 	NumberTypeCodeInteger  // bigint?
-	NumberTypeCodeRational // [2]integer
+	NumberTypeCodeRational // bigrat?
 	NumberTypeCodeReal     // TBD: func(int)int?
+	NumberTypeCodeMax      // maximum
 
-	NumberTypeCodeMax // maximum
+	NumberTypeCodeMask     = 0xF
+	NumberTypeCodeComplex  = 0x10
+	NumberTypeCodeReserved = 0x20
+	NumberTypeCodeCompolar = 0x30
+	NumberTypeCodeInexact  = 0x40
+	NumberTypeCodeUnsigned = 0x80
 
-	NumberTypeCodeInexact = 0x100
-	NumberTypeCodeComplex = 0x200
-	NumberTypeCodeQuat    = 0x400
+	NumberTypeCodeU8  = NumberTypeCodeUnsigned | NumberTypeCodeI8
+	NumberTypeCodeU16 = NumberTypeCodeUnsigned | NumberTypeCodeI16
+	NumberTypeCodeU32 = NumberTypeCodeUnsigned | NumberTypeCodeI32
+	NumberTypeCodeU64 = NumberTypeCodeUnsigned | NumberTypeCodeI64
+	NumberTypeCodeNatural = NumberTypeCodeUnsigned | NumberTypeCodeInteger
+	NumberTypeCodeExactC64  = NumberTypeCodeComplex | NumberTypeCodeExactF32
+	NumberTypeCodeExactC128 = NumberTypeCodeComplex | NumberTypeCodeExactF64
 
 	// machine size number types are exact by default
 	NumberTypeCodeInexactI8  = NumberTypeCodeInexact | NumberTypeCodeI8
@@ -97,13 +102,22 @@ const (
 
 type Any interface {
 	GetType() int
-	GetHash() uintptr
 	Equal(Any) bool
 }
 
 func IsType(o Any, tag int) bool {
 	return o.GetType() == tag
 }
+
+func Equal(x, y Any) bool {
+	return reflect.DeepEqual(x, y)
+}
+
+func Hash(o Any) uintptr {
+	return reflect.ValueOf(&o).Pointer()
+}
+
+// testing
 
 // TODO: make a table of STypes with type names etc.
 //GetTypeName() string can come form table
@@ -173,10 +187,8 @@ func IsOutputPort(o Any) bool {
 type Num interface {
 	Any
 	GetNumberType() int
-	ToI64() int64
-	ToF64() float64
-	FromI64(int64) Num
-	FromF64(float64) Num
+	//FromFixnum(int64) Num
+	//FromFlonum(float64) Num
 	Cmp1(Num) int // -1, 0, 1
 	Add1(Num) Num
 	Sub1(Num) Num
