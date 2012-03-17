@@ -168,7 +168,7 @@ func EvalSyntax(keyword string, expr Any, env Env) (value Any, err error) {
 	case "quasiquote":
 	case "quasisyntax":
 	case "quote":
-		return cds, nil
+		return unlist1(cds), nil
 	case "set!":
 		return env.doBind(cds, true)
 	case "syntax":
@@ -245,7 +245,7 @@ func (o SVector) Eval(env Env) Any {
 
 type evalError *string
 
-func getLine(in *bufio.Reader) (string, error) {
+func GetLine(in *bufio.Reader) (string, error) {
 	fmt.Print(">> ")
 	return in.ReadString('\n')
 }
@@ -263,8 +263,8 @@ func Shell() {
 	in := bufio.NewReader(os.Stdin)
 
 	//L
-	for line, rerr := getLine(in); rerr == nil; 
-	    line, rerr = getLine(in) {
+	for line, rerr := GetLine(in); rerr == nil; 
+	    line, rerr = GetLine(in) {
 
 		//R
 		val, lerr := Read(line)

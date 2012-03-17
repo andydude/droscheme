@@ -60,8 +60,17 @@ var err error // return value for parsing errors
 %token <datum> CHAR
 %token <datum> STRING
 %token <label> LABEL
-%token <token> VECTORPAREN
-%token <token> U8VECTORPAREN
+%token <token> VECTORPAREN   /* "#(" */
+%token <token> U8VECTORPAREN /* "#u8(" */
+%token <token> QUOTE     /* "'" */
+%token <token> QQUOTE    /* "`" */
+%token <token> UNQUOTE   /* "," */
+%token <token> UNQUOTES  /* ",@" */
+%token <token> SYNTAX	 /* "#'" */
+%token <token> QSYNTAX	 /* "#`" */
+%token <token> UNSYNTAX  /* "#," */
+%token <token> UNSYNTAXS /* "#,@" */
+%token <token> ELIPSIS   /* "..." */
 
 %start datum
 
@@ -170,21 +179,37 @@ datums0:
 	}
 
 abbreviation:
-	'\'' datum
+	QUOTE datum
 	{
-	$$ = list1R(SSymbol{"quote"}, $2)
+	$$ = list2(SSymbol{"quote"}, $2)
 	}
-|	'`' datum
+|	QQUOTE datum
 	{
-	$$ = list1R(SSymbol{"quasiquote"}, $2)
+	$$ = list2(SSymbol{"quasiquote"}, $2)
 	}
-|	',@' datum
+|	UNQUOTE datum
 	{
-	$$ = list1R(SSymbol{"unquote-splicing"}, $2)
+	$$ = list2(SSymbol{"unquote"}, $2)
 	}
-|	',' datum
+|	UNQUOTES datum
 	{
-	$$ = list1R(SSymbol{"unquote"}, $2)
+	$$ = list2(SSymbol{"unquote-splicing"}, $2)
+	}
+|	SYNTAX datum
+	{
+	$$ = list2(SSymbol{"syntax"}, $2)
+	}
+|	QSYNTAX datum
+	{
+	$$ = list2(SSymbol{"quasisyntax"}, $2)
+	}
+|	UNSYNTAX datum
+	{
+	$$ = list2(SSymbol{"unsyntax"}, $2)
+	}
+|	UNSYNTAXS datum
+	{
+	$$ = list2(SSymbol{"unsyntax-splicing"}, $2)
 	}
 
 vector:

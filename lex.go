@@ -179,6 +179,16 @@ func (lex *Lexer) lexToken() State {
 	case r == '"': return (*Lexer).lexString
 	case r == '#': return (*Lexer).lexHash
 	case r == '.': return (*Lexer).lexDot
+	case r == '\'': lex.next(); lex.emit(QUOTE)
+	case r == '`': lex.next(); lex.emit(QQUOTE)
+	case r == ',':
+		lex.next()
+		if lex.peek() == '@' {
+			lex.next()
+			lex.emit(UNQUOTES)
+		} else {
+			lex.emit(UNQUOTE)
+		}
 	case r == '+' || r == '-':
 		return (*Lexer).lexSigns
 	case lex.isInitial():
@@ -188,10 +198,10 @@ func (lex *Lexer) lexToken() State {
 		return (*Lexer).lexNumber
 	case lex.isWhitespace():
 		return (*Lexer).lexSpace
+	default:
+		lex.emit(int(lex.next()))
 	}
 
-	// default
-	lex.emit(int(lex.next()))
 	return (*Lexer).lexToken
 }
 
@@ -264,7 +274,7 @@ func (lex *Lexer) lexHash() State {
 	// #! comment
 	// #| comment |#
 	// #; comment
-	// #\ character
+	// #\ character -- done (TODO: \x)
 	// #' syntax
 	// #` quasisyntax
 	// #, unsyntax
@@ -279,6 +289,20 @@ func (lex *Lexer) lexHash() State {
 	//fmt.Printf("\n-- lexHash() --\n")
 
 	switch r := lex.next(); {
+	case r == '\'':
+		lex.emit(SYNTAX)
+		return (*Lexer).lexToken
+	case r == '`':
+		lex.emit(QSYNTAX)
+		return (*Lexer).lexToken
+	case r == ',':
+		if lex.peek() == '@' {
+			lex.next()
+			lex.emit(UNSYNTAXS)
+		} else {
+			lex.emit(UNSYNTAX)
+		}
+		return (*Lexer).lexToken
 	case r == '\\':
 		return (*Lexer).lexChar
 	case r == 'f':
