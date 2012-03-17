@@ -66,11 +66,11 @@ var err error // return value for parsing errors
 %token <token> QQUOTE    /* "`" */
 %token <token> UNQUOTE   /* "," */
 %token <token> UNQUOTES  /* ",@" */
-%token <token> SYNTAX	 /* "#'" */
-%token <token> QSYNTAX	 /* "#`" */
+%token <token> SYNTAX    /* "#'" */
+%token <token> QSYNTAX   /* "#`" */
 %token <token> UNSYNTAX  /* "#," */
 %token <token> UNSYNTAXS /* "#,@" */
-%token <token> ELIPSIS   /* "..." */
+%token <token> ELLIPSIS  /* "..." */
 
 %start datum
 
