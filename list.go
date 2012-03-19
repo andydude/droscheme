@@ -14,9 +14,18 @@ import (
 // SVector
 // SBinary
 // SString
+// SSymbol
 // SType
 // SBytePort
 // SCharPort
+
+// each type defined in this file should have the following declarations
+//
+// func Is<type>(a Any) bool
+// func New<type>(...) Any
+// func (a S<type>) GetType() int
+// func (a S<type>) Equal(b Any) bool
+
 
 // ----------------------------------------------------------------------
 
@@ -25,28 +34,6 @@ import (
 // don't do this, then gc will give us the following error:
 //   "cannot define new methods on non-local type bool"
 // Thus, in order to define methods we need our own type.
-
-// symbol type
-
-type SSymbol struct {
-	name string
-}
-
-func IsSymbol(o Any) bool {
-	return o.GetType() == TypeCodeSymbol
-}
-
-func (o SSymbol) GetType() int {
-	return TypeCodeSymbol
-}
-
-func (o SSymbol) Equal(a Any) bool {
-	return o.name == a.(SSymbol).name
-}
-
-func (o SSymbol) String() string {
-	return o.name
-}
 
 // boolean type
 
@@ -75,7 +62,10 @@ func (o SBool) Equal(a Any) bool {
 }
 
 func (o SBool) String() string {
-	return fmt.Sprintf("%t", o)
+	if o {
+		return "#t"
+	}
+	return "#f"
 }
 
 // character type
@@ -119,11 +109,6 @@ func IsNull(o Any) bool {
 	return ok
 }
 
-// compare with
-//func IsNull(o Any) bool {
-//	return IsType(o, TypeCodeNull)
-//}
-
 func (o SNull) GetType() int {
 	return TypeCodeNull
 }
@@ -156,11 +141,6 @@ func IsPair(o Any) bool {
 	var _, ok = o.(SPair)
 	return ok
 }
-
-// compare with
-//func IsPair(o Any) bool {
-//	return IsType(o, TypeCodePair)
-//}
 
 func (o SPair) GetType() int {
 	return TypeCodePair
@@ -259,7 +239,29 @@ func (o SString) String() string {
 	return fmt.Sprintf("\"%s\"", o.text)
 }
 
-// s:vector type
+// symbol type
+
+type SSymbol struct {
+	name string
+}
+
+func IsSymbol(o Any) bool {
+	return IsType(o, TypeCodeSymbol)
+}
+
+func (o SSymbol) GetType() int {
+	return TypeCodeSymbol
+}
+
+func (o SSymbol) Equal(a Any) bool {
+	return o.name == a.(SSymbol).name
+}
+
+func (o SSymbol) String() string {
+	return o.name
+}
+
+// vector type
 
 type SVector struct {
 	items    []Any

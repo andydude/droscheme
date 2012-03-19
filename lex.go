@@ -2,12 +2,15 @@ package droscheme
 
 import (
 	"fmt"
+	"math"
+	"math/big"
 	"strconv"
 	"strings"
 	"unicode/utf8"
 )
 
 const eof = 0x7F
+var sign int = 1
 var base int = 10
 var inexact bool = false
 
@@ -57,6 +60,10 @@ func (lex *Lexer) emitDatum(token int, datum Any) {
 	lex.consume()
 }
 
+func (lex *Lexer) emitNum(datum Any) {
+	lex.emitDatum(NUMBER, datum)
+}
+
 func (lex *Lexer) emitId(name string) {
 	lex.emitDatum(ID, SSymbol{name})
 }
@@ -98,7 +105,7 @@ func (lex *Lexer) consume() {
 
 func (lex *Lexer) match1(valid rune) {
 	if lex.next() != valid {
-		panic("failed to match")
+		panic("failed to match: " + string([]rune{valid}))
 	}
 }
 
@@ -108,6 +115,10 @@ func (lex *Lexer) match(valid string) {
 		panic("failed to match")
 	}
 	lex.match(valid[1:])
+}
+
+func (lex *Lexer) getSpan() string {
+	return lex.input[lex.start:lex.pos]
 }
 
 func (lex *Lexer) nextToken() *yySymType {
@@ -130,30 +141,19 @@ func (lex *Lexer) nextToken() *yySymType {
 
 // this is like consume() and eat()
 func (lex *Lexer) next() rune {
-	if lex.pos >= len(lex.input) {
-		lex.width = 0
-		lex.ch = eof
-	} else {
-		lex.ch, lex.width = utf8.DecodeRuneInString(lex.input[lex.pos:])
-		lex.pos += lex.width
-	}
-	//fmt.Printf("\n-- next() %s--\n", string(lex.ch))
+	lex.peek()
+	lex.pos += lex.width
 	return lex.ch
 }
 
 func (lex *Lexer) peek() rune {
-	//fmt.Printf("\n-- peek() --\n")
-	ch := lex.next()
-	lex.backup()
-	return ch
+	if lex.pos >= len(lex.input) {
+		lex.ch, lex.width = eof, 0
+	} else {
+		lex.ch, lex.width = utf8.DecodeRuneInString(lex.input[lex.pos:])
+	}
+	return lex.ch
 }
-
-//func (lex *Lexer) run() {
-//	for state := (*Lexer).lexToken; state != nil; {
-//		state = state(lex)
-//	}
-//	close(lex.tokens)
-//}
 
 func (lex *Lexer) skip() {
 	//fmt.Printf("\n-- skip() --\n")
@@ -170,6 +170,8 @@ func (lex *Lexer) lexSpace() State {
 	}
 	lex.backup()
 	lex.start = lex.pos
+	base = 10
+	sign = 1
 	return (*Lexer).lexToken
 }
 
@@ -193,7 +195,7 @@ func (lex *Lexer) lexToken() State {
 		return (*Lexer).lexSigns
 	case lex.isInitial():
 		return (*Lexer).lexId
-	case lex.isNumeric():
+	case lex.isDigit10():
 		base = 10
 		return (*Lexer).lexNumber
 	case lex.isWhitespace():
@@ -251,8 +253,6 @@ func (lex *Lexer) lexDot() State {
 		panic("unreachable")
 	}
 
-	//fmt.Printf("\n-- lexDot() --\n")
-
 	if lex.next() == '.' {
 		if lex.next() == '.' {
 			lex.emitId("...")
@@ -260,7 +260,7 @@ func (lex *Lexer) lexDot() State {
 		} else {
 			panic("expected ...")
 		}
-	} else if lex.isNumeric() {
+	} else if lex.isDigit10() {
 		return (*Lexer).lexNumber
 	}
 
@@ -288,14 +288,14 @@ func (lex *Lexer) lexHash() State {
 
 	//fmt.Printf("\n-- lexHash() --\n")
 
-	switch r := lex.next(); {
-	case r == '\'':
+	switch lex.next() {
+	case '\'':
 		lex.emit(SYNTAX)
 		return (*Lexer).lexToken
-	case r == '`':
+	case '`':
 		lex.emit(QSYNTAX)
 		return (*Lexer).lexToken
-	case r == ',':
+	case ',':
 		if lex.peek() == '@' {
 			lex.next()
 			lex.emit(UNSYNTAXS)
@@ -303,42 +303,28 @@ func (lex *Lexer) lexHash() State {
 			lex.emit(UNSYNTAX)
 		}
 		return (*Lexer).lexToken
-	case r == '\\':
+	case '\\':
 		return (*Lexer).lexChar
-	case r == 'f':
+	case 'f':
 		lex.emitDatum(BOOL, SBool(false))
 		return (*Lexer).lexToken
-	case r == 't':
+	case 't':
 		lex.emitDatum(BOOL, SBool(true))
 		return (*Lexer).lexToken
-	case r == 'v':
+	case 'v':
 		lex.next()
 		fallthrough
-	case r == 'u':
+	case 'u':
 		lex.match1('8')
 		lex.match1('(')
 		lex.emit(U8VECTORPAREN)
 		return (*Lexer).lexToken
-	case r == '(':
+	case '(':
 		lex.emit(VECTORPAREN)
 		return (*Lexer).lexToken
-	case r == 'e':
-		inexact = false
-		return (*Lexer).lexNumber
-	case r == 'i':
-		inexact = true
-		return (*Lexer).lexNumber
-	case r == 'b':
-		base = 2
-		return (*Lexer).lexNumber
-	case r == 'o':
-		base = 8
-		return (*Lexer).lexNumber
-	case r == 'd':
-		base = 10
-		return (*Lexer).lexNumber
-	case r == 'x':
-		base = 16
+	case 'e', 'i', 'b', 'o', 'd', 'x':
+		lex.backup()
+		lex.backup()
 		return (*Lexer).lexNumber
 	}
 
@@ -374,7 +360,7 @@ func (lex *Lexer) lexSigns() State {
 		fallthrough
 	case r == 'n': // nan.0
 		fallthrough
-	case lex.isNumeric():
+	case lex.isDigit10():
 		base = 10
 		lex.backup()
 		return (*Lexer).lexNumber
@@ -384,6 +370,12 @@ func (lex *Lexer) lexSigns() State {
 	lex.pos += 1
 	return (*Lexer).lexId
 }
+
+//func (lex *Lexer) lexRealSign() State {
+//}
+//
+//func (lex *Lexer) lexImagSign() State {
+//}
 
 // <identifier>
 func (lex *Lexer) lexId() State {
@@ -397,22 +389,289 @@ func (lex *Lexer) lexId() State {
 
 // <number>
 func (lex *Lexer) lexNumber() State {
-	//lex.accept1('+')
-	//lex.accept1('-')
-	for lex.isNumeric() { lex.next() }
-	lex.backup()
+	var re Num
+	var im Num
 
-	// TODO: rest of number syntax
-	num := lex.input[lex.start:lex.pos]
-	//fmt.Printf("\n-- lexNumber() %s--\n", num)
-	x, err := strconv.Atoi(num)
-	if err != nil {
-		panic(err)
-		panic("Invalid number")
+	//fmt.Printf("--lexNumber(%s...)--\n", lex.input[lex.start:lex.start+2])
+
+	if lex.next() == '#' {
+		switch lex.next() {
+		case 'e':
+			inexact = false
+			lex.consume()
+			return (*Lexer).lexNumber
+		case 'i':
+			inexact = true
+			lex.consume()
+			return (*Lexer).lexNumber
+		case 'b':
+			base = 2
+			lex.consume()
+			return (*Lexer).lexNumber
+		case 'o':
+			base = 8
+			lex.consume()
+			return (*Lexer).lexNumber
+		case 'd':
+			base = 10
+			lex.consume()
+			return (*Lexer).lexNumber
+		case 'x':
+			base = 16
+			lex.consume()
+			return (*Lexer).lexNumber
+		default:
+			lex.backup()
+		}
+	} else {
+		lex.backup()
 	}
-	lex.emitDatum(NUMBER, Sint64(x))
+
+	lex.acceptSign()
+	if lex.isI() {
+		lex.next()
+		lex.emitNum(NewComplexI())
+		return (*Lexer).lexToken
+	}
+	re = lex.getReal()
+	switch lex.peek() {
+	case '+', '-':
+		lex.matchSign()
+		if lex.isI() {
+			lex.next()
+			lex.emitNum(NewComplex(re, NewRational64(1, 1)))
+			return (*Lexer).lexToken
+		}
+		im = lex.getReal()
+		lex.match1('i')
+		lex.emitNum(NewComplex(re, im))
+	case '@':
+		lex.next()
+		lex.consume()
+		lex.acceptSign()
+		im = lex.getReal()
+		lex.emitNum(NewComplexPolar(re, im))
+	case 'i':
+		if lex.isI() {
+			lex.next()
+			lex.emitNum(NewComplex(NewRational64(0, 1), re))
+		}
+	default:
+		lex.emitNum(re)
+	}
+
 	return (*Lexer).lexToken
 }
+
+func (lex *Lexer) isI() bool {
+	if lex.peek() != 'i' {
+		return false
+	}
+	lex.next()
+	if lex.peek() == 'n' {
+		lex.backup()
+		return false
+	}
+	lex.backup()
+	return true
+}
+
+func (lex *Lexer) isSign() bool {
+	switch lex.peek() {
+	case '+', '-': return true
+	}	
+	return false
+}
+
+func (lex *Lexer) matchSign() {
+	switch lex.peek() {
+	case '+':
+		sign = 1
+		lex.next()
+	case '-':
+		sign = -1
+		lex.next()
+	default:
+		panic("expected sign")
+	}
+}
+
+func (lex *Lexer) acceptSign() {
+	switch lex.peek() {
+	case '-':
+		lex.next()
+		sign = -1
+	case '+':
+		lex.next()
+		sign = 1
+	default:
+		sign = 1
+	}
+}
+
+// <ureal> / <infinity>
+// should only be called by lexNumber
+func (lex *Lexer) getReal() Num {
+	//fmt.Printf("--getReal(%d)--\n", base)
+	switch lex.peek() {
+	case 'i': // must be inf.0
+		lex.match("inf.0")
+		lex.consume()
+		return Sfloat64(math.Inf(sign))
+	case 'n': // must be nan.0
+		lex.match("nan.0")
+		lex.consume()
+		return Sfloat64(math.NaN())
+	}
+
+	if base != 10 {
+		lex.posInt()
+		ret := lex.getInt()
+		lex.consume()
+		return ret
+	}
+
+	ret := lex.getDecimal()
+	lex.consume()
+	return ret
+}
+
+// should only be called by lexNumber
+func (lex *Lexer) getDecimal() Num {
+	//fmt.Printf("--getDecimal(%d)--\n", base)
+	if base != 10 {
+		panic(newReadError("only decimal fractions supported"))
+	}
+	if lex.peek() == '.' {
+		// form .#
+		lex.posFrac()
+		return Sfloat64(lex.getFlonum())
+	}
+	lex.posInt()
+	switch lex.peek() {
+	case '/':
+		// form #/#, only decimal for now
+		lex.next()
+		lex.posInt()
+		return lex.getBigrat()
+	case '.':
+		// form #.#
+		lex.posFrac()
+		return Sfloat64(lex.getFlonum())
+	case 'e':
+		// form #e#
+		return Sfloat64(lex.getFlonum())
+	}
+	// form #
+	return lex.getInt()
+}
+
+// should only be called by lexNumber
+func (lex *Lexer) getInt() Num {
+	if lex.pos - lex.start > 18 {
+		return lex.getBigint()
+	}
+	return Sint64(lex.getFixnum())
+}
+
+// should only be called after posInt, posFrac
+func (lex *Lexer) getFlonum() float64 {
+	lex.getSuffix()
+	str := lex.getSpan()
+	lex.consume()
+	num, err := strconv.ParseFloat(str, 64)
+	if err != nil { panic(err) }
+	return num
+}
+
+// should only be called after posInt
+func (lex *Lexer) getFixnum() int64 {
+	str := lex.getSpan()
+	lex.consume()
+	num, err := strconv.ParseInt(str, base, 64)
+	if err != nil { panic(err) }
+	return num
+}
+
+func (lex *Lexer) getBigint() SInteger {
+	//fmt.Printf("--getBigint(%s)--\n", lex.getSpan())
+	str := lex.getSpan()
+	lex.consume()
+	num, err := big.NewInt(0).SetString(str, base)
+	if num == nil { panic(err) }
+	return SInteger{it: num}
+}
+
+func (lex *Lexer) getBigrat() SRational {
+	//fmt.Printf("--getBigrat(%s)--\n", lex.getSpan())
+	str := lex.getSpan()
+	lex.consume()
+	num, err := big.NewRat(0, 1).SetString(str)
+	if num == nil { panic(err) }
+	return SRational{it: num}
+}
+
+func (lex *Lexer) getSuffix() (exp int, prec int) {
+	//fmt.Printf("--getSuffix(%s)--\n", lex.getSpan())	
+	var expSign int
+	switch lex.peek() {
+	case 'e':
+	case 's':
+		prec = 10
+	case 'f':
+		prec = 23
+	case 'd':
+		prec = 52
+	case 'l':
+		prec = 112
+	default:
+		return 0, -1
+	}
+	lex.next()
+	//fmt.Printf("--getSuffix(%s)--\n", lex.getSpan())	
+	cur := lex.pos
+	switch lex.peek() {
+	case '+':
+		lex.next()
+		expSign = 1
+	case '-':
+		lex.next()
+		expSign = -1
+	}
+	//fmt.Printf("--getSuffix(%s)--b\n", lex.getSpan())	
+	lex.posInt()
+	//fmt.Printf("--getSuffix(%s)--a\n", lex.getSpan())	
+	expAbs, err := strconv.ParseInt(lex.input[cur:lex.pos], base, 64)
+	if err != nil { panic(err) }
+	return expSign*int(expAbs), prec
+}
+
+// <uinteger>
+// should only be called by lexNumber
+func (lex *Lexer) posInt() {
+	lex.peek()
+	switch base {
+	case 2:
+		for lex.isDigit2() { lex.next() }
+	case 8:
+		for lex.isDigit8() { lex.next() }
+	case 10:
+		for lex.isDigit10() { lex.next() }
+	case 16:
+		for lex.isDigit16() { lex.next() }
+	}
+	lex.backup()
+}
+
+// should only be called by lexNumber
+func (lex *Lexer) posFrac() {
+	lex.match1('.')
+	lex.peek()
+	for lex.isDigit10() { lex.next() }
+	lex.backup()
+}
+
+
 
 // character class methods
 
@@ -421,9 +680,23 @@ func (lex *Lexer) isLetter() bool {
 	return 'a' <= lex.ch && lex.ch <= 'z' || 'A' <= lex.ch && lex.ch <= 'Z'
 }
 
-func (lex *Lexer) isNumeric() bool {
-	//fmt.Printf("\n-- isNumeric() --\n")
+func (lex *Lexer) isDigit2() bool {
+	return '0' == lex.ch || lex.ch == '1'
+}
+
+func (lex *Lexer) isDigit8() bool {
+	return '0' <= lex.ch && lex.ch <= '7'
+}
+
+func (lex *Lexer) isDigit10() bool {
 	return '0' <= lex.ch && lex.ch <= '9'
+}
+
+func (lex *Lexer) isDigit16() bool {
+	if lex.isDigit10() { return true }
+	if 'a' <= lex.ch && lex.ch <= 'f' { return true }
+	if 'A' <= lex.ch && lex.ch <= 'F' { return true }
+	return false
 }
 
 func (lex *Lexer) isInitial() bool {
@@ -432,7 +705,7 @@ func (lex *Lexer) isInitial() bool {
 }
 
 func (lex *Lexer) isSubsequent() bool {
-	return lex.isInitial() || lex.isNumeric() || lex.isSpecialSubsequent()
+	return lex.isInitial() || lex.isDigit10() || lex.isSpecialSubsequent()
 }
 
 func (lex *Lexer) isSpecialInitial() bool {

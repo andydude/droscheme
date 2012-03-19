@@ -1,5 +1,17 @@
 package droscheme
 
+func Kdefine(env *Env, syntax Any) Any {
+	ret, err := env.define(syntax.(SPair).cdr)
+	if err != nil { panic(err) }
+	return ret
+}
+
+func KsetZA(env *Env, syntax Any) Any {
+	ret, err := env.set(syntax.(SPair).cdr)
+	if err != nil { panic(err) }
+	return ret
+}
+
 /*
  * These function identifiers are designed to be isomorphic to scheme identifiers.
  *
@@ -39,22 +51,22 @@ package droscheme
 
 func DtwoZH(a Any) Any {
 	var x, y = unlist2(a)
-	return Mul2(x.(Num), y.(Num))
+	return x.(Num).Mul(y.(Num))
 }
 
 func DtwoZI(a Any) Any {
 	var x, y = unlist2(a)
-	return Add2(x.(Num), y.(Num))
+	return x.(Num).Add(y.(Num))
 }
 
 func DtwoZK(a Any) Any {
 	var x, y = unlist2(a)
-	return Sub2(x.(Num), y.(Num))
+	return x.(Num).Sub(y.(Num))
 }
 
 func DtwoZM(a Any) Any {
 	var x, y = unlist2(a)
-	return Div2(x.(Num), y.(Num))
+	return x.(Num).Div(y.(Num))
 }
 
 func DZH(a Any) Any {
@@ -433,7 +445,7 @@ func DmakeZM(a Any) Any {
 	nany, dany := unlist2(a)
 	n := ToFixnum(nany)
 	d := ToFixnum(dany)
-	return NewRational(n, d)
+	return NewRational64(n, d)
 }
 
 func DmakeZKbytevector(a Any) Any {
@@ -516,7 +528,7 @@ func Dmodulo(a Any) Any {
 }
 
 func DnegativeZS(a Any) Any {
-	return SBool(unlist1(a).(Num).Cmp1(Sfloat64(0)) == -1)
+	return SBool(unlist1(a).(RealNum).Cmp(Sfloat64(0)) == -1)
 }
 
 func Dnewline(a Any) Any {
@@ -585,7 +597,7 @@ func DportZS(a Any) Any {
 }
 
 func DpositiveZS(a Any) Any {
-	return SBool(unlist1(a).(Num).Cmp1(Sfloat64(0)) == 1)
+	return SBool(unlist1(a).(RealNum).Cmp(Sfloat64(0)) == 1)
 }
 
 func DprocedureZS(a Any) Any {
@@ -851,7 +863,7 @@ func DwriteZKu8(a Any) Any {
 }
 
 func DzeroZS(a Any) Any {
-	return SBool(unlist1(a).(Num).Cmp1(Sint64(0)) == 0)
+	return SBool(unlist1(a).(RealNum).Cmp(Sint64(0)) == 0)
 }
 
 var globalCurrentEnv Env

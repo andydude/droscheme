@@ -11,15 +11,39 @@ type Env struct {
 	bound map[string]Any
 }
 
-func (env Env) isBound(id string) bool {
-	return env.bound[id] != nil
+func (env Env) get(id string) Any {
+	if env.bound[id] != nil {
+		return env.bound[id]
+	}
+	if env.parent == nil {
+		return nil
+	}
+	return env.parent.get(id)
 }
 
-func (env Env) doBind(cds Any, bound bool) (value Any, err error) {
+func (env Env) has(id string) bool {
+	if env.bound[id] != nil {
+		return true
+	}
+	if env.parent == nil {
+		return false
+	}
+	return env.parent.has(id)
+}
+
+func (env Env) set(cds Any) (value Any, err error) {
+	return env.mutate(cds, true)
+}
+
+func (env Env) define(cds Any) (value Any, err error) {
+	return env.mutate(cds, false)
+}
+
+func (env Env) mutate(cds Any, bound bool) (value Any, err error) {
 	bvar, sval := unlist2(cds)
 	bval, derr := Eval(sval, env)
 	id := bvar.(SSymbol).name
-	if bound != env.isBound(id) {
+	if bound != env.has(id) {
 		if bound {
 			derr = newEvalError("set! variable must be prebound")
 		} else {
@@ -158,7 +182,7 @@ func EvalSyntax(keyword string, expr Any, env Env) (value Any, err error) {
 	
 	switch keyword {
 	case "define":
-		return env.doBind(cds, false)
+		return env.define(cds)
 	case "define-library":
 	case "if":
 		return env.doIf(cds)
@@ -170,7 +194,7 @@ func EvalSyntax(keyword string, expr Any, env Env) (value Any, err error) {
 	case "quote":
 		return unlist1(cds), nil
 	case "set!":
-		return env.doBind(cds, true)
+		return env.set(cds)
 	case "syntax":
 	case "unquote":
 	case "unquote-splicing":

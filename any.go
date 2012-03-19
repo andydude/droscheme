@@ -46,52 +46,6 @@ const (
 	PortTypeCodeMax // maximum
 )
 
-const (
-	// machine size numbers
-	NumberTypeCodeS8 = iota
-	NumberTypeCodeS16
-	NumberTypeCodeS32
-	NumberTypeCodeS64
-	NumberTypeCodeExactF32
-	NumberTypeCodeExactF64
-
-	// abstract numbers are exact by default
-	NumberTypeCodeInteger  // bigint?
-	NumberTypeCodeRational // bigrat?
-	NumberTypeCodeReal     // TBD: func(int)int?
-	NumberTypeCodeBaseMax  // maximum
-
-	// general number bit field
-	NumberTypeCodeMask     = 0xF
-	NumberTypeCodeComplex  = 0x10
-	NumberTypeCodeUnsigned = 0x20
-	NumberTypeCodeCompolar = 0x30
-	NumberTypeCodeInexact  = 0x40
-	NumberTypeCodeReserved = 0x80
-
-	NumberTypeCodeU8  = NumberTypeCodeUnsigned | NumberTypeCodeS8
-	NumberTypeCodeU16 = NumberTypeCodeUnsigned | NumberTypeCodeS16
-	NumberTypeCodeU32 = NumberTypeCodeUnsigned | NumberTypeCodeS32
-	NumberTypeCodeU64 = NumberTypeCodeUnsigned | NumberTypeCodeS64
-	NumberTypeCodeNatural = NumberTypeCodeUnsigned | NumberTypeCodeInteger
-	NumberTypeCodeExactC64  = NumberTypeCodeComplex | NumberTypeCodeExactF32
-	NumberTypeCodeExactC128 = NumberTypeCodeComplex | NumberTypeCodeExactF64
-	NumberTypeCodeInexactS8  = NumberTypeCodeInexact | NumberTypeCodeS8
-	NumberTypeCodeInexactS16 = NumberTypeCodeInexact | NumberTypeCodeS16
-	NumberTypeCodeInexactS32 = NumberTypeCodeInexact | NumberTypeCodeS32
-	NumberTypeCodeInexactS64 = NumberTypeCodeInexact | NumberTypeCodeS64
-	NumberTypeCodeInexactU8  = NumberTypeCodeInexact | NumberTypeCodeU8
-	NumberTypeCodeInexactU16 = NumberTypeCodeInexact | NumberTypeCodeU16
-	NumberTypeCodeInexactU32 = NumberTypeCodeInexact | NumberTypeCodeU32
-	NumberTypeCodeInexactU64 = NumberTypeCodeInexact | NumberTypeCodeU64
-	NumberTypeCodeF32  = NumberTypeCodeInexact | NumberTypeCodeExactF32
-	NumberTypeCodeF64  = NumberTypeCodeInexact | NumberTypeCodeExactF64
-	NumberTypeCodeC64  = NumberTypeCodeInexact | NumberTypeCodeExactC64
-	NumberTypeCodeC128 = NumberTypeCodeInexact | NumberTypeCodeExactC128
-
-	NumberTypeCodeMax
-)
-
 // interfaces
 //
 // Any - abstracts all data
@@ -121,18 +75,6 @@ func Hash(o Any) uintptr {
 // TODO: make a table of STypes with type names etc.
 //GetTypeName() string can come form table
 //GetTypeInfo() Any can come from table
-
-//type List interface {
-//	Any
-//	//GetCar() Any
-//	//GetCdr() (Any, os.Error)
-//	//SetCar(Any) Any
-//	//SetCdr(Any) (Any, os.Error)
-//	//GetCar(int) (Any, os.Error)
-//	//GetCdr(int) (Any, os.Error)
-//	//GetLength() int // recursive
-//	//GetElementType() Type
-//}
 
 // s:port?
 
@@ -180,31 +122,3 @@ func IsOutputPort(o Any) bool {
 	if t & PortTypeCodeByteOut == 0 { return false }
 	return true
 }
-
-// s:number?
-
-type Num interface {
-	Any
-	GetNumberType() int
-	//FromFixnum(int64) Num
-	//FromFlonum(float64) Num
-	Cmp1(Num) int // -1, 0, 1
-	Add1(Num) Num
-	Sub1(Num) Num
-	Mul1(Num) Num
-	Div1(Num) Num
-	Mod1(Num) Num // RTE
-	Shl1(Num) Num
-	Shr1(Num) Num
-}
-
-func IsNumber(a Any) bool {
-	return IsType(a, TypeCodeNumber)
-}
-
-func Cmp2(x Num, y Num) int { return x.Cmp1(y) }
-func Add2(x Num, y Num) Num { return x.Add1(y) }
-func Sub2(x Num, y Num) Num { return x.Sub1(y) }
-func Mul2(x Num, y Num) Num { return x.Mul1(y) }
-func Div2(x Num, y Num) Num { return x.Div1(y) }
-func Mod2(x Num, y Num) Num { return x.Mod1(y) }
