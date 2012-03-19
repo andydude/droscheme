@@ -1,13 +1,25 @@
 package droscheme
 
-func Kdefine(env *Env, syntax Any) Any {
-	ret, err := env.define(syntax.(SPair).cdr)
+func Kdefine(env *Env, s Any) Any {
+	ret, err := env.define(s.(SPair).cdr)
 	if err != nil { panic(err) }
 	return ret
 }
 
-func KsetZA(env *Env, syntax Any) Any {
-	ret, err := env.set(syntax.(SPair).cdr)
+func KsetZA(env *Env, s Any) Any {
+	ret, err := env.set(s.(SPair).cdr)
+	if err != nil { panic(err) }
+	return ret
+}
+
+func Klambda(env *Env, s Any) Any {
+	ret, err := env.set(s.(SPair).cdr)
+	if err != nil { panic(err) }
+	return ret
+}
+
+func Kif(env *Env, s Any) Any {
+	ret, err := env.set(s.(SPair).cdr)
 	if err != nil { panic(err) }
 	return ret
 }
@@ -49,44 +61,60 @@ func KsetZA(env *Env, syntax Any) Any {
  *   ZZ = 'Z' 
  */
 
-func DtwoZH(a Any) Any {
-	var x, y = unlist2(a)
-	return x.(Num).Mul(y.(Num))
-}
-
-func DtwoZI(a Any) Any {
-	var x, y = unlist2(a)
-	return x.(Num).Add(y.(Num))
-}
-
-func DtwoZK(a Any) Any {
-	var x, y = unlist2(a)
-	return x.(Num).Sub(y.(Num))
-}
-
-func DtwoZM(a Any) Any {
-	var x, y = unlist2(a)
-	return x.(Num).Div(y.(Num))
-}
-
+/* (*) -- derived, but useful
+ *
+ * (define (* . rest)
+ *   (fold-right num* 1 rest))
+ */
 func DZH(a Any) Any {
-	// this is a hard one, for now, 2 arguments only
-	return DtwoZH(a)
+	return DfoldZKright(list3(SProc{call: DnumZH}, Sint64(1), a))
 }
 
+/* (+) -- derived, but useful
+ *
+ * (define (+ . rest)
+ *   (fold-right num+ 0 rest))
+ */
 func DZI(a Any) Any {
-	// this is a hard one, for now, 2 arguments only
-	return DtwoZI(a)
+	return DfoldZKright(list3(SProc{call: DnumZI}, Sint64(0), a))
 }
 
+/* (-) -- derived, but useful
+ *
+ * (define -
+ *   (case-lambda
+ *     (() 0)
+ *     ((a) (num- 0 a))
+ *     ((a . rest) (num- a (+ . rest)))))
+ */
 func DZK(a Any) Any {
-	// this is a hard one, for now, 2 arguments only
-	return DtwoZK(a)
+	if IsNull(a) {
+		return Sint64(0)
+	}
+	x, ys := unlist1R(a)
+	if IsNull(ys) {
+		return DnumZK(list2(Sint64(0), x))
+	}
+	return DnumZK(list2(x, DZI(ys)))
 }
 
+/* (/) -- derived, but useful
+ *
+ * (define /
+ *   (case-lambda
+ *     (() 1)
+ *     ((a) (num/ 1 a))
+ *     ((a . rest) (num/ a (* . rest)))))
+ */
 func DZM(a Any) Any {
-	// this is a hard one, for now, 2 arguments only
-	return DtwoZM(a)
+	if IsNull(a) {
+		return Sint64(1)
+	}
+	x, ys := unlist1R(a)
+	if IsNull(ys) {
+		return DnumZM(list2(Sint64(1), x))
+	}
+	return DnumZM(list2(x, DZH(ys)))
 }
 
 func Dabs(a Any) Any // derived, should be written in scheme
@@ -338,6 +366,57 @@ func Dfloor(a Any) Any {
 	return list0()
 }
 
+/* (fold-left) -- derived, but useful
+ *
+ * (define fold-left
+ *   (case-lambda
+ *     ((proc nil) (proc nil))
+ *     ((proc nil ls)
+ *      (if (null? ls) nil
+ *          (fold-left proc (proc nil (car ls)) (cdr ls))))
+ *     ((proc nil . lss)
+ *      (if (null? (car lss)) nil
+ *          (let ((cars (map car lss))
+ *                (cdrs (map cdr lss)))
+ *            (apply fold-left proc (apply proc 
+ *              (append (list nil) cars)) cdrs))))))
+ */
+func DfoldZKleft(a Any) Any {
+	//proc, null, rest := unlist2R(a)
+	return list0()
+}
+
+/* (fold-right) -- derived, but useful
+ *
+ * (define fold-right
+ *   (case-lambda
+ *     ((proc nil) (proc nil))
+ *     ((proc nil ls)
+ *      (if (null? ls) nil
+ *          (proc (car ls) (fold-right proc nil (cdr ls)))))
+ *     ((proc nil . lss)
+ *      (if (null? (car lss)) nil
+ *          (let ((cars (map car lss))
+ *                (cdrs (map cdr lss)))
+ *            (apply proc (append cars (list 
+ *              (apply fold-right proc nil cdrs)))))))))
+ */
+func DfoldZKright(a Any) Any {
+	proc, null, rest := unlist2R(a)
+	if IsNull(rest) {
+		return Apply(proc, list1(null))
+	}
+	if Length(rest) > 1 {
+		panic("expected binary procedure")
+	}
+	ls := unlist1(rest)
+	if IsNull(ls) {
+		return null
+	}
+	ca, cd := unlist1R(ls)
+	return Apply(proc, list2(ca, DfoldZKright(list3(proc, null, cd))))
+}
+
 func DflushZKoutputZKport(a Any) Any {
 	return list0()
 }
@@ -541,6 +620,78 @@ func Dnot(a Any) Any {
 
 func DnullZS(a Any) Any {
 	return SBool(IsNull(unlist1(a)))
+}
+
+func DnumZH(a Any) Any {
+	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	if x.GetNumberType() != y.GetNumberType() {
+		x, y = unify(x, y)
+	}
+	return x.Mul(y)
+}
+
+func DnumZI(a Any) Any {
+	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	if x.GetNumberType() != y.GetNumberType() {
+		x, y = unify(x, y)
+	}
+	return x.Add(y)
+}
+
+func DnumZK(a Any) Any {
+	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	if x.GetNumberType() != y.GetNumberType() {
+		x, y = unify(x, y)
+	}
+	return x.Sub(y)
+}
+
+func DnumZM(a Any) Any {
+	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	if x.GetNumberType() != y.GetNumberType() {
+		x, y = unify(x, y)
+	}
+	return x.Div(y)
+}
+
+func DnumZQ(a Any) Any {
+	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	if x.GetNumberType() != y.GetNumberType() {
+		x, y = unify(x, y)
+	}
+	return SBool(x.(RealNum).Cmp(y) == 0)
+}
+
+func DnumZP(a Any) Any {
+	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	if x.GetNumberType() != y.GetNumberType() {
+		x, y = unify(x, y)
+	}
+	return SBool(x.(RealNum).Cmp(y) == -1)
+}
+
+func DnumZR(a Any) Any {
+	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	if x.GetNumberType() != y.GetNumberType() {
+		x, y = unify(x, y)
+	}
+	return SBool(x.(RealNum).Cmp(y) == 1)
+}
+
+func DnumZPZQ(a Any) Any {
+	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	if x.GetNumberType() != y.GetNumberType() {
+		x, y = unify(x, y)
+	}
+	return SBool(x.(RealNum).Cmp(y) <= 0)
+}
+
+func DnumZRZQ(a Any) Any {
+	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	if x.GetNumberType() != y.GetNumberType() {
+		x, y = unify(x, y)
+	}
+	return SBool(x.(RealNum).Cmp(y) >= 0)
 }
 
 func DnumberZKZRstring(a Any) Any {
@@ -938,6 +1089,8 @@ func BuiltinEnv() Env {
 	"exact?": SProc{DexactZS, "exact?"},
 	"expt": SProc{Dexpt, "expt"},
 	"floor": SProc{Dfloor, "floor"},
+	"fold-left": SProc{DfoldZKleft, "fold-left"},
+	"fold-right": SProc{DfoldZKright, "fold-right"},
 	"flush-output-port": SProc{DflushZKoutputZKport, "flush-output-port"},
 	"for-each": SProc{DforZKeach, "for-each"},
 	//"gcd": SProc{Dgcd, "gcd"},
@@ -977,6 +1130,15 @@ func BuiltinEnv() Env {
 	"newline": SProc{Dnewline, "newline"},
 	"not": SProc{Dnot, "not"},
 	"null?": SProc{DnullZS, "null?"},
+	"num*": SProc{DnumZH, "num*"},
+	"num+": SProc{DnumZI, "num+"},
+	"num-": SProc{DnumZK, "num-"},
+	"num/": SProc{DnumZM, "num/"},
+	"num=": SProc{DnumZQ, "num="},
+	"num<": SProc{DnumZP, "num<"},
+	"num>": SProc{DnumZR, "num>"},
+	"num<=": SProc{DnumZPZQ, "num<="},
+	"num>=": SProc{DnumZRZQ, "num>="},
 	"number->string": SProc{DnumberZKZRstring, "number->string"},
 	"number?": SProc{DnumberZS, "number?"},
 	"numerator": SProc{Dnumerator, "numerator"},

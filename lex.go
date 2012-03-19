@@ -430,7 +430,7 @@ func (lex *Lexer) lexNumber() State {
 	lex.acceptSign()
 	if lex.isI() {
 		lex.next()
-		lex.emitNum(NewComplexI())
+		lex.emitNum(NewComplex(NewRational64(0, 1), NewRational64(int64(sign), 1)))
 		return (*Lexer).lexToken
 	}
 	re = lex.getReal()
@@ -439,7 +439,7 @@ func (lex *Lexer) lexNumber() State {
 		lex.matchSign()
 		if lex.isI() {
 			lex.next()
-			lex.emitNum(NewComplex(re, NewRational64(1, 1)))
+			lex.emitNum(NewComplex(re, NewRational64(int64(sign), 1)))
 			return (*Lexer).lexToken
 		}
 		im = lex.getReal()

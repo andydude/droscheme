@@ -101,10 +101,10 @@ type RealNum interface {
 	Cmp(Num) int // -1, 0, 1
 	MakeRect(RealNum) ComplexNum
 	MakePolar(RealNum) ComplexNum
-	RoundRTZ() IntNum // truncate
-	RoundRTP() IntNum // ceiling
-	RoundRTN() IntNum // floor
-	RoundRTE() IntNum
+	//RoundRTZ() IntNum // truncate
+	//RoundRTP() IntNum // ceiling
+	//RoundRTN() IntNum // floor
+	//RoundRTE() IntNum
 }
 
 type ComplexNum interface {
@@ -130,39 +130,11 @@ func IsNumber(a Any) bool {
 	return IsType(a, TypeCodeNumber)
 }
 
-func Cmp2(x Num, y Num) int {
-	if x.GetNumberType() == y.GetNumberType() {
-		return x.(RealNum).Cmp(y)
+func Compare(x Num, y Num) int {
+	if x.GetNumberType() != y.GetNumberType() {
+		x, y = unify(x, y)
 	}
-	panic(newTypeError("unimplemented"))
-}
-
-func Add2(x Num, y Num) Num {
-	if x.GetNumberType() == y.GetNumberType() {
-		return x.Add(y)
-	}
-	panic(newTypeError("unimplemented"))
-}
-
-func Sub2(x Num, y Num) Num { 
-	if x.GetNumberType() == y.GetNumberType() {
-		return x.Sub(y) 
-	}
-	panic(newTypeError("unimplemented"))
-}
-
-func Mul2(x Num, y Num) Num { 
-	if x.GetNumberType() == y.GetNumberType() {
-		return x.Mul(y) 
-	}
-	panic(newTypeError("unimplemented"))
-}
-
-func Div2(x Num, y Num) Num { 
-	if x.GetNumberType() == y.GetNumberType() {
-		return x.Div(y) 
-	}
-	panic(newTypeError("unimplemented"))
+	return x.(RealNum).Cmp(y)
 }
 
 // exact
@@ -254,11 +226,25 @@ func IsComplex(a Any) bool {
 }
 
 func ToFixnum(a Any) int64 {
-	return reflect.ValueOf(a).Int()
+	switch a.(type) {
+	case Sint64:
+		return reflect.ValueOf(a).Int()
+	case Sfloat64:
+		return int64(float64(a.(Sfloat64)))
+	}
+	// TODO: fix ERROR
+	return 0
 }
 
 func ToFlonum(a Any) float64 {
-	return reflect.ValueOf(a).Float()
+	switch a.(type) {
+	case Sint64:
+		return float64(int64(a.(Sint64)))
+	case Sfloat64:
+		return reflect.ValueOf(a).Float()
+	}
+	// TODO: fix ERROR
+	return 0.0
 }
 
 func ToFcmplx(a Any) complex128 {
@@ -305,11 +291,11 @@ func NewRational(n, d Num) SRational {
 	return SRational{it: big.NewRat(int64(n.(Sint64)), int64(d.(Sint64)))}
 }
 
-func NewComplexI() Num {
+func NewComplexI() SComplex {
 	return SComplex{NewRational64(0, 1), NewRational64(1, 1)}
 }
 
-func NewComplex(x, y Num) Num {
+func NewComplex(x, y Num) ComplexNum {
 	t := unifyType(x.GetNumberType(), y.GetNumberType())
 	if isComplexType(t) {
 		panic(newTypeError("expected real number"))
@@ -320,7 +306,7 @@ func NewComplex(x, y Num) Num {
 	return SComplex{ToRational(x), ToRational(y)}
 }
 
-func NewComplexPolar(s, a Num) Num {
+func NewComplexPolar(s, a Num) ComplexNum {
 	t := unifyType(s.GetNumberType(), a.GetNumberType())
 	if isComplexType(t) {
 		panic(newTypeError("expected real number"))
@@ -470,11 +456,11 @@ func unify(a, b Num) (x, y Num) {
 		x = Scomplex128(ToFcmplx(a))
 		y = Scomplex128(ToFcmplx(b))
 	case NumberTypeCodeInteger:
-		x = NewInteger(a)
-		y = NewInteger(b)
+		x = ToInteger(a)
+		y = ToInteger(b)
 	case NumberTypeCodeRational:
-		//x = NewRational(a.(SRational).Nmtr(), a.(SRational).Dmtr())
-		//y = NewRational(b.(SRational).Nmtr(), b.(SRational).Dmtr())
+		x = ToRational(a)//.(SRational).Nmtr(), a.(SRational).Dmtr())
+		y = ToRational(b)//.(SRational).Nmtr(), b.(SRational).Dmtr())
 	case NumberTypeCodeComplex:
 		//x = NewComplex(a)
 		//y = NewComplex(b)
@@ -550,6 +536,14 @@ func (o Sint32) Shr(n Num) Num { return Sint32(o >> uint(n.(Sint32))) }
 
 // S64
 
+func (o Sint64) MakeRect(n RealNum) ComplexNum {
+	var x, y int64 = int64(o), int64(n.(Sint64))
+	return NewComplex(NewRational64(x, 0), NewRational64(y, 0))
+}
+func (o Sint64) MakePolar(n RealNum) ComplexNum {
+	var x, y int64 = int64(o), int64(n.(Sint64))
+	return NewComplexPolar(NewRational64(x, 0), NewRational64(y, 0))
+}
 func (o Sint64) String() string {
 	return fmt.Sprintf("%d", o)
 }
@@ -614,6 +608,12 @@ func (o Sfloat32) Shr(n Num) Num { return Sfloat32(0) } // wrong
 
 // F64
 
+func (o Sfloat64) MakeRect(n RealNum) ComplexNum {
+	return NewComplex(o, Sfloat64(ToFlonum(n)))
+}
+func (o Sfloat64) MakePolar(n RealNum) ComplexNum {
+	return NewComplexPolar(o, Sfloat64(ToFlonum(n)))
+}
 func (o Sfloat64) String() string {
 	return strings.Trim(fmt.Sprintf("%f", o), "0")
 }
@@ -652,6 +652,12 @@ func (o Sfloat64) Shr(n Num) Num { return Sfloat64(0) } // wrong
 
 // Integer
 
+func (o SInteger) MakeRect(n RealNum) ComplexNum {
+	return NewComplex(o, Sfloat64(ToFlonum(n)))
+}
+func (o SInteger) MakePolar(n RealNum) ComplexNum {
+	return NewComplexPolar(o, Sfloat64(ToFlonum(n)))
+}
 func (o SInteger) String() string {
 	return o.it.String()
 }
@@ -685,11 +691,23 @@ func (o SInteger) Shr(n Num) Num {
 
 // Rational
 
+func (o SRational) MakeRect(n RealNum) ComplexNum {
+	return NewComplex(o, n.(SRational))
+}
+func (o SRational) MakePolar(n RealNum) ComplexNum {
+	return NewComplexPolar(o, n.(SRational))
+}
 func (o SRational) String() string {
 	return o.it.RatString()
 }
 func (o SRational) Equal(n Any) bool {
 	return o.Cmp(n.(SRational)) == 0
+}
+func (o SRational) Zero() Num {
+	return SRational{it: big.NewRat(0, 1)}
+}
+func (o SRational) Cmp0() int {
+	return o.it.Cmp(big.NewRat(0, 1))
 }
 func (o SRational) Cmp(n Num) int {
 	return o.it.Cmp(n.(SRational).it)
@@ -724,16 +742,16 @@ func (o Scomplex128) String() string {
 func (o Scomplex128) Equal(n Any) bool {
 	return o == n.(Scomplex128)
 }
-func (o Scomplex128) Real() Num {
+func (o Scomplex128) Real() RealNum {
 	return Sfloat64(real(o))
 }
-func (o Scomplex128) Imag() Num {
+func (o Scomplex128) Imag() RealNum {
 	return Sfloat64(imag(o))
 }
-func (o Scomplex128) Scale() Num {
+func (o Scomplex128) Scale() RealNum {
 	return Sfloat64(cmplx.Abs(complex128(o)))
 }
-func (o Scomplex128) Angle() Num {
+func (o Scomplex128) Angle() RealNum {
 	return Sfloat64(cmplx.Phase(complex128(o)))
 }
 func (o Scomplex128) Add(n Num) Num { return Scomplex128(o + n.(Scomplex128)) }
@@ -747,10 +765,27 @@ func (o Scomplex128) Shr(n Num) Num { return Scomplex128(0) } // wrong
 // Complex
 
 func (o SComplex) String() string {
+	if o[1].Cmp0() == -1 {
+		return fmt.Sprintf("%s-%si", o[0], big.NewRat(0, 1).Neg(o[1].it).RatString())
+	}
 	return fmt.Sprintf("%s+%si", o[0], o[1])
 }
+func (o SComplex) Conj() Num {
+	return SComplex{o[0], SRational{it: big.NewRat(0, 1).Neg(o[1].it)}}
+}
+func (o SComplex) Real() RealNum {
+	return o[0]
+}
+func (o SComplex) Imag() RealNum {
+	return o[1]
+}
+func (o SComplex) Scale() RealNum {
+	return o[1]//wrong
+}
+func (o SComplex) Angle() RealNum {
+	return o[1]//wrong
+}
 func (o SComplex) Equal(n Any) bool { return Equal(o, n) }
-func (o SComplex) Cmp(n Num) Num    { return Sfloat64(0) } // wrong
 func (o SComplex) Add(n Num) Num    { return Sfloat64(0) } // wrong
 func (o SComplex) Sub(n Num) Num    { return Sfloat64(0) } // wrong
 func (o SComplex) Mul(n Num) Num    { return Sfloat64(0) } // wrong
@@ -763,6 +798,18 @@ func (o SComplex) Shr(n Num) Num    { return Sfloat64(0) } // wrong
 
 func (o SComplexPolar) String() string {
 	return fmt.Sprintf("%s@%s", o[0], o[1])
+}
+func (o SComplexPolar) Real() RealNum {
+	return o[1]//wrong
+}
+func (o SComplexPolar) Imag() RealNum {
+	return o[1]//wrong
+}
+func (o SComplexPolar) Scale() RealNum {
+	return o[0]
+}
+func (o SComplexPolar) Angle() RealNum {
+	return o[1]
 }
 func (o SComplexPolar) Equal(n Any) bool { return Equal(o, n) }
 func (o SComplexPolar) Cmp(n Num) Num    { return Sfloat64(0) } // wrong
