@@ -1,24 +1,52 @@
 package droscheme
 
-func Kdefine(env *Env, s Any) Any {
+/* 
+ * Procedures of the form K<mangled name> recieve arguments as
+ *   s = (<keyword> <arg1> ... <argn>)
+ * Procedures of the form D<mangled name> recieve arguments as
+ *   a = (<arg1> ... <argn>)
+ */
+
+func Kdefine(s Any, env *Env) Any {
 	ret, err := env.define(s.(SPair).cdr)
 	if err != nil { panic(err) }
 	return ret
 }
 
-func KsetZA(env *Env, s Any) Any {
-	ret, err := env.set(s.(SPair).cdr)
-	if err != nil { panic(err) }
-	return ret
+func Kif(s Any, env *Env) Any {
+	_, test, texpr, rest := unlist3R(s)
+	c, _ := Eval(test, env)
+	if !IsBool(c) || bool(c.(SBool)) {
+		x, err := Eval(texpr, env)
+		if err != nil { panic(err) }
+		return x
+	}
+	if IsPair(rest) {
+		fexpr := unlist1(rest)
+		x, err := Eval(fexpr, env)
+		if err != nil { panic(err) }
+		return x
+	}
+	return values0()
 }
 
-func Klambda(env *Env, s Any) Any {
-	ret, err := env.set(s.(SPair).cdr)
+func Klambda(s Any, env *Env) Any {
+	form, err := unlist1R(s)
 	if err != nil { panic(err) }
-	return ret
+	// TODO
+	return form
 }
 
-func Kif(env *Env, s Any) Any {
+func Klibrary(s Any, env *Env) Any {
+	return values0()
+}
+
+func Kquote(s Any, env *Env) Any {
+	_, cds := unlist1R(s)
+	return unlist1(cds)
+}
+
+func KsetZA(s Any, env *Env) Any {
 	ret, err := env.set(s.(SPair).cdr)
 	if err != nil { panic(err) }
 	return ret
@@ -128,10 +156,6 @@ func Dapply(a Any) Any {
 	proc, restargs := unlist2(a)
 	return Apply(proc, restargs)
 }
-
-func Dassoc(a Any) Any // derived
-func Dassq(a Any) Any  // derived
-func Dassv(a Any) Any  // derived
 
 func DbinaryZKportZS(a Any) Any {
 	return SBool(IsBinaryPort(unlist1(a)))
@@ -329,8 +353,7 @@ func DerrorZKobjectZS(a Any) Any {
 
 func Deval(a Any) Any {
 	expr, _ := unlist1R(a)
-	env := CurrentEnv()
-	value, err := Eval(expr, env)
+	value, err := Eval(expr, BuiltinEnv())
 	if err != nil {
 		panic(err)
 	}
@@ -425,7 +448,6 @@ func DforZKeach(a Any) Any {
 	return list0()
 }
 
-func Dgcd(a Any) Any // derived
 func DgetZKoutputZKbytevector(a Any) Any {
 	return list0()
 }
@@ -462,8 +484,6 @@ func DintegerZKZRchar(a Any) Any {
 func DintegerZS(a Any) Any {
 	return SBool(IsInteger(unlist1(a)))
 }
-
-func Dlcm(a Any) Any // derived
 
 func Dlength(a Any) Any {
 	return Sint64(Length(unlist1(a)))
@@ -502,8 +522,6 @@ func DlistZKref(a Any) Any {
 	}
 	panic(newTypeError("list-ref"))
 }
-
-func DlistZKsetZA(a Any) Any // only in mutable model
 
 func DlistZKtail(a Any) Any {
 	list, ka := unlist2(a)
@@ -586,23 +604,7 @@ func Dmax(a Any) Any {
 	return list0()
 }
 
-func Dmember(a Any) Any {
-	return list0()
-}
-
-func Dmemq(a Any) Any {
-	return list0()
-}
-
-func Dmemv(a Any) Any {
-	return list0()
-}
-
 func Dmin(a Any) Any {
-	return list0()
-}
-
-func Dmodulo(a Any) Any {
 	return list0()
 }
 
@@ -1017,202 +1019,187 @@ func DzeroZS(a Any) Any {
 	return SBool(unlist1(a).(RealNum).Cmp(Sint64(0)) == 0)
 }
 
-var globalCurrentEnv Env
-func CurrentEnv() Env {
-	return globalCurrentEnv
+//
+// registration
+//
+
+// (ds builtin syntax)
+func BuiltinSyntaxEnv() *Env {
+	env := NullEnv()
+
+	env.registerSyntax(Kdefine)
+	env.registerSyntax(Kif)
+	env.registerSyntax(Klambda)
+	env.registerSyntax(Kquote)
+	env.registerSyntax(KsetZA)
+
+	return env
 }
 
 // (ds builtin)
-func BuiltinEnv() Env {
-	return Env{
-	parent: nil,
-	bound: map[string]Any{
-	"*": SProc{DZH, "*"},
-	"+": SProc{DZI, "+"},
-	"-": SProc{DZK, "-"},
-	"/": SProc{DZM, "/"},
-	//"abs": SProc{Dabs, "abs"},
-	"append": SProc{Dappend, "append"},
-	"apply": SProc{Dapply, "apply"},
-	//"assoc": SProc{Dassoc, "assoc"},
-	//"assq": SProc{Dassq, "assq"},
-	//"assv": SProc{Dassv, "assv"},
-	"binary-port?": SProc{DbinaryZKportZS, "binary-port?"},
-	"boolean?": SProc{DbooleanZS, "boolean?"},
-	"bytevector->u8-list": SProc{DbytevectorZKZRu8ZKlist, "bytevector->u8-list"},
-	"bytevector->u8-vector": SProc{DbytevectorZKZRu8ZKvector, "bytevector->u8-vector"},
-	"bytevector-copy": SProc{DbytevectorZKcopy, "bytevector-copy"},
-	"bytevector-copy!": SProc{DbytevectorZKcopyZA, "bytevector-copy!"},
-	"bytevector-copy-partial": SProc{DbytevectorZKcopyZKpartial, "bytevector-copy-partial"},
-	"bytevector-copy-partial!": SProc{DbytevectorZKcopyZKpartialZA, "bytevector-copy-partial!"},
-	"bytevector-length": SProc{DbytevectorZKlength, "bytevector-length"},
-	"bytevector-u8-ref": SProc{DbytevectorZKu8ZKref, "bytevector-u8-ref"},
-	"bytevector-u8-set!": SProc{DbytevectorZKu8ZKsetZA, "bytevector-u8-set!"},
-	"bytevector?": SProc{DbytevectorZS, "bytevector?"},
-	"call-with-port": SProc{DcallZKwithZKport, "call-with-port"},
-	"call-with-values": SProc{DcallZKwithZKvalues, "call-with-values"},
-	"call/cc": SProc{DcallZMcc, "call/cc"},
-	"car": SProc{Dcar, "car"},
-	"cdr": SProc{Dcdr, "cdr"},
-	"ceiling": SProc{Dceiling, "ceiling"},
-	"char->integer": SProc{DcharZKZRinteger, "char->integer"},
-	"char-ready?": SProc{DcharZKreadyZS, "char-ready?"},
-	"char<=?": SProc{DcharZPZQZS, "char<=?"},
-	"char<?": SProc{DcharZPZS, "char<?"},
-	"char=?": SProc{DcharZQZS, "char=?"},
-	"char>=?": SProc{DcharZRZQZS, "char>=?"},
-	"char>?": SProc{DcharZRZS, "char>?"},
-	"char?": SProc{DcharZS, "char?"},
-	"close-input-port": SProc{DcloseZKinputZKport, "close-input-port"},
-	"close-output-port": SProc{DcloseZKoutputZKport, "close-output-port"},
-	"close-port": SProc{DcloseZKport, "close-port"},
-	"complex?": SProc{DcomplexZS, "complex?"},
-	"cons": SProc{Dcons, "cons"},
-	"current-error-port": SProc{DcurrentZKerrorZKport, "current-error-port"},
-	"current-input-port": SProc{DcurrentZKinputZKport, "current-input-port"},
-	"current-output-port": SProc{DcurrentZKoutputZKport, "current-output-port"},
-	"denominator": SProc{Ddenominator, "denominator"},
-	"dynamic-wind": SProc{DdynamicZKwind, "dynamic-wind"},
-	"eof-object?": SProc{DeofZKobjectZS, "eof-object?"},
-	"eq?": SProc{DeqZS, "eq?"},
-	"equal?": SProc{DequalZS, "equal?"},
-	"eqv?": SProc{DeqvZS, "eqv?"},
-	"error": SProc{Derror, "error"},
-	"error-object-irritants": SProc{DerrorZKobjectZKirritants, "error-object-irritants"},
-	"error-object-message": SProc{DerrorZKobjectZKmessage, "error-object-message"},
-	"error-object?": SProc{DerrorZKobjectZS, "error-object?"},
-	"eval": SProc{Deval, "eval"},
-	//"even?": SProc{DevenZS, "even?"},
-	"exact->inexact": SProc{DexactZKZRinexact, "exact->inexact"},
-	"exact-integer-sqrt": SProc{DexactZKintegerZKsqrt, "exact-integer-sqrt"},
-	"exact-integer?": SProc{DexactZKintegerZS, "exact-integer?"},
-	"exact?": SProc{DexactZS, "exact?"},
-	"expt": SProc{Dexpt, "expt"},
-	"floor": SProc{Dfloor, "floor"},
-	"fold-left": SProc{DfoldZKleft, "fold-left"},
-	"fold-right": SProc{DfoldZKright, "fold-right"},
-	"flush-output-port": SProc{DflushZKoutputZKport, "flush-output-port"},
-	"for-each": SProc{DforZKeach, "for-each"},
-	//"gcd": SProc{Dgcd, "gcd"},
-	"get-output-bytevector": SProc{DgetZKoutputZKbytevector, "get-output-bytevector"},
-	"get-output-string": SProc{DgetZKoutputZKstring, "get-output-string"},
-	"hash": SProc{Dhash, "hash"},
-	"inexact->exact": SProc{DinexactZKZRexact, "inexact->exact"},
-	"inexact?": SProc{DinexactZS, "inexact?"},
-	"input-port?": SProc{DinputZKportZS, "input-port?"},
-	"integer->char": SProc{DintegerZKZRchar, "integer->char"},
-	"integer?": SProc{DintegerZS, "integer?"},
-	//"lcm": SProc{Dlcm, "lcm"},
-	"length": SProc{Dlength, "length"},
-	"list": SProc{Dlist, "list"},
-	"list->string": SProc{DlistZKZRstring, "list->string"},
-	"list->vector": SProc{DlistZKZRvector, "list->vector"},
-	"list-copy": SProc{DlistZKcopy, "list-copy"},
-	"list-ref": SProc{DlistZKref, "list-ref"},
-	//"list-set!": SProc{DlistZKsetZA, "list-set!"},
-	"list-tail": SProc{DlistZKtail, "list-tail"},
-	"list?": SProc{DlistZS, "list?"},
-	"make/": SProc{DmakeZM, "make/"},
-	"make-bytevector": SProc{DmakeZKbytevector, "make-bytevector"},
-	"make-list": SProc{DmakeZKlist, "make-list"},
-	"make-parameter": SProc{DmakeZKparameter, "make-parameter"},
-	"make-polar": SProc{DmakeZKpolar, "make-polar"},
-	"make-rectangular": SProc{DmakeZKrectangular, "make-rectangular"},
-	"make-string": SProc{DmakeZKstring, "make-string"},
-	"make-vector": SProc{DmakeZKvector, "make-vector"},
-	"map": SProc{Dmap, "map"},
-	"max": SProc{Dmax, "max"},
-	//"member": SProc{Dmember, "member"},
-	//"memq": SProc{Dmemq, "memq"},
-	//"memv": SProc{Dmemv, "memv"},
-	"min": SProc{Dmin, "min"},
-	"negative?": SProc{DnegativeZS, "negative?"},
-	"newline": SProc{Dnewline, "newline"},
-	"not": SProc{Dnot, "not"},
-	"null?": SProc{DnullZS, "null?"},
-	"num*": SProc{DnumZH, "num*"},
-	"num+": SProc{DnumZI, "num+"},
-	"num-": SProc{DnumZK, "num-"},
-	"num/": SProc{DnumZM, "num/"},
-	"num=": SProc{DnumZQ, "num="},
-	"num<": SProc{DnumZP, "num<"},
-	"num>": SProc{DnumZR, "num>"},
-	"num<=": SProc{DnumZPZQ, "num<="},
-	"num>=": SProc{DnumZRZQ, "num>="},
-	"number->string": SProc{DnumberZKZRstring, "number->string"},
-	"number?": SProc{DnumberZS, "number?"},
-	"numerator": SProc{Dnumerator, "numerator"},
-	//"odd?": SProc{DoddZS, "odd?"},
-	"open-input-bytevector": SProc{DopenZKinputZKbytevector, "open-input-bytevector"},
-	"open-input-string": SProc{DopenZKinputZKstring, "open-input-string"},
-	"open-output-bytevector": SProc{DopenZKoutputZKbytevector, "open-output-bytevector"},
-	"open-output-string": SProc{DopenZKoutputZKstring, "open-output-string"},
-	"output-port?": SProc{DoutputZKportZS, "output-port?"},
-	"pair?": SProc{DpairZS, "pair?"},
-	"peek-char": SProc{DpeekZKchar, "peek-char"},
-	"peek-u8": SProc{DpeekZKu8, "peek-u8"},
-	"port-open?": SProc{DportZKopenZS, "port-open?"},
-	"port?": SProc{DportZS, "port?"},
-	"positive?": SProc{DpositiveZS, "positive?"},
-	"procedure?": SProc{DprocedureZS, "procedure?"},
-	"raise": SProc{Draise, "raise"},
-	"raise-continuable": SProc{DraiseZKcontinuable, "raise-continuable"},
-	"rational?": SProc{DrationalZS, "rational?"},
-	"rationalize": SProc{Drationalize, "rationalize"},
-	"read-bytevector": SProc{DreadZKbytevector, "read-bytevector"},
-	"read-bytevector!": SProc{DreadZKbytevectorZA, "read-bytevector!"},
-	"read-char": SProc{DreadZKchar, "read-char"},
-	"read-line": SProc{DreadZKline, "read-line"},
-	"read-u8": SProc{DreadZKu8, "read-u8"},
-	"real?": SProc{DrealZS, "real?"},
-	"reverse": SProc{Dreverse, "reverse"},
-	"round": SProc{Dround, "round"},
-	//"set-car!": SProc{DsetZKcarZA, "set-car!"},
-	//"set-cdr!": SProc{DsetZKcdrZA, "set-cdr!"},
-	"string": SProc{Dstring, "string"},
-	"string->list": SProc{DstringZKZRlist, "string->list"},
-	"string->number": SProc{DstringZKZRnumber, "string->number"},
-	"string->symbol": SProc{DstringZKZRsymbol, "string->symbol"},
-	"string->utf8": SProc{DstringZKZRutf8, "string->utf8"},
-	"string->vector": SProc{DstringZKZRvector, "string->vector"},
-	"string-append": SProc{DstringZKappend, "string-append"},
-	"string-copy": SProc{DstringZKcopy, "string-copy"},
-	"string-fill!": SProc{DstringZKfillZA, "string-fill!"},
-	"string-for-each": SProc{DstringZKforZKeach, "string-for-each"},
-	"string-length": SProc{DstringZKlength, "string-length"},
-	"string-map": SProc{DstringZKmap, "string-map"},
-	"string-ref": SProc{DstringZKref, "string-ref"},
-	"string<=?": SProc{DstringZPZQZS, "string<=?"},
-	"string<?": SProc{DstringZPZS, "string<?"},
-	"string=?": SProc{DstringZQZS, "string=?"},
-	"string>=?": SProc{DstringZRZQZS, "string>=?"},
-	"string>?": SProc{DstringZRZS, "string>?"},
-	"string?": SProc{DstringZS, "string?"},
-	"substring": SProc{Dsubstring, "substring"},
-	"symbol->string": SProc{DsymbolZKZRstring, "symbol->string"},
-	"symbol?": SProc{DsymbolZS, "symbol?"},
-	"textual-port?": SProc{DtextualZKportZS, "textual-port?"},
-	"u8-list->bytevector": SProc{Du8ZKlistZKZRbytevector, "u8-list->bytevector"},
-	"u8-vector->bytevector": SProc{Du8ZKvectorZKZRbytevector, "u8-vector->bytevector"},
-	"u8-ready?": SProc{Du8ZKreadyZS, "u8-ready?"},
-	"utf8->string": SProc{Dutf8ZKZRstring, "utf8->string"},
-	"values": SProc{Dvalues, "values"},
-	"vector": SProc{Dvector, "vector"},
-	"vector->list": SProc{DvectorZKZRlist, "vector->list"},
-	"vector->string": SProc{DvectorZKZRstring, "vector->string"},
-	"vector-copy": SProc{DvectorZKcopy, "vector-copy"},
-	"vector-fill!": SProc{DvectorZKfillZA, "vector-fill!"},
-	"vector-for-each": SProc{DvectorZKforZKeach, "vector-for-each"},
-	"vector-length": SProc{DvectorZKlength, "vector-length"},
-	"vector-map": SProc{DvectorZKmap, "vector-map"},
-	"vector-ref": SProc{DvectorZKref, "vector-ref"},
-	"vector-set!": SProc{DvectorZKsetZA, "vector-set!"},
-	"vector?": SProc{DvectorZS, "vector?"},
-	"with-exception-handler": SProc{DwithZKexceptionZKhandler, "with-exception-handler"},
-	"write-bytevector": SProc{DwriteZKbytevector, "write-bytevector"},
-	"write-char": SProc{DwriteZKchar, "write-char"},
-	"write-partial-bytevector": SProc{DwriteZKpartialZKbytevector, "write-partial-bytevector"},
-	"write-u8": SProc{DwriteZKu8, "write-u8"},
-	"zero?": SProc{DzeroZS, "zero?"},
-	}}
+func BuiltinEnv() *Env {
+	env := ChildEnv(BuiltinSyntaxEnv())
+	
+	env.register(DZH)
+	env.register(DZI)
+	env.register(DZK)
+	env.register(DZM)
+	env.register(DZH)
+	env.register(DZI)
+	env.register(DZK)
+	env.register(DZM)
+	env.register(Dappend)
+	env.register(Dapply)
+	env.register(DbinaryZKportZS)
+	env.register(DbooleanZS)
+	env.register(DbytevectorZKcopy)
+	env.register(DbytevectorZKcopyZA)
+	env.register(DbytevectorZKcopyZKpartial)
+	env.register(DbytevectorZKcopyZKpartialZA)
+	env.register(DbytevectorZKlength)
+	env.register(DbytevectorZKu8ZKref)
+	env.register(DbytevectorZKu8ZKsetZA)
+	env.register(DbytevectorZS)
+	env.register(DcallZKwithZKcurrentZKcontinuation)
+	env.register(DcallZKwithZKport)
+	env.register(DcallZKwithZKvalues)
+	env.register(DcallZMcc)
+	env.register(Dcar)
+	env.register(Dcdr)
+	env.register(Dceiling)
+	env.register(DcharZKZRinteger)
+	env.register(DcharZKreadyZS)
+	env.register(DcharZPZQZS)
+	env.register(DcharZPZS)
+	env.register(DcharZQZS)
+	env.register(DcharZRZQZS)
+	env.register(DcharZRZS)
+	env.register(DcharZS)
+	env.register(DcloseZKinputZKport)
+	env.register(DcloseZKoutputZKport)
+	env.register(DcloseZKport)
+	env.register(DcomplexZS)
+	env.register(Dcons)
+	env.register(DcurrentZKerrorZKport)
+	env.register(DcurrentZKinputZKport)
+	env.register(DcurrentZKoutputZKport)
+	env.register(Ddenominator)
+	env.register(DdynamicZKwind)
+	env.register(DeofZKobjectZS)
+	env.register(DeqZS)
+	env.register(DequalZS)
+	env.register(DeqvZS)
+	env.register(Derror)
+	env.register(DerrorZKobjectZKirritants)
+	env.register(DerrorZKobjectZKmessage)
+	env.register(DerrorZKobjectZS)
+	env.register(DexactZKZRinexact)
+	env.register(DexactZKintegerZKsqrt)
+	env.register(DexactZKintegerZS)
+	env.register(DexactZS)
+	env.register(Dexpt)
+	env.register(Dfloor)
+	env.register(DflushZKoutputZKport)
+	env.register(DforZKeach)
+	env.register(DgetZKoutputZKbytevector)
+	env.register(DgetZKoutputZKstring)
+	env.register(DinexactZKZRexact)
+	env.register(DinexactZS)
+	env.register(DinputZKportZS)
+	env.register(DintegerZKZRchar)
+	env.register(DintegerZS)
+	env.register(Dlength)
+	env.register(Dlist)
+	env.register(DlistZKZRstring)
+	env.register(DlistZKZRvector)
+	env.register(DlistZKcopy)
+	env.register(DlistZKref)
+	env.register(DlistZKtail)
+	env.register(DlistZS)
+	env.register(DmakeZKbytevector)
+	env.register(DmakeZKlist)
+	env.register(DmakeZKparameter)
+	env.register(DmakeZKstring)
+	env.register(DmakeZKvector)
+	env.register(Dmap)
+	env.register(Dmax)
+	env.register(Dmin)
+	env.register(DnegativeZS)
+	env.register(Dnewline)
+	env.register(Dnot)
+	env.register(DnullZS)
+	env.register(DnumberZKZRstring)
+	env.register(DnumberZS)
+	env.register(Dnumerator)
+	env.register(DopenZKinputZKbytevector)
+	env.register(DopenZKinputZKstring)
+	env.register(DopenZKoutputZKbytevector)
+	env.register(DopenZKoutputZKstring)
+	env.register(DoutputZKportZS)
+	env.register(DpairZS)
+	env.register(DpeekZKchar)
+	env.register(DpeekZKu8)
+	env.register(DportZKopenZS)
+	env.register(DportZS)
+	env.register(DpositiveZS)
+	env.register(DprocedureZS)
+	env.register(Draise)
+	env.register(DraiseZKcontinuable)
+	env.register(DrationalZS)
+	env.register(Drationalize)
+	env.register(DreadZKbytevector)
+	env.register(DreadZKbytevectorZA)
+	env.register(DreadZKchar)
+	env.register(DreadZKline)
+	env.register(DreadZKu8)
+	env.register(DrealZS)
+	env.register(Dreverse)
+	env.register(Dround)
+	env.register(Dstring)
+	env.register(DstringZKZRlist)
+	env.register(DstringZKZRnumber)
+	env.register(DstringZKZRsymbol)
+	env.register(DstringZKZRutf8)
+	env.register(DstringZKZRvector)
+	env.register(DstringZKappend)
+	env.register(DstringZKcopy)
+	env.register(DstringZKfillZA)
+	env.register(DstringZKforZKeach)
+	env.register(DstringZKlength)
+	env.register(DstringZKmap)
+	env.register(DstringZKref)
+	env.register(DstringZKsetZA)
+	env.register(DstringZPZQZS)
+	env.register(DstringZPZS)
+	env.register(DstringZQZS)
+	env.register(DstringZRZQZS)
+	env.register(DstringZRZS)
+	env.register(DstringZS)
+	env.register(Dsubstring)
+	env.register(DsymbolZKZRstring)
+	env.register(DsymbolZS)
+	env.register(DtextualZKportZS)
+	env.register(Dtruncate)
+	env.register(Du8ZKreadyZS)
+	env.register(Dutf8ZKZRstring)
+	env.register(Dvalues)
+	env.register(Dvector)
+	env.register(DvectorZKZRlist)
+	env.register(DvectorZKZRstring)
+	env.register(DvectorZKcopy)
+	env.register(DvectorZKfillZA)
+	env.register(DvectorZKforZKeach)
+	env.register(DvectorZKlength)
+	env.register(DvectorZKmap)
+	env.register(DvectorZKref)
+	env.register(DvectorZKsetZA)
+	env.register(DvectorZS)
+	env.register(DwithZKexceptionZKhandler)
+	env.register(DwriteZKbytevector)
+	env.register(DwriteZKchar)
+	env.register(DwriteZKpartialZKbytevector)
+	env.register(DwriteZKu8)
+	env.register(DzeroZS)
+
+	return env
 }

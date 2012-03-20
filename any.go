@@ -21,6 +21,7 @@ const (
 	TypeCodeRecord  // go:Record                  -- interface
 	TypeCodeLibrary //
 	TypeCodeValues  // multiple return values
+	TypeCodeSyntax
 
 	// ... we can add more nonstandard types later
 

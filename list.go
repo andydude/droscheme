@@ -296,6 +296,23 @@ func (o SVector) String() string {
 	return fmt.Sprintf("#(%s)", ret[1:])
 }
 
+// syntax type
+
+type SSyntax struct {
+	form func(Any, *Env) Any
+	name string
+}
+
+// syntax methods
+
+func (o SSyntax) GetType() int {
+	return TypeCodeSyntax
+}
+
+func (o SSyntax) Equal(a Any) bool {
+	return false
+}
+
 // procedure type
 
 type SProc struct {
