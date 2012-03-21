@@ -21,6 +21,10 @@ func Kdefine(s Any, env *Env) Any {
 }
 
 func KdumpZKenvironment(s Any, env *Env) Any {
+	if env.parent != nil {
+		KdumpZKenvironment(s, env.parent)
+		fmt.Printf("\t---\n")
+	}
 	keys := []string{}
 	for k, _ := range env.bound {
 		keys = append(keys, k)

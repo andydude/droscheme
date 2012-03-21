@@ -8,18 +8,22 @@ import (
 	"os"
 )
 
-var gShell bool = true
-var gInteract bool = false
 var gDontEval bool = false
-var gFilename string = ""
-var gExpr string = ""
 var gEnv *droscheme.Env
+var gExpr string = ""
+var gFilename string = ""
+var gInteract bool = false
+var gMangle string = ""
+var gShell bool = true
+var gUnmangle string = ""
 
 func arguments() {
+	flag.BoolVar(&gDontEval, "d", false, "do not evaluate, just read and write")
 	flag.StringVar(&gExpr, "e", "", "evaluate expr, then exit")
 	flag.StringVar(&gFilename, "f", "", "evaluate file, then exit")
-	flag.BoolVar(&gDontEval, "d", false, "do not evaluate, just read and write")
 	flag.BoolVar(&gInteract, "i", false, "interactive mode (default)")
+	flag.StringVar(&gMangle, "m", "", "mangle a scheme name")
+	flag.StringVar(&gUnmangle, "u", "", "unmangle a go name")
 	flag.Parse()
 }
 
@@ -105,6 +109,15 @@ func main() {
 	gInteract = true
 
 	arguments()
+
+	if gMangle != "" {
+        fmt.Printf("%s\n", droscheme.MangleName(gMangle))
+		os.Exit(0)
+	}
+	if gUnmangle != "" {
+        fmt.Printf("%s\n", droscheme.UnmangleName(gUnmangle))
+		os.Exit(0)
+    }
 
 	if gFilename != "" {
 		gShell = false
