@@ -1,5 +1,10 @@
 package droscheme
 
+import (
+	"fmt"
+	"sort"
+)
+
 /* 
  * Procedures of the form K<mangled name> recieve arguments as
  *   s = (<keyword> <arg1> ... <argn>)
@@ -7,12 +12,28 @@ package droscheme
  *   a = (<arg1> ... <argn>)
  */
 
+// (define var)
+// (define var expr)
 func Kdefine(s Any, env *Env) Any {
 	ret, err := env.define(s.(SPair).cdr)
 	if err != nil { panic(err) }
 	return ret
 }
 
+func KdumpZKenvironment(s Any, env *Env) Any {
+	keys := []string{}
+	for k, _ := range env.bound {
+		keys = append(keys, k)
+	}
+	sort.Sort(sort.StringSlice(keys))
+	for _, key := range keys {
+		fmt.Printf("\t%s=%s\n", key, env.bound[key])
+	}
+	return values0()
+}
+
+// (if c texpr)
+// (if c texpr fexpr)
 func Kif(s Any, env *Env) Any {
 	_, test, texpr, rest := unlist3R(s)
 	c, _ := Eval(test, env)
@@ -41,11 +62,13 @@ func Klibrary(s Any, env *Env) Any {
 	return values0()
 }
 
+// (quote expr)
 func Kquote(s Any, env *Env) Any {
 	_, cds := unlist1R(s)
 	return unlist1(cds)
 }
 
+// (set! var expr)
 func KsetZA(s Any, env *Env) Any {
 	ret, err := env.set(s.(SPair).cdr)
 	if err != nil { panic(err) }
@@ -1028,6 +1051,7 @@ func BuiltinSyntaxEnv() *Env {
 	env := NullEnv()
 
 	env.registerSyntax(Kdefine)
+	env.registerSyntax(KdumpZKenvironment)
 	env.registerSyntax(Kif)
 	env.registerSyntax(Klambda)
 	env.registerSyntax(Kquote)

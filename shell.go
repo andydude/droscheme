@@ -1,13 +1,9 @@
 package droscheme
 
 import (
-	"bufio"
-	"fmt"
-	"os"
 	"reflect"
 	"runtime"
 	"strings"
-//	"unsafe"
 )
 
 type Env struct {
@@ -191,9 +187,9 @@ func EvalList(expr Any, env *Env) (value Any, err error) {
 	cas, _ := unlist1R(expr)
 	// TODO: IsSyntax()
 	if IsSymbol(cas) {
-		value, serr := EvalSyntax(cas.(SSymbol).name, expr, env)
-		if serr == nil {
-			return value, nil
+		keyword := cas.(SSymbol).name
+		if IsSyntax(keyword, env) {
+			return EvalSyntax(keyword, expr, env)
 		}
 	}
 
@@ -227,36 +223,23 @@ func EvalSyntax(keyword string, expr Any, env *Env) (value Any, err error) {
 		}
 	}()
 
-	switch keyword {
-	case "define":
-		return Kdefine(expr, env), nil
-	case "define-library":
-		return Klibrary(expr, env), nil
-	case "if":
-		return Kif(expr, env), nil
-	case "lambda":
-		return Klambda(expr, env), nil
-	case "library":
-		return Klibrary(expr, env), nil
-	case "quasiquote":
-	case "quasisyntax":
-	case "quote":
-		return Kquote(expr, env), nil
-	case "set!":
-		return KsetZA(expr, env), nil
-	case "syntax":
-	case "unquote":
-	case "unquote-splicing":
-	case "unsyntax":
-	case "unsyntax-splicing":
+	if !IsSyntax(keyword, env) {
+		return values0(), newSyntaxError("unknown keyword")
 	}
 
-	return values0(), newSyntaxError("unknown keyword")
+	syntax := env.get(keyword)
+	return syntax.(SSyntax).form(expr, env), nil
 }
 
 func IsSyntax(keyword string, env *Env) bool {
-	// TODO
-	return true
+	if env.has(keyword) && IsType(env.get(keyword), TypeCodeSyntax) {
+		return true
+	}
+	return false
+}
+
+func CountParens(s string) int {
+	return strings.Count(s, "(") - strings.Count(s, ")")
 }
 
 func (o SPair) Eval(env *Env) Any {
@@ -275,7 +258,7 @@ func (o SPair) Eval(env *Env) Any {
 func (o SSymbol) Eval(env *Env) Any {
 	// (2) check general bindings
 	// if we got here then it's not syntax
-	return env.bound[o.name]
+	return env.get(o.name)
 }
 
 func (o SVector) Eval(env *Env) Any {
@@ -284,77 +267,4 @@ func (o SVector) Eval(env *Env) Any {
 		ret.items[i], _ = Eval(o.items[i], env)
 	}
 	return ret
-}
-
-//func EvalRec(expr Any, env *Env, recursive bool) (value Any, error evalError) {
-//
-//	// eval car and cdr
-//	cas, cds := unlist1R(expr)
-//
-//	// (1) check keyword bindings
-//	//if IsKeyword(cas) {
-//	if IsSymbol(cas) {
-//		//return Syntax(env.GetTransform(first), rest)
-//	}
-//
-//	car, _ := EvalRec(cas, env, false) // starting a new list
-//	cdr, _ := EvalRec(cds, env, true) // continuation of this list
-//
-//	if !recursive {
-//		if !IsProcedure(car) {
-//			panic("EvalError: expected procedure")
-//		}
-//		return Apply(car, cdr), nil
-//	}
-//
-//	return list1R(car, cdr), nil
-//}
-
-type evalError *string
-
-func GetLine(in *bufio.Reader) (string, error) {
-	fmt.Print(">> ")
-	return in.ReadString('\n')
-}
-
-func Shell() {
-	defer func(){
-		if x := recover(); x != nil {
-			fmt.Println("droscheme: caught exception:")
-			fmt.Println(x)
-		}
-	}()
-
-	env := BuiltinEnv()
-	in := bufio.NewReader(os.Stdin)
-
-	//L
-	for line, rerr := GetLine(in); rerr == nil; 
-	    line, rerr = GetLine(in) {
-
-		//R
-		val, lerr := Read(line)
-		if lerr != nil {
-			fmt.Println(lerr)
-			break
-		}
-
-		if val == nil {
-			continue
-		}
-
-		//E
-		out, verr := Eval(val, env)
-		if verr != nil {
-			fmt.Println(verr)
-			break
-		}
-
-		//P
-		if out.(fmt.Stringer).String() != "" {
-			fmt.Println(out)
-		}
-	}
-
-	fmt.Println()
 }
