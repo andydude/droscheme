@@ -1,0 +1,17 @@
+- Ports
+  [] byte ports
+  [] char ports
+
+- Numbers
+  [X] arithmetic functions
+  [] trigonometric functions [AJR]
+  [] type promotion [AJR]
+
+- (define-syntax)
+  [] research
+
+- (dynamic-wind)
+  [] research
+
+- (call/cc)
+  [] research
