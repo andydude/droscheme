@@ -155,6 +155,11 @@ func (o SPair) Equal(a Any) bool {
 }
 
 func (o SPair) String() string {
+	if IsList(o) {
+		v := DlistZKZRvector(list1(o))
+		s := fmt.Sprintf("%s", v)
+		return s[1:]
+	}
 	return fmt.Sprintf("(%s . %s)", o.car, o.cdr)
 }
 
@@ -313,33 +318,81 @@ func (o SSyntax) Equal(a Any) bool {
 	return false
 }
 
-// procedure type
+// procedure types
 
-type SProc struct {
+type SPrimProc struct {
 	call func(Any)Any
+	name string
+}
+
+type SLambdaProc struct {
+    env *Env
+	form Any
+    body Any
 	name string
 }
 
 // procedure methods
 
+func NewPrimProc(fn func(Any) Any) Any {
+	return SPrimProc{call: fn}
+}
+
 func IsProcedure(o Any) bool {
 	return IsType(o, TypeCodeProc)
 }
 
-func (o SProc) GetType() int {
+func (o SPrimProc) GetType() int {
 	return TypeCodeProc
 }
 
-func (o SProc) GetHash() uintptr {
+func (o SPrimProc) GetHash() uintptr {
 	return 0 // TODO
 }
 
-func (o SProc) Equal(a Any) bool {
+func (o SPrimProc) Equal(a Any) bool {
 	return false
 }
 
-func (o SProc) String() string {
+func (o SPrimProc) Apply(a Any) Any {
+	return o.call(a)
+}
+
+func (o SPrimProc) String() string {
 	return fmt.Sprintf("#<procedure:%s>", o.name)
+}
+
+func (o SLambdaProc) GetType() int {
+    return TypeCodeProc
+}
+
+func (o SLambdaProc) GetHash() uintptr {
+    return 0 // TODO
+}
+
+func (o SLambdaProc) Equal(a Any) bool {
+    return false
+}
+
+func (o SLambdaProc) Apply(a Any) Any {
+	cenv := ChildEnv(o.env)
+	if IsSymbol(o.form) {
+		cenv.bound[o.form.(SSymbol).name] = a
+	} else {
+		// assume list
+		args := DlistZKZRvector(list1(o.form)).(SVector).items
+		vals := DlistZKZRvector(list1(a)).(SVector).items
+		for k, _ := range args {
+			cenv.bound[args[k].(SSymbol).name] = vals[k]
+		}
+	}
+	value, err := Eval(o.body, cenv)
+	if err != nil { panic(err) }
+	return value
+}
+
+func (o SLambdaProc) String() string {
+	return fmt.Sprintf("(lambda %s %s)", o.form, o.body)
 }
 
 // values type

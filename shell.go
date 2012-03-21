@@ -82,7 +82,7 @@ func (env *Env) registerSyntax(fn func(Any, *Env) Any) {
 
 func (env *Env) register(fn func(Any) Any) {
 	n := env.registerName(fn)
-	env.bound[n] = SProc{call: fn, name: n}
+	env.bound[n] = SPrimProc{call: fn, name: n}
 }
 
 func MangleName(name string) string {
@@ -128,7 +128,15 @@ func UnmangleName(mangled string) string {
  * Note that the procedure is NOT included in 'args'.
  */
 func Apply(proc, args Any) Any {
-	return proc.(SProc).call(args)
+	switch proc.(type) {
+	case SPrimProc:
+		return proc.(SPrimProc).Apply(args)
+	case SLambdaProc:
+		return proc.(SLambdaProc).Apply(args)
+	default:
+		panic(newTypeError("expected procedure"))
+	}
+	return values0()
 }
 
 /* Eval()

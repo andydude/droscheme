@@ -12,6 +12,21 @@ import (
  *   a = (<arg1> ... <argn>)
  */
 
+// (begin ...)
+func Kbegin(s Any, env *Env) Any {
+	kw, rest := unlist1R(s)
+	if !IsPair(rest) {
+		return values0()
+	}
+	car, cdr := unlist1R(rest)
+	value, err := Eval(car, env)
+	if err != nil { panic(err) }
+	if IsNull(cdr) {
+		return value
+	}
+	return Kbegin(list1R(kw, cdr), env)
+}
+
 // (define var)
 // (define var expr)
 func Kdefine(s Any, env *Env) Any {
@@ -56,9 +71,9 @@ func Kif(s Any, env *Env) Any {
 }
 
 func Klambda(s Any, env *Env) Any {
-	form, _ := unlist1R(s)
-	// TODO
-	return form
+	_, form, body := unlist2R(s)
+	body = list1R(SSymbol{"begin"}, body)
+	return SLambdaProc{form: form, body: body, env: env}
 }
 
 func Klibrary(s Any, env *Env) Any {
@@ -121,7 +136,7 @@ func KsetZA(s Any, env *Env) Any {
  *   (fold-right num* 1 rest))
  */
 func DZH(a Any) Any {
-	return DfoldZKright(list3(SProc{call: DnumZH}, Sint64(1), a))
+	return DfoldZKright(list3(NewPrimProc(DnumZH), Sint64(1), a))
 }
 
 /* (+) -- derived, but useful
@@ -130,7 +145,7 @@ func DZH(a Any) Any {
  *   (fold-right num+ 0 rest))
  */
 func DZI(a Any) Any {
-	return DfoldZKright(list3(SProc{call: DnumZI}, Sint64(0), a))
+	return DfoldZKright(list3(NewPrimProc(DnumZI), Sint64(0), a))
 }
 
 /* (-) -- derived, but useful
@@ -524,6 +539,7 @@ func DlistZKZRstring(a Any) Any {
 	return list0()
 }
 
+// (list->vector l)
 func DlistZKZRvector(a Any) Any {
 	var vec = []Any{}
 	for cur := unlist1(a); IsPair(cur); cur = cur.(SPair).cdr {
@@ -965,6 +981,7 @@ func Dvector(a Any) Any {
 	return DlistZKZRvector(list1(a))
 }
 
+// (vector->list v)
 func DvectorZKZRlist(a Any) Any {
 	vec := unlist1(a).(SVector)
 	if len(vec.items) == 0 {
@@ -1049,6 +1066,7 @@ func DzeroZS(a Any) Any {
 func BuiltinSyntaxEnv() *Env {
 	env := NullEnv()
 
+	env.registerSyntax(Kbegin)
 	env.registerSyntax(Kdefine)
 	env.registerSyntax(KdumpZKenvironment)
 	env.registerSyntax(Kif)
