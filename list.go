@@ -2,6 +2,7 @@ package droscheme
 
 import (
 	"fmt"
+	"errors"
 )
 
 // structures and methods in this file
@@ -13,9 +14,18 @@ import (
 // SVector
 // SBinary
 // SString
+// SSymbol
 // SType
 // SBytePort
 // SCharPort
+
+// each type defined in this file should have the following declarations
+//
+// func Is<type>(a Any) bool
+// func New<type>(...) Any
+// func (a S<type>) GetType() int
+// func (a S<type>) Equal(b Any) bool
+
 
 // ----------------------------------------------------------------------
 
@@ -24,33 +34,6 @@ import (
 // don't do this, then gc will give us the following error:
 //   "cannot define new methods on non-local type bool"
 // Thus, in order to define methods we need our own type.
-
-// symbol type
-
-type SSymbol struct {
-	name string
-}
-
-func IsSymbol(o Any) bool {
-	return o.GetType() == TypeCodeSymbol
-}
-
-func (o SSymbol) GetType() int {
-	return TypeCodeSymbol
-}
-
-func (o SSymbol) GetHash() uintptr {
-	// TODO
-	return 0
-}
-
-func (o SSymbol) Equal(a Any) bool {
-	return o.name == a.(SSymbol).name
-}
-
-func (o SSymbol) String() string {
-	return o.name
-}
 
 // boolean type
 
@@ -79,12 +62,15 @@ func (o SBool) Equal(a Any) bool {
 }
 
 func (o SBool) String() string {
-	return fmt.Sprintf("%t", o)
+	if o {
+		return "#t"
+	}
+	return "#f"
 }
 
 // character type
 
-type SChar int
+type SChar rune
 
 // character methods
 
@@ -108,6 +94,10 @@ func (o SChar) Equal(a Any) bool {
 	return o == a.(SChar)
 }
 
+func (o SChar) String() string {
+	return fmt.Sprintf("#\\x%X", int(o))
+}
+
 // null type
 
 type SNull struct{}
@@ -118,11 +108,6 @@ func IsNull(o Any) bool {
 	var _, ok = o.(SNull)
 	return ok
 }
-
-// compare with
-//func IsNull(o Any) bool {
-//	return IsType(o, TypeCodeNull)
-//}
 
 func (o SNull) GetType() int {
 	return TypeCodeNull
@@ -157,11 +142,6 @@ func IsPair(o Any) bool {
 	return ok
 }
 
-// compare with
-//func IsPair(o Any) bool {
-//	return IsType(o, TypeCodePair)
-//}
-
 func (o SPair) GetType() int {
 	return TypeCodePair
 }
@@ -175,6 +155,11 @@ func (o SPair) Equal(a Any) bool {
 }
 
 func (o SPair) String() string {
+	if IsList(o) {
+		v := DlistZKZRvector(list1(o))
+		s := fmt.Sprintf("%s", v)
+		return s[1:]
+	}
 	return fmt.Sprintf("(%s . %s)", o.car, o.cdr)
 }
 
@@ -209,8 +194,12 @@ type SBinary struct {
 	bytes []byte
 }
 
+func IsBinary(o Any) bool {
+	return IsType(o, TypeCodeBinary)
+}
+
 func (o SBinary) GetType() int {
-	return TypeCodeVector
+	return TypeCodeBinary
 }
 
 func (o SBinary) GetHash() uintptr {
@@ -235,6 +224,10 @@ type SString struct {
 	text string
 }
 
+func IsString(a Any) bool {
+	return IsType(a, TypeCodeString)
+}
+
 func (o SString) GetType() int {
 	return TypeCodeString
 }
@@ -251,11 +244,37 @@ func (o SString) String() string {
 	return fmt.Sprintf("\"%s\"", o.text)
 }
 
-// s:vector type
+// symbol type
+
+type SSymbol struct {
+	name string
+}
+
+func IsSymbol(o Any) bool {
+	return IsType(o, TypeCodeSymbol)
+}
+
+func (o SSymbol) GetType() int {
+	return TypeCodeSymbol
+}
+
+func (o SSymbol) Equal(a Any) bool {
+	return o.name == a.(SSymbol).name
+}
+
+func (o SSymbol) String() string {
+	return o.name
+}
+
+// vector type
 
 type SVector struct {
 	items    []Any
 	itemtype int
+}
+
+func IsVector(a Any) bool {
+	return IsType(a, TypeCodeVector)
 }
 
 func (o SVector) GetType() int {
@@ -271,6 +290,10 @@ func (o SVector) Equal(a Any) bool {
 }
 
 func (o SVector) String() string {
+	if len(o.items) == 0 {
+		return "#()"
+	}
+
 	var ret string = ""
 	for i := 0; i < len(o.items); i++ {
 		ret += fmt.Sprintf(" %s", o.items[i])
@@ -278,46 +301,125 @@ func (o SVector) String() string {
 	return fmt.Sprintf("#(%s)", ret[1:])
 }
 
-// procedure type
+// syntax type
 
-type SProc struct {
+type SSyntax struct {
+	form func(Any, *Env) Any
+	name string
+}
+
+// syntax methods
+
+func (o SSyntax) GetType() int {
+	return TypeCodeSyntax
+}
+
+func (o SSyntax) Equal(a Any) bool {
+	return false
+}
+
+// procedure types
+
+type SPrimProc struct {
 	call func(Any)Any
+	name string
+}
+
+type SLambdaProc struct {
+    env *Env
+	form Any
+    body Any
 	name string
 }
 
 // procedure methods
 
+func NewPrimProc(fn func(Any) Any) Any {
+	return SPrimProc{call: fn}
+}
+
 func IsProcedure(o Any) bool {
 	return IsType(o, TypeCodeProc)
 }
 
-func (o SProc) GetType() int {
+func (o SPrimProc) GetType() int {
 	return TypeCodeProc
 }
 
-func (o SProc) GetHash() uintptr {
+func (o SPrimProc) GetHash() uintptr {
 	return 0 // TODO
 }
 
-func (o SProc) Equal(a Any) bool {
+func (o SPrimProc) Equal(a Any) bool {
 	return false
 }
 
-func (o SProc) String() string {
+func (o SPrimProc) Apply(a Any) Any {
+	return o.call(a)
+}
+
+func (o SPrimProc) String() string {
 	return fmt.Sprintf("#<procedure:%s>", o.name)
 }
 
+func (o SLambdaProc) GetType() int {
+    return TypeCodeProc
+}
 
-// misc
+func (o SLambdaProc) GetHash() uintptr {
+    return 0 // TODO
+}
 
-type AnyVec []Any
-type AnyEnv map[string]Any
-type AnyMap map[Any]Any
+func (o SLambdaProc) Equal(a Any) bool {
+    return false
+}
 
-type AnyMapping interface {
-	Any
-	Get(Any) Any
-	Set(Any, Any)
+func (o SLambdaProc) Apply(a Any) Any {
+	cenv := ChildEnv(o.env)
+	if IsSymbol(o.form) {
+		cenv.bound[o.form.(SSymbol).name] = a
+	} else {
+		// assume list
+		args := DlistZKZRvector(list1(o.form)).(SVector).items
+		vals := DlistZKZRvector(list1(a)).(SVector).items
+		for k, _ := range args {
+			cenv.bound[args[k].(SSymbol).name] = vals[k]
+		}
+	}
+	value, err := Eval(o.body, cenv)
+	if err != nil { panic(err) }
+	return value
+}
+
+func (o SLambdaProc) String() string {
+	return fmt.Sprintf("(lambda %s %s)", o.form, o.body)
+}
+
+// values type
+
+type SValues struct {
+	values SVector
+}
+
+// values methods
+
+func (o SValues) GetType() int {
+	return TypeCodeValues
+}
+
+func (o SValues) GetHash() uintptr {
+	return 0 // TODO
+}
+
+func (o SValues) Equal(a Any) bool {
+	return false
+}
+
+func (o SValues) String() string {
+	if len(o.values.items) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("#<values:%s>", o.values)
 }
 
 // type type
@@ -340,6 +442,26 @@ func (o SType) GetType() int {
 func (o SType) GetPortType() int {
 	//return o.portType
 	return 0 // TODO
+}
+
+func newEvalError(s string) error {
+	return errors.New("EvalError: " + s)
+}
+
+func newReadError(s string) error {
+	return errors.New("ReadError: " + s)
+}
+
+func newSyntaxError(s string) error {
+	return errors.New("SyntaxError: " + s)
+}
+
+func newTypeError(s string) error {
+	return errors.New("TypeError: " + s)
+}
+
+func newWriteError(s string) error {
+	return errors.New("WriteError: " + s)
 }
 
 // returns multiple values for argument handling
@@ -497,4 +619,20 @@ func unproc2R(f func(Any) Any) func(Any, Any, Any) Any {
 }
 func unproc3R(f func(Any) Any) func(Any, Any, Any, Any) Any {
 	return func(a, b, c, rest Any) Any { return f(list3R(a, b, c, rest)) }
+}
+
+// represents no return values
+func values0() Any {
+	return SValues{values: SVector{items: []Any{}}}
+}
+
+// represents 2 return values
+func values2(a, b Any) Any {
+	return SValues{values: SVector{items: []Any{a, b}}}
+}
+
+// represents multiple return values
+func valuesR(rest Any) Any {
+    vec := DlistZKZRvector(list1(rest)).(SVector)
+    return SValues{values: vec}
 }

@@ -35,7 +35,7 @@ We might do something like replace number forms with procedures like this:
     #x... => (string->integer ... 16)
     ...+... => (make-rectangular ... ...)
     ...@... => (make-polar ... ...)
-    .../... => (/ ... ...)
+    .../... => (make/ ... ...)
 
 before it gets to the parser, so as to simplify the grammar...
 
@@ -230,9 +230,76 @@ This will probably be needed to bootstrap anyways, so we might as well
 make it well-designed for the end-user. The primary difference here
 with other schemes is that this will be an FFI to Go, not C.
 
+Every builtin function has the following function signature:
+
+      func (Any) Any
+
+the rationale behind this is that every scheme definition has the option
+of giving a 'rest' parameter, either at the beginning, or at the end of the
+formal parameter list, which must be a list structure.
+.
+
 
 
 === Porting other scheme code
 
 One posibility to get a lot of usability is to port SLIB or something similar
 to be able to work in droscheme.
+
+
+
+=== Multi-line REPL
+
+There should be two conditions for an incomplete line:
+
+  (1) Paren mismatch
+  (2) Eval() error
+
+the reason for this is that an error can occur with matching parens,
+and a paren mismatch may eval without errors (e.g. (write "(")).
+
+
+
+=== Error management
+
+There are currently three techniques for error management:
+
+  (1) second return
+  (2) panic/recover
+  (3) global variables
+
+Of these three, I would prefer sticking with the first two, or even
+explicitly preferring them in this order. yyParse() seems to require
+global variables, so there may not be a choice there, and any builtin
+function will require a panic instead of a second return. Another thing
+to consider is that it is possible to convert between (1) and (2).
+
+To convert from (1) to (2):
+
+  func f() Any {
+    ...
+    thing, myerr := g()
+    if myerr != nil { panic(err) }
+    ...
+  }
+
+To convert from (2) to (1):
+
+  func g() (value Any, err error) {
+    defer func(){
+      myerr := recover()
+      if myerr != nil { err = myerr }
+    }()
+    ...
+  }
+
+
+
+=== Globals
+
+var parseValue Any
+var parseErr error
+var lexBase int = 10
+var lexInexact bool
+var evalEnv Env
+var evalErr error

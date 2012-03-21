@@ -1,25 +1,133 @@
 package droscheme
 
 import (
-	"bufio"
-	"fmt"
-	"os"
+	"reflect"
+	"runtime"
+	"strings"
 )
-
-//func (env AnyDict) Read(source string) Any {
-//	return env
-//}
-//
-//func (env AnyDict) Eval(Any) Any {
-//	return env
-//}
-//
-//func Print(tree Syntax) {
-//}
 
 type Env struct {
 	parent *Env
 	bound map[string]Any
+}
+
+func NullEnv() *Env {
+	return &Env{bound: make(map[string]Any, 1024)}
+}
+
+func ChildEnv(parent *Env) *Env {
+	return &Env{bound: make(map[string]Any, 1024), parent: parent}
+}
+
+func (env *Env) get(id string) Any {
+	if env.bound[id] != nil {
+		return env.bound[id]
+	}
+	if env.parent == nil {
+		return nil
+	}
+	return env.parent.get(id)
+}
+
+func (env *Env) has(id string) bool {
+	if env.bound[id] != nil {
+		return true
+	}
+	if env.parent == nil {
+		return false
+	}
+	return env.parent.has(id)
+}
+
+func (env *Env) set(cds Any) (value Any, err error) {
+	return env.mutate(cds, true)
+}
+
+func (env *Env) define(cds Any) (value Any, err error) {
+	return env.mutate(cds, false)
+}
+
+func (env *Env) mutate(cds Any, bound bool) (value Any, err error) {
+	var id string
+	var derr error = nil
+	bvar, bval := unlist2(cds)
+	if IsPair(bvar) {
+		bid, form := unlist1R(bvar)
+		id = bid.(SSymbol).name
+		bval, derr = Eval(list3(SSymbol{"lambda"}, form, bval), env)
+	} else if IsSymbol(bvar) {
+		id = bvar.(SSymbol).name
+		bval, derr = Eval(bval, env)
+	} else {
+		derr = newEvalError("expected variable")
+	}
+	if bound != env.has(id) {
+		if bound {
+			derr = newEvalError("set! variable must be prebound")
+		} else {
+			derr = newEvalError("define variable must be unbound")
+		}
+	}
+	if derr == nil {
+		env.bound[id] = bval
+	}
+	return values0(), derr
+}
+
+func (env *Env) registerName(fn interface{}) string {
+	// intuit function name
+    pc := reflect.ValueOf(fn).Pointer()
+    name := runtime.FuncForPC(pc).Name()
+
+	// strip package name
+	list := strings.Split(name, ".")
+	name = list[len(list) - 1]
+
+	// strip first character
+	return UnmangleName(name[1:])
+}
+
+func (env *Env) registerSyntax(fn func(Any, *Env) Any) {
+	n := env.registerName(fn)
+	env.bound[n] = SSyntax{form: fn, name: n}
+}
+
+func (env *Env) register(fn func(Any) Any) {
+	n := env.registerName(fn)
+	env.bound[n] = SPrimProc{call: fn, name: n}
+}
+
+func MangleName(name string) string {
+    const table = "!\"#$%&'*+,-./:;<=>?@^`|~Z"
+    var out = []byte{}
+    var work = []byte(name)
+    for i := 0; i < len(work); i++ {
+        ch := work[i]
+        ix := strings.Index(table, string(ch))
+        if ix != -1 {
+            out = append(out, 'Z', 'A' + byte(ix))
+        } else {
+            out = append(out, ch)
+        }
+    }
+    return string(out)
+}
+
+func UnmangleName(mangled string) string {
+    const table = "!\"#$%&'*+,-./:;<=>?@^`|~Z"
+    var out = []byte{}
+    var work = []byte(mangled)
+    for i := 0; i < len(work); i++ {
+        ch := work[i]
+        if ch == 'Z' {
+            i++
+            ch := work[i]
+            out = append(out, table[ch - 'A'])
+        } else {
+            out = append(out, ch)
+        }
+    }
+    return string(out)
 }
 
 /* Apply()
@@ -29,153 +137,154 @@ type Env struct {
  *
  * Apply( toAny(proc), toList(datum1, ...) )
  *
- * Note that the procedure is NOT included in the list.
+ * Note that the procedure is NOT included in 'args'.
  */
 func Apply(proc, args Any) Any {
-	//proc.(SProc).call(args.(SPair).car)
-	return proc.(SProc).call(args)
+	switch proc.(type) {
+	case SPrimProc:
+		return proc.(SPrimProc).Apply(args)
+	case SLambdaProc:
+		return proc.(SLambdaProc).Apply(args)
+	default:
+		panic(newTypeError("expected procedure"))
+	}
+	return values0()
 }
 
-/* Syntax()
+/* Eval()
+ *
+ * evaluates an expression
+ */
+func Eval(expr Any, env *Env) (value Any, err error) {
+	switch {
+	case IsPair(expr):
+		return EvalList(expr, env)
+	case IsSymbol(expr):
+		return expr.(SSymbol).Eval(env), nil
+	case IsVector(expr):
+		return expr.(SVector).Eval(env), nil
+	}
+	return expr, nil
+}
+
+/* EvalPair()
+ *
+ * should only be called on CDR's
+ */
+func EvalPair(expr Any, env *Env) (value Any, err error) {
+	switch {
+	case IsNull(expr):
+		return expr, nil
+	case IsPair(expr):
+		return expr.(SPair).Eval(env), nil
+	case IsSymbol(expr):
+		// might be an identifier bound to a list
+		// as in (a b c . z) where z is a list
+		return expr.(SSymbol).Eval(env), nil
+	}
+
+	// should we error on evaluating dotted lists?
+	return expr, nil
+}
+
+/* EvalList()
+ *
+ * should only be called on full lists
+ */
+func EvalList(expr Any, env *Env) (value Any, err error) {
+	defer func(){
+		rerr := recover()
+		if rerr != nil {
+			err = rerr.(error)
+		}
+	}()
+
+	if !IsPair(expr) {
+		panic("unreachable")
+	}
+
+	// check if car is syntactic keyword
+	cas, _ := unlist1R(expr)
+	// TODO: IsSyntax()
+	if IsSymbol(cas) {
+		keyword := cas.(SSymbol).name
+		if IsSyntax(keyword, env) {
+			return EvalSyntax(keyword, expr, env)
+		}
+	}
+
+	// evaluate each argument
+	list := expr.(SPair).Eval(env)
+
+	// check if car is procedure
+	car, cdr := unlist1R(list)
+	if !IsProcedure(car) {
+		panic("EvalError: expected procedure")
+	}
+	
+	return Apply(car, cdr), nil
+}
+
+/* EvalSyntax()
  *
  * a syntax form is (<keyword> <datum> ...)
  * which is given to this function as follows
  *
- * Syntax( toTrans(keyword), toList(toSymbol(keyword), datum1, ...) )
+ * Syntax( toString(keyword), toList(toSymbol(keyword), datum1, ...), env )
  *
- * Note that the keyword is included in the list.
+ * Note that the keyword is included in 'expr'.
  */
-func Syntax(trans, expr Any) Any {
-	return list0()
-}
-
-func Eval(expr Any, env Env) (value Any, error evalError) {
-	return EvalRec(expr, env, false) // starting a new list
-}
-
-func EvalRec(expr Any, env Env, recursive bool) (value Any, error evalError) {
-	// handle constants first
-	if !IsPair(expr) {
-		switch t := expr.GetType(); {
-		case t <= TypeCodeBool:
-			return expr, nil
-		case t == TypeCodeSymbol:
-			// (2) check general bindings	
-			// if we got here then it's not syntax
-			n := expr.(SSymbol).name
-			return env.bound[n], nil
-		}
-		return expr, nil
-	}
-
-
-	// eval car and cdr
-	cas, cds := unlist1R(expr)
-
-	// (1) check keyword bindings
-	//if IsKeyword(cas) {
-	if IsSymbol(cas) {
-		switch n := cas.(SSymbol).name; {
-		case n == "define":
-			bvar, sval := unlist2(cds)
-			bval, _ := EvalRec(sval, env, true)
-			id := bvar.(SSymbol).name
-			if env.bound[id] != nil {
-				panic("EnvError: define variable must be unbound")
-			}
-			env.bound[id] = bval
-			return list0(), nil
-
-		case n == "define-library":
-		case n == "if":
-		case n == "lambda":
-		case n == "library":
-		case n == "quasiquote":
-		case n == "quasisyntax":
-		case n == "quote":
-			return cds, nil
-		case n == "set!":
-			bvar, sval := unlist2(cds)
-			bval, _ := EvalRec(sval, env, true)
-			id := bvar.(SSymbol).name
-			if env.bound[id] == nil {
-				panic("EnvError: set! variable must be prebound")
-			}
-			env.bound[id] = bval
-			return list0(), nil
-
-		case n == "syntax":
-		case n == "unquote":
-		case n == "unquote-splicing":
-		case n == "unsyntax":
-		case n == "unsyntax-splicing":
-		}
-		//return Syntax(env.GetTransform(first), rest)
-	}
-
-	car, _ := EvalRec(cas, env, false) // starting a new list
-	cdr, _ := EvalRec(cds, env, true) // continuation of this list
-
-	if !recursive {
-		if !IsProcedure(car) {
-			panic("EvalError: expected procedure")
-		}
-		return Apply(car, cdr), nil
-	}
-
-	return list1R(car, cdr), nil
-}
-
-// this is defined in builtin.go
-// because any changed to the list
-// will have to be made in that file 
-//func BuiltinEnv() Env {
-//}
-
-type evalError *string
-
-func getLine(in *bufio.Reader) (string, error) {
-	fmt.Print(">> ")
-	return in.ReadString('\n')
-}
-
-func Shell() {
+func EvalSyntax(keyword string, expr Any, env *Env) (value Any, err error) {
 	defer func(){
-		if x := recover(); x != nil {
-			fmt.Println("droscheme: caught exception:")
-			fmt.Println(x)
+		rerr := recover()
+		if rerr != nil {
+			value = values0()
+			err = rerr.(error)
 		}
 	}()
 
-	env := BuiltinEnv()
-	globalCurrentEnv = env
-	in := bufio.NewReader(os.Stdin)
-
-	//L
-	for line, rerr := getLine(in); rerr == nil; 
-	    line, rerr = getLine(in) {
-
-		//R
-		val, lerr := Read(line)
-		if lerr != nil {
-			fmt.Println(lerr)
-			break
-		}
-
-		if val == nil {
-			continue
-		}
-
-		//E
-		out, verr := Eval(val, env)
-		if verr != nil {
-			fmt.Println(verr)
-			break
-		}
-
-		//P
-		fmt.Println(out)
+	if !IsSyntax(keyword, env) {
+		return values0(), newSyntaxError("unknown keyword")
 	}
 
-	fmt.Println()
+	syntax := env.get(keyword)
+	return syntax.(SSyntax).form(expr, env), nil
+}
+
+func IsSyntax(keyword string, env *Env) bool {
+	if env.has(keyword) && IsType(env.get(keyword), TypeCodeSyntax) {
+		return true
+	}
+	return false
+}
+
+func CountParens(s string) int {
+	return strings.Count(s, "(") - strings.Count(s, ")")
+}
+
+func (o SPair) Eval(env *Env) Any {
+	cas, cds := unlist1R(o)
+	car, err := Eval(cas, env)
+	if err != nil {
+		panic(err)
+	}
+	cdr, err := EvalPair(cds, env)
+	if err != nil {
+		panic(err)
+	}
+	return list1R(car, cdr)
+}
+
+func (o SSymbol) Eval(env *Env) Any {
+	// (2) check general bindings
+	// if we got here then it's not syntax
+	return env.get(o.name)
+}
+
+func (o SVector) Eval(env *Env) Any {
+	var ret = DmakeZKvector(list1(Sint64(len(o.items)))).(SVector)
+	for i := 0; i < len(o.items); i++ {
+		ret.items[i], _ = Eval(o.items[i], env)
+	}
+	return ret
 }
