@@ -24,7 +24,19 @@ func arguments() {
 	flag.BoolVar(&gInteract, "i", false, "interactive mode (default)")
 	flag.StringVar(&gMangle, "m", "", "mangle a scheme name")
 	flag.StringVar(&gUnmangle, "u", "", "unmangle a go name")
+	flag.Usage = usage
 	flag.Parse()
+}
+
+func usage() {
+	fmt.Printf("Usage of %s:\n"+
+		"  -d       do not evaluate, just read and write\n"+
+		"  -e EXPR  evaluate expr, then exit\n"+
+		"  -f FILE  evaluate file, then exit\n"+
+		"  -i       interactive mode (default)\n"+
+		"  -m NAME  mangle a scheme name\n"+
+		"  -u NAME  unmangle a go name\n", os.Args[0])
+	os.Exit(2)
 }
 
 func process() {

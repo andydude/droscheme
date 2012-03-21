@@ -48,9 +48,19 @@ func (env *Env) define(cds Any) (value Any, err error) {
 }
 
 func (env *Env) mutate(cds Any, bound bool) (value Any, err error) {
-	bvar, sval := unlist2(cds)
-	bval, derr := Eval(sval, env)
-	id := bvar.(SSymbol).name
+	var id string
+	var derr error = nil
+	bvar, bval := unlist2(cds)
+	if IsPair(bvar) {
+		bid, form := unlist1R(bvar)
+		id = bid.(SSymbol).name
+		bval, derr = Eval(list3(SSymbol{"lambda"}, form, bval), env)
+	} else if IsSymbol(bvar) {
+		id = bvar.(SSymbol).name
+		bval, derr = Eval(bval, env)
+	} else {
+		derr = newEvalError("expected variable")
+	}
 	if bound != env.has(id) {
 		if bound {
 			derr = newEvalError("set! variable must be prebound")
@@ -58,7 +68,9 @@ func (env *Env) mutate(cds Any, bound bool) (value Any, err error) {
 			derr = newEvalError("define variable must be unbound")
 		}
 	}
-	env.bound[id] = bval
+	if derr == nil {
+		env.bound[id] = bval
+	}
 	return values0(), derr
 }
 
