@@ -56,8 +56,7 @@ func Kif(s Any, env *Env) Any {
 }
 
 func Klambda(s Any, env *Env) Any {
-	form, err := unlist1R(s)
-	if err != nil { panic(err) }
+	form, _ := unlist1R(s)
 	// TODO
 	return form
 }
@@ -825,10 +824,6 @@ func DrealZS(a Any) Any {
 	return list0()
 }
 
-func Dremainder(a Any) Any{
-	return list0()
-}
-
 func Dreverse(a Any) Any {
 	return list0()
 }
@@ -1072,10 +1067,6 @@ func BuiltinEnv() *Env {
 	env.register(DZI)
 	env.register(DZK)
 	env.register(DZM)
-	env.register(DZH)
-	env.register(DZI)
-	env.register(DZK)
-	env.register(DZM)
 	env.register(Dappend)
 	env.register(Dapply)
 	env.register(DbinaryZKportZS)
@@ -1087,6 +1078,8 @@ func BuiltinEnv() *Env {
 	env.register(DbytevectorZKlength)
 	env.register(DbytevectorZKu8ZKref)
 	env.register(DbytevectorZKu8ZKsetZA)
+	env.register(DbytevectorZKZRu8ZKlist)
+	env.register(DbytevectorZKZRu8ZKvector)
 	env.register(DbytevectorZS)
 	env.register(DcallZKwithZKcurrentZKcontinuation)
 	env.register(DcallZKwithZKport)
@@ -1121,16 +1114,20 @@ func BuiltinEnv() *Env {
 	env.register(DerrorZKobjectZKirritants)
 	env.register(DerrorZKobjectZKmessage)
 	env.register(DerrorZKobjectZS)
+	env.register(Deval)
 	env.register(DexactZKZRinexact)
 	env.register(DexactZKintegerZKsqrt)
 	env.register(DexactZKintegerZS)
 	env.register(DexactZS)
 	env.register(Dexpt)
 	env.register(Dfloor)
+	env.register(DfoldZKleft)
+	env.register(DfoldZKright)
 	env.register(DflushZKoutputZKport)
 	env.register(DforZKeach)
 	env.register(DgetZKoutputZKbytevector)
 	env.register(DgetZKoutputZKstring)
+	env.register(Dhash)
 	env.register(DinexactZKZRexact)
 	env.register(DinexactZS)
 	env.register(DinputZKportZS)
@@ -1144,9 +1141,12 @@ func BuiltinEnv() *Env {
 	env.register(DlistZKref)
 	env.register(DlistZKtail)
 	env.register(DlistZS)
+	env.register(DmakeZM)
 	env.register(DmakeZKbytevector)
 	env.register(DmakeZKlist)
 	env.register(DmakeZKparameter)
+	env.register(DmakeZKpolar)
+	env.register(DmakeZKrectangular)
 	env.register(DmakeZKstring)
 	env.register(DmakeZKvector)
 	env.register(Dmap)
@@ -1156,6 +1156,15 @@ func BuiltinEnv() *Env {
 	env.register(Dnewline)
 	env.register(Dnot)
 	env.register(DnullZS)
+	env.register(DnumZH)
+	env.register(DnumZI)
+	env.register(DnumZK)
+	env.register(DnumZM)
+	env.register(DnumZQ)
+	env.register(DnumZP)
+	env.register(DnumZR)
+	env.register(DnumZPZQ)
+	env.register(DnumZRZQ)
 	env.register(DnumberZKZRstring)
 	env.register(DnumberZS)
 	env.register(Dnumerator)
@@ -1208,6 +1217,8 @@ func BuiltinEnv() *Env {
 	env.register(DsymbolZS)
 	env.register(DtextualZKportZS)
 	env.register(Dtruncate)
+	env.register(Du8ZKlistZKZRbytevector)
+	env.register(Du8ZKvectorZKZRbytevector)
 	env.register(Du8ZKreadyZS)
 	env.register(Dutf8ZKZRstring)
 	env.register(Dvalues)
