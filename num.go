@@ -314,8 +314,8 @@ func NewComplexPolar(s, a Num) ComplexNum {
 	if isInexactType(t) {
 		scale := ToFlonum(s)
 		angle := ToFlonum(a)
-		x := scale*math.Cos(angle)
-		y := scale*math.Sin(angle)
+		x := scale * math.Cos(angle)
+		y := scale * math.Sin(angle)
 		return Scomplex128(complex(x, y))
 	}
 	return SComplexPolar{ToRational(s), ToRational(a)}
@@ -444,6 +444,16 @@ func unifyType(r, s int) (t int) {
 	return
 }
 
+func unify2(args Any) (x, y Num) {
+	a, b := unlist2(args)
+	x = a.(Num)
+	y = b.(Num)
+	if x.GetNumberType() != y.GetNumberType() {
+		x, y = unify(x, y)
+	}
+	return
+}
+
 func unify(a, b Num) (x, y Num) {
 	switch unifyType(a.GetNumberType(), b.GetNumberType()) {
 	case NumberTypeCodeS64:
@@ -459,8 +469,8 @@ func unify(a, b Num) (x, y Num) {
 		x = ToInteger(a)
 		y = ToInteger(b)
 	case NumberTypeCodeRational:
-		x = ToRational(a)//.(SRational).Nmtr(), a.(SRational).Dmtr())
-		y = ToRational(b)//.(SRational).Nmtr(), b.(SRational).Dmtr())
+		x = ToRational(a) //.(SRational).Nmtr(), a.(SRational).Dmtr())
+		y = ToRational(b) //.(SRational).Nmtr(), b.(SRational).Dmtr())
 	case NumberTypeCodeComplex:
 		//x = NewComplex(a)
 		//y = NewComplex(b)
@@ -472,30 +482,30 @@ func unify(a, b Num) (x, y Num) {
 }
 
 // base numbers
-func (o Sint8) GetType() int               { return TypeCodeNumber }
-func (o Sint8) GetNumberType() int         { return NumberTypeCodeS8 }
-func (o Sint16) GetType() int              { return TypeCodeNumber }
-func (o Sint16) GetNumberType() int        { return NumberTypeCodeS16 }
-func (o Sint32) GetType() int              { return TypeCodeNumber }
-func (o Sint32) GetNumberType() int        { return NumberTypeCodeS32 }
-func (o Sint64) GetType() int              { return TypeCodeNumber }
-func (o Sint64) GetNumberType() int        { return NumberTypeCodeS64 }
-func (o Suint8) GetType() int              { return TypeCodeNumber }
-func (o Suint8) GetNumberType() int        { return NumberTypeCodeU8 }
-func (o Suint16) GetType() int             { return TypeCodeNumber }
-func (o Suint16) GetNumberType() int       { return NumberTypeCodeU16 }
-func (o Suint32) GetType() int             { return TypeCodeNumber }
-func (o Suint32) GetNumberType() int       { return NumberTypeCodeU32 }
-func (o Suint64) GetType() int             { return TypeCodeNumber }
-func (o Suint64) GetNumberType() int       { return NumberTypeCodeU64 }
-func (o Sfloat32) GetType() int            { return TypeCodeNumber }
-func (o Sfloat32) GetNumberType() int      { return NumberTypeCodeF32 }
-func (o Sfloat64) GetType() int            { return TypeCodeNumber }
-func (o Sfloat64) GetNumberType() int      { return NumberTypeCodeF64 }
-func (o Scomplex64) GetType() int          { return TypeCodeNumber }
-func (o Scomplex64) GetNumberType() int    { return NumberTypeCodeC64 }
-func (o Scomplex128) GetType() int         { return TypeCodeNumber }
-func (o Scomplex128) GetNumberType() int   { return NumberTypeCodeC128 }
+func (o Sint8) GetType() int             { return TypeCodeNumber }
+func (o Sint8) GetNumberType() int       { return NumberTypeCodeS8 }
+func (o Sint16) GetType() int            { return TypeCodeNumber }
+func (o Sint16) GetNumberType() int      { return NumberTypeCodeS16 }
+func (o Sint32) GetType() int            { return TypeCodeNumber }
+func (o Sint32) GetNumberType() int      { return NumberTypeCodeS32 }
+func (o Sint64) GetType() int            { return TypeCodeNumber }
+func (o Sint64) GetNumberType() int      { return NumberTypeCodeS64 }
+func (o Suint8) GetType() int            { return TypeCodeNumber }
+func (o Suint8) GetNumberType() int      { return NumberTypeCodeU8 }
+func (o Suint16) GetType() int           { return TypeCodeNumber }
+func (o Suint16) GetNumberType() int     { return NumberTypeCodeU16 }
+func (o Suint32) GetType() int           { return TypeCodeNumber }
+func (o Suint32) GetNumberType() int     { return NumberTypeCodeU32 }
+func (o Suint64) GetType() int           { return TypeCodeNumber }
+func (o Suint64) GetNumberType() int     { return NumberTypeCodeU64 }
+func (o Sfloat32) GetType() int          { return TypeCodeNumber }
+func (o Sfloat32) GetNumberType() int    { return NumberTypeCodeF32 }
+func (o Sfloat64) GetType() int          { return TypeCodeNumber }
+func (o Sfloat64) GetNumberType() int    { return NumberTypeCodeF64 }
+func (o Scomplex64) GetType() int        { return TypeCodeNumber }
+func (o Scomplex64) GetNumberType() int  { return NumberTypeCodeC64 }
+func (o Scomplex128) GetType() int       { return TypeCodeNumber }
+func (o Scomplex128) GetNumberType() int { return NumberTypeCodeC128 }
 
 // derived numbers
 func (o SFixnum) GetType() int             { return TypeCodeNumber }
@@ -780,10 +790,10 @@ func (o SComplex) Imag() RealNum {
 	return o[1]
 }
 func (o SComplex) Scale() RealNum {
-	return o[1]//wrong
+	return o[1] //wrong
 }
 func (o SComplex) Angle() RealNum {
-	return o[1]//wrong
+	return o[1] //wrong
 }
 func (o SComplex) Equal(n Any) bool { return Equal(o, n) }
 func (o SComplex) Add(n Num) Num    { return Sfloat64(0) } // wrong
@@ -800,10 +810,10 @@ func (o SComplexPolar) String() string {
 	return fmt.Sprintf("%s@%s", o[0], o[1])
 }
 func (o SComplexPolar) Real() RealNum {
-	return o[1]//wrong
+	return o[1] //wrong
 }
 func (o SComplexPolar) Imag() RealNum {
-	return o[1]//wrong
+	return o[1] //wrong
 }
 func (o SComplexPolar) Scale() RealNum {
 	return o[0]

@@ -20,7 +20,9 @@ func Kbegin(s Any, env *Env) Any {
 	}
 	car, cdr := unlist1R(rest)
 	value, err := Eval(car, env)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	if IsNull(cdr) {
 		return value
 	}
@@ -31,7 +33,9 @@ func Kbegin(s Any, env *Env) Any {
 // (define var expr)
 func Kdefine(s Any, env *Env) Any {
 	ret, err := env.define(s.(SPair).cdr)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	return ret
 }
 
@@ -58,13 +62,17 @@ func Kif(s Any, env *Env) Any {
 	c, _ := Eval(test, env)
 	if !IsBool(c) || bool(c.(SBool)) {
 		x, err := Eval(texpr, env)
-		if err != nil { panic(err) }
+		if err != nil {
+			panic(err)
+		}
 		return x
 	}
 	if IsPair(rest) {
 		fexpr := unlist1(rest)
 		x, err := Eval(fexpr, env)
-		if err != nil { panic(err) }
+		if err != nil {
+			panic(err)
+		}
 		return x
 	}
 	return values0()
@@ -89,7 +97,9 @@ func Kquote(s Any, env *Env) Any {
 // (set! var expr)
 func KsetZA(s Any, env *Env) Any {
 	ret, err := env.set(s.(SPair).cdr)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	return ret
 }
 
@@ -667,39 +677,29 @@ func DnullZS(a Any) Any {
 }
 
 func DnumZH(a Any) Any {
-	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
-	if x.GetNumberType() != y.GetNumberType() {
-		x, y = unify(x, y)
-	}
+	x, y := unify2(a)
 	return x.Mul(y)
 }
 
 func DnumZI(a Any) Any {
-	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
-	if x.GetNumberType() != y.GetNumberType() {
-		x, y = unify(x, y)
-	}
+	x, y := unify2(a)
 	return x.Add(y)
 }
 
 func DnumZK(a Any) Any {
-	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
-	if x.GetNumberType() != y.GetNumberType() {
-		x, y = unify(x, y)
-	}
+	x, y := unify2(a)
 	return x.Sub(y)
 }
 
 func DnumZM(a Any) Any {
-	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
-	if x.GetNumberType() != y.GetNumberType() {
-		x, y = unify(x, y)
-	}
+	x, y := unify2(a)
 	return x.Div(y)
 }
 
 func DnumZQ(a Any) Any {
-	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	ax, ay := unlist2(a)
+	x := ax.(Num)
+	y := ay.(Num)
 	if x.GetNumberType() != y.GetNumberType() {
 		x, y = unify(x, y)
 	}
@@ -707,7 +707,9 @@ func DnumZQ(a Any) Any {
 }
 
 func DnumZP(a Any) Any {
-	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	ax, ay := unlist2(a)
+	x := ax.(Num)
+	y := ay.(Num)
 	if x.GetNumberType() != y.GetNumberType() {
 		x, y = unify(x, y)
 	}
@@ -715,7 +717,9 @@ func DnumZP(a Any) Any {
 }
 
 func DnumZR(a Any) Any {
-	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	ax, ay := unlist2(a)
+	x := ax.(Num)
+	y := ay.(Num)
 	if x.GetNumberType() != y.GetNumberType() {
 		x, y = unify(x, y)
 	}
@@ -723,7 +727,9 @@ func DnumZR(a Any) Any {
 }
 
 func DnumZPZQ(a Any) Any {
-	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	ax, ay := unlist2(a)
+	x := ax.(Num)
+	y := ay.(Num)
 	if x.GetNumberType() != y.GetNumberType() {
 		x, y = unify(x, y)
 	}
@@ -731,7 +737,9 @@ func DnumZPZQ(a Any) Any {
 }
 
 func DnumZRZQ(a Any) Any {
-	ax, ay := unlist2(a); x := ax.(Num); y := ay.(Num)
+	ax, ay := unlist2(a)
+	x := ax.(Num)
+	y := ay.(Num)
 	if x.GetNumberType() != y.GetNumberType() {
 		x, y = unify(x, y)
 	}
@@ -1080,7 +1088,7 @@ func BuiltinSyntaxEnv() *Env {
 // (ds builtin)
 func BuiltinEnv() *Env {
 	env := ChildEnv(BuiltinSyntaxEnv())
-	
+
 	env.register(DZH)
 	env.register(DZI)
 	env.register(DZK)
