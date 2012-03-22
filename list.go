@@ -1,8 +1,8 @@
 package droscheme
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 )
 
 // structures and methods in this file
@@ -25,7 +25,6 @@ import (
 // func New<type>(...) Any
 // func (a S<type>) GetType() int
 // func (a S<type>) Equal(b Any) bool
-
 
 // ----------------------------------------------------------------------
 
@@ -321,14 +320,14 @@ func (o SSyntax) Equal(a Any) bool {
 // procedure types
 
 type SPrimProc struct {
-	call func(Any)Any
+	call func(Any) Any
 	name string
 }
 
 type SLambdaProc struct {
-    env *Env
+	env  *Env
 	form Any
-    body Any
+	body Any
 	name string
 }
 
@@ -363,15 +362,15 @@ func (o SPrimProc) String() string {
 }
 
 func (o SLambdaProc) GetType() int {
-    return TypeCodeProc
+	return TypeCodeProc
 }
 
 func (o SLambdaProc) GetHash() uintptr {
-    return 0 // TODO
+	return 0 // TODO
 }
 
 func (o SLambdaProc) Equal(a Any) bool {
-    return false
+	return false
 }
 
 func (o SLambdaProc) Apply(a Any) Any {
@@ -387,7 +386,9 @@ func (o SLambdaProc) Apply(a Any) Any {
 		}
 	}
 	value, err := Eval(o.body, cenv)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	return value
 }
 
@@ -633,6 +634,6 @@ func values2(a, b Any) Any {
 
 // represents multiple return values
 func valuesR(rest Any) Any {
-    vec := DlistZKZRvector(list1(rest)).(SVector)
-    return SValues{values: vec}
+	vec := DlistZKZRvector(list1(rest)).(SVector)
+	return SValues{values: vec}
 }
