@@ -8,7 +8,7 @@ import (
 
 type Env struct {
 	parent *Env
-	bound map[string]Any
+	bound  map[string]Any
 }
 
 func NullEnv() *Env {
@@ -76,12 +76,12 @@ func (env *Env) mutate(cds Any, bound bool) (value Any, err error) {
 
 func (env *Env) registerName(fn interface{}) string {
 	// intuit function name
-    pc := reflect.ValueOf(fn).Pointer()
-    name := runtime.FuncForPC(pc).Name()
+	pc := reflect.ValueOf(fn).Pointer()
+	name := runtime.FuncForPC(pc).Name()
 
 	// strip package name
 	list := strings.Split(name, ".")
-	name = list[len(list) - 1]
+	name = list[len(list)-1]
 
 	// strip first character
 	return UnmangleName(name[1:])
@@ -98,36 +98,36 @@ func (env *Env) register(fn func(Any) Any) {
 }
 
 func MangleName(name string) string {
-    const table = "!\"#$%&'*+,-./:;<=>?@^`|~Z"
-    var out = []byte{}
-    var work = []byte(name)
-    for i := 0; i < len(work); i++ {
-        ch := work[i]
-        ix := strings.Index(table, string(ch))
-        if ix != -1 {
-            out = append(out, 'Z', 'A' + byte(ix))
-        } else {
-            out = append(out, ch)
-        }
-    }
-    return string(out)
+	const table = "!\"#$%&'*+,-./:;<=>?@^`|~Z"
+	var out = []byte{}
+	var work = []byte(name)
+	for i := 0; i < len(work); i++ {
+		ch := work[i]
+		ix := strings.Index(table, string(ch))
+		if ix != -1 {
+			out = append(out, 'Z', 'A'+byte(ix))
+		} else {
+			out = append(out, ch)
+		}
+	}
+	return string(out)
 }
 
 func UnmangleName(mangled string) string {
-    const table = "!\"#$%&'*+,-./:;<=>?@^`|~Z"
-    var out = []byte{}
-    var work = []byte(mangled)
-    for i := 0; i < len(work); i++ {
-        ch := work[i]
-        if ch == 'Z' {
-            i++
-            ch := work[i]
-            out = append(out, table[ch - 'A'])
-        } else {
-            out = append(out, ch)
-        }
-    }
-    return string(out)
+	const table = "!\"#$%&'*+,-./:;<=>?@^`|~Z"
+	var out = []byte{}
+	var work = []byte(mangled)
+	for i := 0; i < len(work); i++ {
+		ch := work[i]
+		if ch == 'Z' {
+			i++
+			ch := work[i]
+			out = append(out, table[ch-'A'])
+		} else {
+			out = append(out, ch)
+		}
+	}
+	return string(out)
 }
 
 /* Apply()
@@ -192,7 +192,7 @@ func EvalPair(expr Any, env *Env) (value Any, err error) {
  * should only be called on full lists
  */
 func EvalList(expr Any, env *Env) (value Any, err error) {
-	defer func(){
+	defer func() {
 		rerr := recover()
 		if rerr != nil {
 			err = rerr.(error)
@@ -221,7 +221,7 @@ func EvalList(expr Any, env *Env) (value Any, err error) {
 	if !IsProcedure(car) {
 		panic("EvalError: expected procedure")
 	}
-	
+
 	return Apply(car, cdr), nil
 }
 
@@ -235,7 +235,7 @@ func EvalList(expr Any, env *Env) (value Any, err error) {
  * Note that the keyword is included in 'expr'.
  */
 func EvalSyntax(keyword string, expr Any, env *Env) (value Any, err error) {
-	defer func(){
+	defer func() {
 		rerr := recover()
 		if rerr != nil {
 			value = values0()

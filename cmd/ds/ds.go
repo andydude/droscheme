@@ -44,7 +44,7 @@ func process() {
 }
 
 func getLine(in *bufio.Reader, prompt string) (string, error) {
-    fmt.Printf("%s> ", prompt)
+	fmt.Printf("%s> ", prompt)
 	return in.ReadString('\n')
 }
 
@@ -62,8 +62,7 @@ func shell() {
 	in := bufio.NewReader(os.Stdin)
 
 	//L
-	for line, rerr := getLine(in, prompt); rerr == nil; 
-	    line, rerr = getLine(in, prompt) {
+	for line, rerr := getLine(in, prompt); rerr == nil; line, rerr = getLine(in, prompt) {
 
 		if line == "\n" {
 			lines = ""
@@ -123,13 +122,13 @@ func main() {
 	arguments()
 
 	if gMangle != "" {
-        fmt.Printf("%s\n", droscheme.MangleName(gMangle))
+		fmt.Printf("%s\n", droscheme.MangleName(gMangle))
 		os.Exit(0)
 	}
 	if gUnmangle != "" {
-        fmt.Printf("%s\n", droscheme.UnmangleName(gUnmangle))
+		fmt.Printf("%s\n", droscheme.UnmangleName(gUnmangle))
 		os.Exit(0)
-    }
+	}
 
 	if gFilename != "" {
 		gShell = false
