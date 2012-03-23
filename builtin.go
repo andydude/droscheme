@@ -1,3 +1,12 @@
+/*
+ * Droscheme - a Scheme implementation
+ * Copyright © 2012 Andrew Robbins, Daniel Connelly
+ *
+ * This program is free software: it is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
+ */
 package droscheme
 
 import (
@@ -258,7 +267,7 @@ func DbytevectorZKZRu8ZKvector(a Any) Any {
 	vany := DmakeZKvector(list1(Sint64(blen)))
 	v := vany.(SVector)
 	for i := 0; i < blen; i++ {
-		v.items[i] = Sint64(bvec.bytes[i])
+		v.it[i] = Sint64(bvec.bytes[i])
 	}
 	return vany
 }
@@ -555,7 +564,7 @@ func DlistZKZRvector(a Any) Any {
 	for cur := unlist1(a); IsPair(cur); cur = cur.(SPair).cdr {
 		vec = append(vec, cur.(SPair).car)
 	}
-	return SVector{vec, 0}
+	return SVector{it: vec}
 }
 
 func DlistZKcopy(a Any) Any {
@@ -645,7 +654,7 @@ func DmakeZKvector(a Any) Any {
 	for i := 0; i < n; i++ {
 		v[i] = fill
 	}
-	return SVector{items: v}
+	return SVector{it: v}
 }
 
 func Dmap(a Any) Any {
@@ -992,10 +1001,10 @@ func Dvector(a Any) Any {
 // (vector->list v)
 func DvectorZKZRlist(a Any) Any {
 	vec := unlist1(a).(SVector)
-	if len(vec.items) == 0 {
+	if len(vec.it) == 0 {
 		return list0()
 	}
-	return list1R(vec.items[0], DvectorZKZRlist(list1(SVector{items: vec.items[1:]})))
+	return list1R(vec.it[0], DvectorZKZRlist(list1(SVector{it: vec.it[1:]})))
 }
 
 func DvectorZKZRstring(a Any) Any {
@@ -1015,7 +1024,7 @@ func DvectorZKforZKeach(a Any) Any {
 }
 
 func DvectorZKlength(a Any) Any {
-	return Sint64(len(unlist1(a).(SVector).items))
+	return Sint64(len(unlist1(a).(SVector).it))
 }
 
 func DvectorZKmap(a Any) Any {
@@ -1024,12 +1033,12 @@ func DvectorZKmap(a Any) Any {
 
 func DvectorZKref(a Any) Any {
 	o, k := unlist2(a)
-	return o.(SVector).items[ToFixnum(k)]
+	return o.(SVector).it[ToFixnum(k)]
 }
 
 func DvectorZKsetZA(a Any) Any {
 	o, k, v := unlist3(a)
-	o.(SVector).items[ToFixnum(k)] = v
+	o.(SVector).it[ToFixnum(k)] = v
 	return values0()
 }
 

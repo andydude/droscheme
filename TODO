@@ -7,6 +7,10 @@
   [] trigonometric functions [AJR]
   [] type promotion [AJR]
 
+- Project
+  [] move shell.go to eval.go
+  [] move list.go to types.go
+
 - (define-syntax)
   [] research
 

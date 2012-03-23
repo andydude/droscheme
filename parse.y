@@ -1,33 +1,34 @@
-// -*- mode: go -*-
-//
-// Droscheme - a Scheme implementation
-//
-// This file is a parser description for the Scheme language
-// as understood by Droscheme. In particular, we recognize
-// multiple revisions of the standard, most notably:
-//
-//  - R6RS bytevectors #vu8(...)
-//  - R7RS/SRFI-4 bytevectors #u8(...)
-//  - R6RS numbers (+inf.0, -inf.0, ...|23)
-//  - R7RS numbers (subset of R6RS numbers)
-//
-	
-// === Implementation Details:
-// 
-// There are two fundamental types that are used to pass
-// information between the lexer, the parser, and the rest
-// of the program.
-//
-//  - yySymType - every production has access to this type, but
-//                is it only visible inside this file?
-//
-//  - Lexer     - this is the only thing that is available
-//                from outside this file, so we have an
-//                lval field in here to communicate.
-//
-
-
-// BEGIN includes
+/*
+ * Droscheme - a Scheme implementation
+ * Copyright © 2012 Andrew Robbins, Daniel Connelly
+ *
+ * This program is free software: it is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
+ */
+/* This file is a parser description for the Scheme language
+ * as understood by Droscheme. In particular, we recognize
+ * multiple revisions of the standard, most notably:
+ *
+ *  - R6RS bytevectors #vu8(...)
+ *  - R7RS/SRFI-4 bytevectors #u8(...)
+ *  - R6RS numbers (+inf.0, -inf.0, ...|23)
+ *  - R7RS numbers (subset of R6RS numbers)
+ */
+/* Implementation Details:
+ * 
+ * There are two fundamental types that are used to pass
+ * information between the lexer, the parser, and the rest
+ * of the program.
+ *
+ *  - yySymType - every production has access to this type, but
+ *                is it only visible inside this file?
+ *
+ *  - Lexer     - this is the only thing that is available
+ *                from outside this file, so we have an
+ *                lval field in here to communicate.
+ */
 %{
 package droscheme
 
@@ -40,7 +41,6 @@ var ret Any // returned value from yyParse
 var err error // return value for parsing errors
 
 %}
-// END includes
 
 // expands to yySymType
 %union {
@@ -229,11 +229,10 @@ u8vector:
 
 // END grammar
 %%
-// BEGIN lexer
+// BEGIN functions
 
 func (lex *Lexer) Lex(lval *yySymType) int {
 	tok := lex.nextToken()
-	// can we use copy() instead?
 	lval.datum = tok.datum
 	lval.token = tok.token
 	return lval.token
@@ -254,3 +253,5 @@ func Read(input string) (Any, error) {
 	err = nil
 	return ret, err2
 }
+
+// END functions
