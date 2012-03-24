@@ -3,7 +3,7 @@
  * Copyright © 2012 Andrew Robbins, Daniel Connelly
  *
  * This program is free software: it is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
  */
@@ -17,7 +17,7 @@
  *  - R7RS numbers (subset of R6RS numbers)
  */
 /* Implementation Details:
- * 
+ *
  * There are two fundamental types that are used to pass
  * information between the lexer, the parser, and the rest
  * of the program.
@@ -163,7 +163,7 @@ datums1:
 	{
 	$$ = list1($1)
 	}
-|	datum datums1 
+|	datum datums1
 	{
 	$$ = list1R($1, $2)
 	}

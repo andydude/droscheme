@@ -3,7 +3,7 @@
  * Copyright © 2012 Andrew Robbins, Daniel Connelly
  *
  * This program is free software: it is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
  */
@@ -643,7 +643,7 @@ func (lex *Lexer) getBigrat() SRational {
 }
 
 func (lex *Lexer) getSuffix() (exp int, prec int) {
-	//fmt.Printf("--getSuffix(%s)--\n", lex.getSpan())	
+	//fmt.Printf("--getSuffix(%s)--\n", lex.getSpan())
 	var expSign int
 	switch lex.peek() {
 	case 'e':
@@ -659,7 +659,7 @@ func (lex *Lexer) getSuffix() (exp int, prec int) {
 		return 0, -1
 	}
 	lex.next()
-	//fmt.Printf("--getSuffix(%s)--\n", lex.getSpan())	
+	//fmt.Printf("--getSuffix(%s)--\n", lex.getSpan())
 	cur := lex.pos
 	switch lex.peek() {
 	case '+':
@@ -669,9 +669,9 @@ func (lex *Lexer) getSuffix() (exp int, prec int) {
 		lex.next()
 		expSign = -1
 	}
-	//fmt.Printf("--getSuffix(%s)--b\n", lex.getSpan())	
+	//fmt.Printf("--getSuffix(%s)--b\n", lex.getSpan())
 	lex.posInt()
-	//fmt.Printf("--getSuffix(%s)--a\n", lex.getSpan())	
+	//fmt.Printf("--getSuffix(%s)--a\n", lex.getSpan())
 	expAbs, err := strconv.ParseInt(lex.input[cur:lex.pos], base, 64)
 	if err != nil {
 		panic(err)
