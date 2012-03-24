@@ -3,7 +3,7 @@
  * Copyright © 2012 Andrew Robbins, Daniel Connelly
  *
  * This program is free software: it is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
  */
@@ -37,7 +37,7 @@ import (
 
 // ----------------------------------------------------------------------
 
-// The Go language specification requires that methods are defined 
+// The Go language specification requires that methods are defined
 // in the same package as the reciever type is defined, so if we
 // don't do this, then gc will give us the following error:
 //   "cannot define new methods on non-local type bool"
@@ -192,7 +192,7 @@ func listToVector(a Any) SVector {
 }
 
 func IsList(o Any) bool {
-	// By definition, all lists are chains of pairs that have 
+	// By definition, all lists are chains of pairs that have
 	// finite length and are terminated by the empty list. [R6RS]
 
 	// cycle detection (only needed in mutable model)
@@ -392,8 +392,8 @@ func (o SPrimProc) Equal(a Any) bool {
 	return false
 }
 
-func (o SPrimProc) Apply(a Any) Any {
-	return o.call(a)
+func (o SPrimProc) Apply(a Any) (Any, error) {
+	return o.call(a), nil
 }
 
 func (o SPrimProc) String() string {
@@ -412,7 +412,7 @@ func (o SLambdaProc) Equal(a Any) bool {
 	return false
 }
 
-func (o SLambdaProc) Apply(a Any) Any {
+func (o SLambdaProc) Apply(a Any) (Any, error) {
 	cenv := ChildEnv(o.env)
 	if IsSymbol(o.form) {
 		cenv.bound[o.form.(SSymbol).name] = a
@@ -424,11 +424,7 @@ func (o SLambdaProc) Apply(a Any) Any {
 			cenv.bound[args[k].(SSymbol).name] = vals[k]
 		}
 	}
-	value, err := Eval(o.body, cenv)
-	if err != nil {
-		panic(err)
-	}
-	return value
+	return Eval(o.body, cenv)
 }
 
 func (o SLambdaProc) String() string {

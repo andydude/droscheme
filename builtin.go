@@ -3,7 +3,7 @@
  * Copyright © 2012 Andrew Robbins, Daniel Connelly
  *
  * This program is free software: it is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
  */
@@ -14,7 +14,7 @@ import (
 	"sort"
 )
 
-/* 
+/*
  * Procedures of the form K<mangled name> recieve arguments as
  *   s = (<keyword> <arg1> ... <argn>)
  * Procedures of the form D<mangled name> recieve arguments as
@@ -121,32 +121,32 @@ func KsetZA(s Any, env *Env) Any {
  *   (1) remove the 'D' (2) replace any 'Z*' pattern with the table below.
  *
  * Encoding System:
- *   ZA = '!' 
+ *   ZA = '!'
  *   ZB = reserved for QUOTATION MARK
- *   ZC = '#' 
- *   ZD = '$' 
- *   ZE = '%' 
- *   ZF = '&' 
+ *   ZC = '#'
+ *   ZD = '$'
+ *   ZE = '%'
+ *   ZF = '&'
  *   ZG = reserved for APOSTROPHE
- *   ZH = '*' 
- *   ZI = '+' 
- *   ZJ = ',' 
- *   ZK = '-' 
- *   ZL = '.' 
- *   ZM = '/' 
- *   ZN = ':' 
- *   ZO = ';' 
- *   ZP = '<' 
- *   ZQ = '=' 
- *   ZR = '>' 
- *   ZS = '?' 
- *   ZT = '@' 
- *   ZU = '\' 
- *   ZV = '^' 
- *   ZW = '`' 
- *   ZX = '|' 
- *   ZY = '~' 
- *   ZZ = 'Z' 
+ *   ZH = '*'
+ *   ZI = '+'
+ *   ZJ = ','
+ *   ZK = '-'
+ *   ZL = '.'
+ *   ZM = '/'
+ *   ZN = ':'
+ *   ZO = ';'
+ *   ZP = '<'
+ *   ZQ = '='
+ *   ZR = '>'
+ *   ZS = '?'
+ *   ZT = '@'
+ *   ZU = '\'
+ *   ZV = '^'
+ *   ZW = '`'
+ *   ZX = '|'
+ *   ZY = '~'
+ *   ZZ = 'Z'
  */
 
 /* (*) -- derived, but useful
@@ -214,7 +214,9 @@ func Dappend(a Any) Any {
 // (apply proc arg1 ... restargs)
 func Dapply(a Any) Any {
 	proc, restargs := unlist2(a)
-	return Apply(proc, restargs)
+	ret, err := proc.(Applier).Apply(restargs)
+	if err != nil { panic(err) }
+	return ret
 }
 
 func DbinaryZKportZS(a Any) Any {
@@ -461,7 +463,7 @@ func Dfloor(a Any) Any {
  *      (if (null? (car lss)) nil
  *          (let ((cars (map car lss))
  *                (cdrs (map cdr lss)))
- *            (apply fold-left proc (apply proc 
+ *            (apply fold-left proc (apply proc
  *              (append (list nil) cars)) cdrs))))))
  */
 func DfoldZKleft(a Any) Any {
@@ -481,13 +483,13 @@ func DfoldZKleft(a Any) Any {
  *      (if (null? (car lss)) nil
  *          (let ((cars (map car lss))
  *                (cdrs (map cdr lss)))
- *            (apply proc (append cars (list 
+ *            (apply proc (append cars (list
  *              (apply fold-right proc nil cdrs)))))))))
  */
 func DfoldZKright(a Any) Any {
 	proc, null, rest := unlist2R(a)
 	if IsNull(rest) {
-		return Apply(proc, list1(null))
+		return Dapply(list2(proc, list1(null)))
 	}
 	if Length(rest) > 1 {
 		panic("expected binary procedure")
@@ -497,7 +499,7 @@ func DfoldZKright(a Any) Any {
 		return null
 	}
 	ca, cd := unlist1R(ls)
-	return Apply(proc, list2(ca, DfoldZKright(list3(proc, null, cd))))
+	return Dapply(list2(proc, list2(ca, DfoldZKright(list3(proc, null, cd)))))
 }
 
 func DflushZKoutputZKport(a Any) Any {

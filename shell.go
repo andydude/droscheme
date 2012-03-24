@@ -139,27 +139,6 @@ func UnmangleName(mangled string) string {
 	return string(out)
 }
 
-/* Apply()
- *
- * a call form is (<proc> <datum> ...)
- * which is given to this function as follows
- *
- * Apply( toAny(proc), toList(datum1, ...) )
- *
- * Note that the procedure is NOT included in 'args'.
- */
-func Apply(proc, args Any) Any {
-	switch proc.(type) {
-	case SPrimProc:
-		return proc.(SPrimProc).Apply(args)
-	case SLambdaProc:
-		return proc.(SLambdaProc).Apply(args)
-	default:
-		panic(newTypeError("expected procedure"))
-	}
-	return values0()
-}
-
 /* Eval()
  *
  * evaluates an expression
@@ -231,7 +210,7 @@ func EvalList(expr Any, env *Env) (value Any, err error) {
 		panic("EvalError: expected procedure")
 	}
 
-	return Apply(car, cdr), nil
+	return car.(Applier).Apply(cdr)
 }
 
 /* EvalSyntax()
