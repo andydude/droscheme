@@ -41,11 +41,8 @@ func Kbegin(s Any, env *Env) Any {
 // (define var)
 // (define var expr)
 func Kdefine(s Any, env *Env) Any {
-	ret, err := env.define(s.(SPair).cdr)
-	if err != nil {
-		panic(err)
-	}
-	return ret
+	_, symbol, rest := unlist2R(s)
+	return env.Define(symbol, rest)
 }
 
 func KdumpZKenvironment(s Any, env *Env) Any {
@@ -105,11 +102,8 @@ func Kquote(s Any, env *Env) Any {
 
 // (set! var expr)
 func KsetZA(s Any, env *Env) Any {
-	ret, err := env.set(s.(SPair).cdr)
-	if err != nil {
-		panic(err)
-	}
-	return ret
+	_, symbol, value := unlist3(s)
+	return env.Set(symbol, value)
 }
 
 /*

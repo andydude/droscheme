@@ -31,6 +31,7 @@ const (
 	TypeCodeLibrary //
 	TypeCodeValues  // multiple return values
 	TypeCodeSyntax
+	TypeCodeEnvSpec
 
 	// ... we can add more nonstandard types later
 
