@@ -1,3 +1,12 @@
+/*
+ * Droscheme - a Scheme implementation
+ * Copyright © 2012 Andrew Robbins, Daniel Connelly
+ *
+ * This program is free software: it is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
+ */
 package droscheme
 
 import (
@@ -5,7 +14,7 @@ import (
 )
 
 const (
-	TypeCodeAny = iota // reserved
+	TypeCodeAny     = iota
 	TypeCodeType    // go:SType
 	TypeCodeNull    // go:SNull     s:null?
 	TypeCodePair    // go:SPair     s:pair?
@@ -22,6 +31,7 @@ const (
 	TypeCodeLibrary //
 	TypeCodeValues  // multiple return values
 	TypeCodeSyntax
+	TypeCodeEnvSpec
 
 	// ... we can add more nonstandard types later
 
@@ -53,6 +63,9 @@ const (
 // Port - abstracts binary/textual/input/output
 // Number - abstracts byte/fixnum/bignum/real/rational/complex
 // Record - abstracts record types
+// Evaler
+// Applier
+// Transformer
 
 type Any interface {
 	GetType() int
@@ -69,6 +82,21 @@ func Equal(x, y Any) bool {
 
 func Hash(o Any) uintptr {
 	return reflect.ValueOf(&o).Pointer()
+}
+
+type Evaler interface {
+	// (object).Eval(environment)
+	Eval(*Env) (Any, error)
+}
+
+type Applier interface {
+	// (procedure).Apply(arguments)
+	Apply(Any) (Any, error)
+}
+
+type Transformer interface {
+	// (syntax).Transform(keyword, expression, environment)
+	Transform(Any, Any, *Env) (Any, error)
 }
 
 // testing
@@ -93,33 +121,51 @@ func IsPort(o Any) bool {
 
 func IsBinaryPort(o Any) bool {
 	var p, ok = o.(Port)
-	if !ok { return false }
+	if !ok {
+		return false
+	}
 	var t = p.GetPortType()
-	if t > PortTypeCodeByteInOut { return false }
+	if t > PortTypeCodeByteInOut {
+		return false
+	}
 	return true
 }
 
 func IsTextualPort(o Any) bool {
 	var p, ok = o.(Port)
-	if !ok { return false }
+	if !ok {
+		return false
+	}
 	var t = p.GetPortType()
-	if t > PortTypeCodeCharInOut { return false }
-	if t < PortTypeCodeChar { return false }
+	if t > PortTypeCodeCharInOut {
+		return false
+	}
+	if t < PortTypeCodeChar {
+		return false
+	}
 	return true
 }
 
 func IsInputPort(o Any) bool {
 	var p, ok = o.(Port)
-	if !ok { return false }
+	if !ok {
+		return false
+	}
 	var t = p.GetPortType()
-	if t & PortTypeCodeByteIn == 0 { return false }
+	if t&PortTypeCodeByteIn == 0 {
+		return false
+	}
 	return true
 }
 
 func IsOutputPort(o Any) bool {
 	var p, ok = o.(Port)
-	if !ok { return false }
+	if !ok {
+		return false
+	}
 	var t = p.GetPortType()
-	if t & PortTypeCodeByteOut == 0 { return false }
+	if t&PortTypeCodeByteOut == 0 {
+		return false
+	}
 	return true
 }

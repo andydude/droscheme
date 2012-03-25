@@ -1,3 +1,12 @@
+/*
+ * Droscheme - a Scheme implementation
+ * Copyright © 2012 Andrew Robbins, Daniel Connelly
+ *
+ * This program is free software: it is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
+ */
 package droscheme
 
 import (
@@ -28,7 +37,7 @@ import (
 
 // ----------------------------------------------------------------------
 
-// The Go language specification requires that methods are defined 
+// The Go language specification requires that methods are defined
 // in the same package as the reciever type is defined, so if we
 // don't do this, then gc will give us the following error:
 //   "cannot define new methods on non-local type bool"
@@ -127,6 +136,10 @@ func (_ SNull) String() string {
 	return "()"
 }
 
+func (o SNull) ToVector() Any {
+	return SVector{it: []Any{}}
+}
+
 // s:pair type
 
 type SPair struct {
@@ -155,15 +168,31 @@ func (o SPair) Equal(a Any) bool {
 
 func (o SPair) String() string {
 	if IsList(o) {
-		v := DlistZKZRvector(list1(o))
+		v := listToVector(o)
 		s := fmt.Sprintf("%s", v)
 		return s[1:]
 	}
 	return fmt.Sprintf("(%s . %s)", o.car, o.cdr)
 }
 
+func (o SPair) ToVector() Any {
+	var ret = []Any{}
+	var cur Any
+	for cur = o; IsPair(cur); cur = cur.(SPair).cdr {
+		ret = append(ret, cur.(SPair).car)
+	}
+	return SVector{it: ret}
+}
+
+func listToVector(a Any) SVector {
+	if IsNull(a) {
+		return a.(SNull).ToVector().(SVector)
+	}
+	return a.(SPair).ToVector().(SVector)
+}
+
 func IsList(o Any) bool {
-	// By definition, all lists are chains of pairs that have 
+	// By definition, all lists are chains of pairs that have
 	// finite length and are terminated by the empty list. [R6RS]
 
 	// cycle detection (only needed in mutable model)
@@ -268,12 +297,18 @@ func (o SSymbol) String() string {
 // vector type
 
 type SVector struct {
-	items    []Any
-	itemtype int
+	it []Any
 }
 
 func IsVector(a Any) bool {
 	return IsType(a, TypeCodeVector)
+}
+
+func (o SVector) ToList() Any {
+	if len(o.it) == 0 {
+		return SNull{}
+	}
+	return SPair{o.it[0], SVector{it: o.it[1:]}.ToList()}
 }
 
 func (o SVector) GetType() int {
@@ -289,15 +324,21 @@ func (o SVector) Equal(a Any) bool {
 }
 
 func (o SVector) String() string {
-	if len(o.items) == 0 {
+	if len(o.it) == 0 {
 		return "#()"
 	}
 
 	var ret string = ""
-	for i := 0; i < len(o.items); i++ {
-		ret += fmt.Sprintf(" %s", o.items[i])
+	for i := 0; i < len(o.it); i++ {
+		ret += fmt.Sprintf(" %s", o.it[i])
 	}
 	return fmt.Sprintf("#(%s)", ret[1:])
+}
+
+// hashtable type
+
+type STable struct {
+	it map[Any]Any
 }
 
 // syntax type
@@ -353,8 +394,8 @@ func (o SPrimProc) Equal(a Any) bool {
 	return false
 }
 
-func (o SPrimProc) Apply(a Any) Any {
-	return o.call(a)
+func (o SPrimProc) Apply(a Any) (Any, error) {
+	return o.call(a), nil
 }
 
 func (o SPrimProc) String() string {
@@ -373,23 +414,19 @@ func (o SLambdaProc) Equal(a Any) bool {
 	return false
 }
 
-func (o SLambdaProc) Apply(a Any) Any {
+func (o SLambdaProc) Apply(a Any) (Any, error) {
 	cenv := ChildEnv(o.env)
 	if IsSymbol(o.form) {
 		cenv.bound[o.form.(SSymbol).name] = a
 	} else {
 		// assume list
-		args := DlistZKZRvector(list1(o.form)).(SVector).items
-		vals := DlistZKZRvector(list1(a)).(SVector).items
+		args := listToVector(o.form).it
+		vals := listToVector(a).it
 		for k, _ := range args {
 			cenv.bound[args[k].(SSymbol).name] = vals[k]
 		}
 	}
-	value, err := Eval(o.body, cenv)
-	if err != nil {
-		panic(err)
-	}
-	return value
+	return Eval(o.body, cenv)
 }
 
 func (o SLambdaProc) String() string {
@@ -417,7 +454,7 @@ func (o SValues) Equal(a Any) bool {
 }
 
 func (o SValues) String() string {
-	if len(o.values.items) == 0 {
+	if len(o.values.it) == 0 {
 		return ""
 	}
 	return fmt.Sprintf("#<values:%s>", o.values)
@@ -624,16 +661,16 @@ func unproc3R(f func(Any) Any) func(Any, Any, Any, Any) Any {
 
 // represents no return values
 func values0() Any {
-	return SValues{values: SVector{items: []Any{}}}
+	return SValues{values: SVector{it: []Any{}}}
 }
 
 // represents 2 return values
 func values2(a, b Any) Any {
-	return SValues{values: SVector{items: []Any{a, b}}}
+	return SValues{values: SVector{it: []Any{a, b}}}
 }
 
 // represents multiple return values
 func valuesR(rest Any) Any {
-	vec := DlistZKZRvector(list1(rest)).(SVector)
+	vec := listToVector(rest)
 	return SValues{values: vec}
 }

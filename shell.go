@@ -1,6 +1,16 @@
+/*
+ * Droscheme - a Scheme implementation
+ * Copyright © 2012 Andrew Robbins, Daniel Connelly
+ *
+ * This program is free software: it is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
+ */
 package droscheme
 
 import (
+	"fmt"
 	"reflect"
 	"runtime"
 	"strings"
@@ -19,59 +29,76 @@ func ChildEnv(parent *Env) *Env {
 	return &Env{bound: make(map[string]Any, 1024), parent: parent}
 }
 
-func (env *Env) get(id string) Any {
-	if env.bound[id] != nil {
-		return env.bound[id]
-	}
-	if env.parent == nil {
-		return nil
-	}
-	return env.parent.get(id)
+func (env *Env) GetType() int {
+	return TypeCodeEnvSpec
 }
 
-func (env *Env) has(id string) bool {
+func (env *Env) Equal(a Any) bool {
+	return false
+}
+
+func (env *Env) Has(symbol Any) bool {
+	id := symbol.(SSymbol).String()
 	if env.bound[id] != nil {
 		return true
 	}
 	if env.parent == nil {
 		return false
 	}
-	return env.parent.has(id)
+	return env.parent.Has(symbol)
 }
 
-func (env *Env) set(cds Any) (value Any, err error) {
-	return env.mutate(cds, true)
+func (env *Env) Ref(symbol Any) Any {
+	id := symbol.(SSymbol).String()
+	if env.bound[id] != nil {
+		return env.bound[id]
+	}
+	if env.parent == nil {
+		return nil
+	}
+	return env.parent.Ref(symbol)
 }
 
-func (env *Env) define(cds Any) (value Any, err error) {
-	return env.mutate(cds, false)
-}
-
-func (env *Env) mutate(cds Any, bound bool) (value Any, err error) {
+func (env *Env) Set(symbol, value Any) Any {
 	var id string
 	var derr error = nil
-	bvar, bval := unlist2(cds)
-	if IsPair(bvar) {
-		bid, form := unlist1R(bvar)
-		id = bid.(SSymbol).name
-		bval, derr = Eval(list3(SSymbol{"lambda"}, form, bval), env)
-	} else if IsSymbol(bvar) {
-		id = bvar.(SSymbol).name
-		bval, derr = Eval(bval, env)
-	} else {
-		derr = newEvalError("expected variable")
-	}
-	if bound != env.has(id) {
-		if bound {
-			derr = newEvalError("set! variable must be prebound")
-		} else {
-			derr = newEvalError("define variable must be unbound")
-		}
+	bvar, bval := symbol, value
+	id = bvar.(SSymbol).name
+	bval, derr = Eval(value, env)
+	if !env.Has(symbol) {
+		derr = newEvalError("set! variable must be prebound")
 	}
 	if derr == nil {
 		env.bound[id] = bval
+	} else {
+		panic(derr)
 	}
-	return values0(), derr
+	return values0()
+}
+
+func (env *Env) Define(symbol, rest Any) Any {
+	var id string
+	var derr error = nil
+	bvar, bval := symbol, rest
+	if IsPair(bvar) {
+		bid, form := unlist1R(bvar)
+		id = bid.(SSymbol).name
+		bval, derr = Eval(list2R(SSymbol{"lambda"}, form, bval), env)
+	} else if IsSymbol(bvar) {
+		id = bvar.(SSymbol).name
+		bval, derr = Eval(list1R(SSymbol{"begin"}, bval), env)
+	} else {
+		derr = newEvalError("expected variable")
+	}
+	if env.Has(symbol) {
+		derr = newEvalError("define variable must be unbound")
+	}
+	if derr == nil {
+		env.bound[id] = bval
+	} else {
+		panic(derr)
+	}
+	return values0()
 }
 
 func (env *Env) registerName(fn interface{}) string {
@@ -130,27 +157,6 @@ func UnmangleName(mangled string) string {
 	return string(out)
 }
 
-/* Apply()
- *
- * a call form is (<proc> <datum> ...)
- * which is given to this function as follows
- *
- * Apply( toAny(proc), toList(datum1, ...) )
- *
- * Note that the procedure is NOT included in 'args'.
- */
-func Apply(proc, args Any) Any {
-	switch proc.(type) {
-	case SPrimProc:
-		return proc.(SPrimProc).Apply(args)
-	case SLambdaProc:
-		return proc.(SLambdaProc).Apply(args)
-	default:
-		panic(newTypeError("expected procedure"))
-	}
-	return values0()
-}
-
 /* Eval()
  *
  * evaluates an expression
@@ -195,7 +201,7 @@ func EvalList(expr Any, env *Env) (value Any, err error) {
 	defer func() {
 		rerr := recover()
 		if rerr != nil {
-			err = rerr.(error)
+			err = ToError(rerr)
 		}
 	}()
 
@@ -209,9 +215,11 @@ func EvalList(expr Any, env *Env) (value Any, err error) {
 	if IsSymbol(cas) {
 		keyword := cas.(SSymbol).name
 		if IsSyntax(keyword, env) {
+			fmt.Printf("--SYNTAX%s\n", expr)
 			return EvalSyntax(keyword, expr, env)
 		}
 	}
+	fmt.Printf("--PROC%s\n", expr)
 
 	// evaluate each argument
 	list := expr.(SPair).Eval(env)
@@ -222,7 +230,17 @@ func EvalList(expr Any, env *Env) (value Any, err error) {
 		panic("EvalError: expected procedure")
 	}
 
-	return Apply(car, cdr), nil
+	return car.(Applier).Apply(cdr)
+}
+
+func ToError(a interface{}) error {
+	switch a.(type) {
+	case error:
+		return a.(error)
+	case string:
+		return newEvalError(a.(string))
+	}
+	return newEvalError("unknown error")
 }
 
 /* EvalSyntax()
@@ -239,7 +257,7 @@ func EvalSyntax(keyword string, expr Any, env *Env) (value Any, err error) {
 		rerr := recover()
 		if rerr != nil {
 			value = values0()
-			err = rerr.(error)
+			err = ToError(rerr)
 		}
 	}()
 
@@ -247,12 +265,12 @@ func EvalSyntax(keyword string, expr Any, env *Env) (value Any, err error) {
 		return values0(), newSyntaxError("unknown keyword")
 	}
 
-	syntax := env.get(keyword)
+	syntax := env.Ref(SSymbol{keyword})
 	return syntax.(SSyntax).form(expr, env), nil
 }
 
 func IsSyntax(keyword string, env *Env) bool {
-	if env.has(keyword) && IsType(env.get(keyword), TypeCodeSyntax) {
+	if env.Has(SSymbol{keyword}) && IsType(env.Ref(SSymbol{keyword}), TypeCodeSyntax) {
 		return true
 	}
 	return false
@@ -278,13 +296,13 @@ func (o SPair) Eval(env *Env) Any {
 func (o SSymbol) Eval(env *Env) Any {
 	// (2) check general bindings
 	// if we got here then it's not syntax
-	return env.get(o.name)
+	return env.Ref(o)
 }
 
 func (o SVector) Eval(env *Env) Any {
-	var ret = DmakeZKvector(list1(Sint64(len(o.items)))).(SVector)
-	for i := 0; i < len(o.items); i++ {
-		ret.items[i], _ = Eval(o.items[i], env)
+	var ret = DmakeZKvector(list1(Sint64(len(o.it)))).(SVector)
+	for i := 0; i < len(o.it); i++ {
+		ret.it[i], _ = Eval(o.it[i], env)
 	}
 	return ret
 }
