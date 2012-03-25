@@ -176,12 +176,12 @@ func (o SPair) String() string {
 }
 
 func (o SPair) ToVector() Any {
-    var ret = []Any{}
-    var cur Any
-    for cur = o; IsPair(cur); cur = cur.(SPair).cdr {
-        ret = append(ret, cur.(SPair).car)
-    }
-    return SVector{it: ret}
+	var ret = []Any{}
+	var cur Any
+	for cur = o; IsPair(cur); cur = cur.(SPair).cdr {
+		ret = append(ret, cur.(SPair).car)
+	}
+	return SVector{it: ret}
 }
 
 func listToVector(a Any) SVector {
@@ -297,7 +297,7 @@ func (o SSymbol) String() string {
 // vector type
 
 type SVector struct {
-	it    []Any
+	it []Any
 }
 
 func IsVector(a Any) bool {
@@ -305,8 +305,10 @@ func IsVector(a Any) bool {
 }
 
 func (o SVector) ToList() Any {
-    if len(o.it) == 0 { return SNull{} }
-    return SPair{o.it[0], SVector{it: o.it[1:]}.ToList()}
+	if len(o.it) == 0 {
+		return SNull{}
+	}
+	return SPair{o.it[0], SVector{it: o.it[1:]}.ToList()}
 }
 
 func (o SVector) GetType() int {

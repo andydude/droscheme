@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	TypeCodeAny = iota // reserved
+	TypeCodeAny     = iota
 	TypeCodeType    // go:SType
 	TypeCodeNull    // go:SNull     s:null?
 	TypeCodePair    // go:SPair     s:pair?
@@ -84,17 +84,17 @@ func Hash(o Any) uintptr {
 }
 
 type Evaler interface {
-    // (object).Eval(environment)
+	// (object).Eval(environment)
 	Eval(*Env) (Any, error)
 }
 
 type Applier interface {
-    // (procedure).Apply(arguments)
+	// (procedure).Apply(arguments)
 	Apply(Any) (Any, error)
 }
 
 type Transformer interface {
-    // (syntax).Transform(keyword, expression, environment)
+	// (syntax).Transform(keyword, expression, environment)
 	Transform(Any, Any, *Env) (Any, error)
 }
 
@@ -120,33 +120,51 @@ func IsPort(o Any) bool {
 
 func IsBinaryPort(o Any) bool {
 	var p, ok = o.(Port)
-	if !ok { return false }
+	if !ok {
+		return false
+	}
 	var t = p.GetPortType()
-	if t > PortTypeCodeByteInOut { return false }
+	if t > PortTypeCodeByteInOut {
+		return false
+	}
 	return true
 }
 
 func IsTextualPort(o Any) bool {
 	var p, ok = o.(Port)
-	if !ok { return false }
+	if !ok {
+		return false
+	}
 	var t = p.GetPortType()
-	if t > PortTypeCodeCharInOut { return false }
-	if t < PortTypeCodeChar { return false }
+	if t > PortTypeCodeCharInOut {
+		return false
+	}
+	if t < PortTypeCodeChar {
+		return false
+	}
 	return true
 }
 
 func IsInputPort(o Any) bool {
 	var p, ok = o.(Port)
-	if !ok { return false }
+	if !ok {
+		return false
+	}
 	var t = p.GetPortType()
-	if t & PortTypeCodeByteIn == 0 { return false }
+	if t&PortTypeCodeByteIn == 0 {
+		return false
+	}
 	return true
 }
 
 func IsOutputPort(o Any) bool {
 	var p, ok = o.(Port)
-	if !ok { return false }
+	if !ok {
+		return false
+	}
 	var t = p.GetPortType()
-	if t & PortTypeCodeByteOut == 0 { return false }
+	if t&PortTypeCodeByteOut == 0 {
+		return false
+	}
 	return true
 }

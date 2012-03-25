@@ -215,7 +215,9 @@ func Dappend(a Any) Any {
 func Dapply(a Any) Any {
 	proc, restargs := unlist2(a)
 	ret, err := proc.(Applier).Apply(restargs)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	return ret
 }
 
