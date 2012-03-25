@@ -1,3 +1,12 @@
+/*
+ * Droscheme - a Scheme implementation
+ * Copyright © 2012 Andrew Robbins, Daniel Connelly
+ *
+ * This program is free software: it is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
+ */
 package droscheme
 
 import (
@@ -5,7 +14,7 @@ import (
 	"sort"
 )
 
-/* 
+/*
  * Procedures of the form K<mangled name> recieve arguments as
  *   s = (<keyword> <arg1> ... <argn>)
  * Procedures of the form D<mangled name> recieve arguments as
@@ -32,11 +41,8 @@ func Kbegin(s Any, env *Env) Any {
 // (define var)
 // (define var expr)
 func Kdefine(s Any, env *Env) Any {
-	ret, err := env.define(s.(SPair).cdr)
-	if err != nil {
-		panic(err)
-	}
-	return ret
+	_, symbol, rest := unlist2R(s)
+	return env.Define(symbol, rest)
 }
 
 func KdumpZKenvironment(s Any, env *Env) Any {
@@ -96,11 +102,8 @@ func Kquote(s Any, env *Env) Any {
 
 // (set! var expr)
 func KsetZA(s Any, env *Env) Any {
-	ret, err := env.set(s.(SPair).cdr)
-	if err != nil {
-		panic(err)
-	}
-	return ret
+	_, symbol, value := unlist3(s)
+	return env.Set(symbol, value)
 }
 
 /*
@@ -112,32 +115,32 @@ func KsetZA(s Any, env *Env) Any {
  *   (1) remove the 'D' (2) replace any 'Z*' pattern with the table below.
  *
  * Encoding System:
- *   ZA = '!' 
+ *   ZA = '!'
  *   ZB = reserved for QUOTATION MARK
- *   ZC = '#' 
- *   ZD = '$' 
- *   ZE = '%' 
- *   ZF = '&' 
+ *   ZC = '#'
+ *   ZD = '$'
+ *   ZE = '%'
+ *   ZF = '&'
  *   ZG = reserved for APOSTROPHE
- *   ZH = '*' 
- *   ZI = '+' 
- *   ZJ = ',' 
- *   ZK = '-' 
- *   ZL = '.' 
- *   ZM = '/' 
- *   ZN = ':' 
- *   ZO = ';' 
- *   ZP = '<' 
- *   ZQ = '=' 
- *   ZR = '>' 
- *   ZS = '?' 
- *   ZT = '@' 
- *   ZU = '\' 
- *   ZV = '^' 
- *   ZW = '`' 
- *   ZX = '|' 
- *   ZY = '~' 
- *   ZZ = 'Z' 
+ *   ZH = '*'
+ *   ZI = '+'
+ *   ZJ = ','
+ *   ZK = '-'
+ *   ZL = '.'
+ *   ZM = '/'
+ *   ZN = ':'
+ *   ZO = ';'
+ *   ZP = '<'
+ *   ZQ = '='
+ *   ZR = '>'
+ *   ZS = '?'
+ *   ZT = '@'
+ *   ZU = '\'
+ *   ZV = '^'
+ *   ZW = '`'
+ *   ZX = '|'
+ *   ZY = '~'
+ *   ZZ = 'Z'
  */
 
 /* (*) -- derived, but useful
@@ -205,7 +208,11 @@ func Dappend(a Any) Any {
 // (apply proc arg1 ... restargs)
 func Dapply(a Any) Any {
 	proc, restargs := unlist2(a)
-	return Apply(proc, restargs)
+	ret, err := proc.(Applier).Apply(restargs)
+	if err != nil {
+		panic(err)
+	}
+	return ret
 }
 
 func DbinaryZKportZS(a Any) Any {
@@ -258,7 +265,7 @@ func DbytevectorZKZRu8ZKvector(a Any) Any {
 	vany := DmakeZKvector(list1(Sint64(blen)))
 	v := vany.(SVector)
 	for i := 0; i < blen; i++ {
-		v.items[i] = Sint64(bvec.bytes[i])
+		v.it[i] = Sint64(bvec.bytes[i])
 	}
 	return vany
 }
@@ -452,7 +459,7 @@ func Dfloor(a Any) Any {
  *      (if (null? (car lss)) nil
  *          (let ((cars (map car lss))
  *                (cdrs (map cdr lss)))
- *            (apply fold-left proc (apply proc 
+ *            (apply fold-left proc (apply proc
  *              (append (list nil) cars)) cdrs))))))
  */
 func DfoldZKleft(a Any) Any {
@@ -472,13 +479,13 @@ func DfoldZKleft(a Any) Any {
  *      (if (null? (car lss)) nil
  *          (let ((cars (map car lss))
  *                (cdrs (map cdr lss)))
- *            (apply proc (append cars (list 
+ *            (apply proc (append cars (list
  *              (apply fold-right proc nil cdrs)))))))))
  */
 func DfoldZKright(a Any) Any {
 	proc, null, rest := unlist2R(a)
 	if IsNull(rest) {
-		return Apply(proc, list1(null))
+		return Dapply(list2(proc, list1(null)))
 	}
 	if Length(rest) > 1 {
 		panic("expected binary procedure")
@@ -488,7 +495,7 @@ func DfoldZKright(a Any) Any {
 		return null
 	}
 	ca, cd := unlist1R(ls)
-	return Apply(proc, list2(ca, DfoldZKright(list3(proc, null, cd))))
+	return Dapply(list2(proc, list2(ca, DfoldZKright(list3(proc, null, cd)))))
 }
 
 func DflushZKoutputZKport(a Any) Any {
@@ -555,7 +562,7 @@ func DlistZKZRvector(a Any) Any {
 	for cur := unlist1(a); IsPair(cur); cur = cur.(SPair).cdr {
 		vec = append(vec, cur.(SPair).car)
 	}
-	return SVector{vec, 0}
+	return SVector{it: vec}
 }
 
 func DlistZKcopy(a Any) Any {
@@ -645,7 +652,7 @@ func DmakeZKvector(a Any) Any {
 	for i := 0; i < n; i++ {
 		v[i] = fill
 	}
-	return SVector{items: v}
+	return SVector{it: v}
 }
 
 func Dmap(a Any) Any {
@@ -992,10 +999,10 @@ func Dvector(a Any) Any {
 // (vector->list v)
 func DvectorZKZRlist(a Any) Any {
 	vec := unlist1(a).(SVector)
-	if len(vec.items) == 0 {
+	if len(vec.it) == 0 {
 		return list0()
 	}
-	return list1R(vec.items[0], DvectorZKZRlist(list1(SVector{items: vec.items[1:]})))
+	return list1R(vec.it[0], DvectorZKZRlist(list1(SVector{it: vec.it[1:]})))
 }
 
 func DvectorZKZRstring(a Any) Any {
@@ -1015,7 +1022,7 @@ func DvectorZKforZKeach(a Any) Any {
 }
 
 func DvectorZKlength(a Any) Any {
-	return Sint64(len(unlist1(a).(SVector).items))
+	return Sint64(len(unlist1(a).(SVector).it))
 }
 
 func DvectorZKmap(a Any) Any {
@@ -1024,12 +1031,12 @@ func DvectorZKmap(a Any) Any {
 
 func DvectorZKref(a Any) Any {
 	o, k := unlist2(a)
-	return o.(SVector).items[ToFixnum(k)]
+	return o.(SVector).it[ToFixnum(k)]
 }
 
 func DvectorZKsetZA(a Any) Any {
 	o, k, v := unlist3(a)
-	o.(SVector).items[ToFixnum(k)] = v
+	o.(SVector).it[ToFixnum(k)] = v
 	return values0()
 }
 
