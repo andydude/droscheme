@@ -28,10 +28,7 @@ func Kbegin(kw, st Any, env *Env) Any {
 		return values0()
 	}
 	car, cdr := unlist1R(st)
-	value, err := Eval(car, env)
-	if err != nil {
-		panic(err)
-	}
+	value := Deval(list2(car, env))
 	if IsNull(cdr) {
 		return value
 	}
@@ -40,11 +37,22 @@ func Kbegin(kw, st Any, env *Env) Any {
 
 // (define var)
 // (define var expr)
+// (define (var formals) body)
+// (define (var . formals) body)
 func Kdefine(kw, st Any, env *Env) Any {
 	symbol, rest := unlist1R(st)
 	return env.Define(symbol, rest)
 }
 
+func KdefineZKlibrary(kw, st Any, env *Env) Any {
+	return values0()
+}
+
+func KdefineZKsyntax(kw, st Any, env *Env) Any {
+	return values0()
+}
+
+// (dump-environment) -- for debug only
 func KdumpZKenvironment(kw, st Any, env *Env) Any {
 	if env.parent != nil {
 		KdumpZKenvironment(kw, st, env.parent)
@@ -61,32 +69,29 @@ func KdumpZKenvironment(kw, st Any, env *Env) Any {
 	return values0()
 }
 
+// (environment) -- for debug only
+func Kenvironment(kw, st Any, env *Env) Any {
+	return env
+}
+
 // (if c texpr)
 // (if c texpr fexpr)
 func Kif(kw, st Any, env *Env) Any {
+	// technically this is unlist2O
 	test, texpr, rest := unlist2R(st)
-	c, _ := Eval(test, env)
+	c := Deval(list2(test, env))
 	if !IsBool(c) || bool(c.(SBool)) {
-		x, err := Eval(texpr, env)
-		if err != nil {
-			panic(err)
-		}
-		return x
+		return Deval(list2(texpr, env))
 	}
 	if IsPair(rest) {
 		fexpr := unlist1(rest)
-		x, err := Eval(fexpr, env)
-		if err != nil {
-			panic(err)
-		}
-		return x
+		return Deval(list2(fexpr, env))
 	}
 	return values0()
 }
 
 func Klambda(kw, st Any, env *Env) Any {
 	form, body := unlist1R(st)
-	body = list1R(SSymbol{"begin"}, body)
 	return SLambdaProc{form: form, body: body, env: env}
 }
 
@@ -103,6 +108,16 @@ func Kquote(kw, st Any, env *Env) Any {
 func KsetZA(kw, st Any, env *Env) Any {
 	symbol, value := unlist2(st)
 	return env.Set(symbol, value)
+}
+
+func KsyntaxZKcase(kw, st Any, env *Env) Any {
+	expr, literals, body := unlist2R(st)
+	return SCaseSyntax{expr: expr, lits: literals, body: body, env: env}
+}
+
+func KsyntaxZKrules(kw, st Any, env *Env) Any {
+	literals, body := unlist1R(st)
+	return SRuleSyntax{lits: literals, body: body, env: env}
 }
 
 /*
@@ -207,11 +222,7 @@ func Dappend(a Any) Any {
 // (apply proc arg1 ... restargs)
 func Dapply(a Any) Any {
 	proc, restargs := unlist2(a)
-	ret, err := proc.(Applier).Apply(restargs)
-	if err != nil {
-		panic(err)
-	}
-	return ret
+	return proc.(Applier).Apply(restargs)
 }
 
 func DbinaryZKportZS(a Any) Any {
@@ -419,12 +430,40 @@ func DerrorZKobjectZS(a Any) Any {
 }
 
 func Deval(a Any) Any {
-	expr, _ := unlist1R(a)
-	value, err := Eval(expr, BuiltinEnv())
-	if err != nil {
-		panic(err)
+	expr, opt := unlist1O(a, BuiltinEnv())
+	env := opt.(*Env)
+
+	// check for nonpairs
+	if !IsPair(expr) {
+        // check for literals
+        if _, ok := expr.(Evaler); !ok {
+            return expr
+        }
+        //fmt.Printf("--EVALER\n")
+        return expr.(Evaler).Eval(env)
 	}
-	return value
+
+	// check if car is syntactic keyword
+	cas, cds := unlist1R(expr)
+	if IsSymbol(cas) && IsSyntax(cas, env) {
+		//fmt.Printf("--SYNTAX%s\n", expr)
+		return env.Ref(cas).(Transformer).Transform(cas, cds, env)
+	}
+	//fmt.Printf("--PROC%s\n", expr)
+
+	// evaluate each argument
+	list := expr.(SPair).Eval(env)
+
+	// check if car is procedure
+	car, cdr := unlist1R(list)
+	if !IsProcedure(car) {
+		panic(newTypeError("expected procedure"))
+	}
+	if _, ok := car.(Applier); !ok {
+		panic(newTypeError("expected procedure (Applier)"))
+	}
+
+	return car.(Applier).Apply(cdr)
 }
 
 func DexactZKZRinexact(a Any) Any {
@@ -1098,6 +1137,7 @@ func BuiltinSyntaxEnv() *Env {
 	env.registerSyntax(Kbegin)
 	env.registerSyntax(Kdefine)
 	env.registerSyntax(KdumpZKenvironment)
+	env.registerSyntax(Kenvironment)
 	env.registerSyntax(Kif)
 	env.registerSyntax(Klambda)
 	env.registerSyntax(Kquote)

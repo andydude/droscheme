@@ -12,6 +12,9 @@ package droscheme
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"runtime"
+	"strings"
 )
 
 // structures and methods in this file
@@ -140,6 +143,10 @@ func (o SNull) ToVector() Any {
 	return SVector{it: []Any{}}
 }
 
+func (o SNull) Eval(env *Env) Any {
+	return o
+}
+
 // s:pair type
 
 type SPair struct {
@@ -154,16 +161,23 @@ func IsPair(o Any) bool {
 	return ok
 }
 
-func (o SPair) GetType() int {
-	return TypeCodePair
-}
-
 func (o SPair) GetHash() uintptr {
 	return 0 // TODO
 }
 
+func (o SPair) GetType() int {
+	return TypeCodePair
+}
+
 func (o SPair) Equal(a Any) bool {
 	return false // TODO
+}
+
+func (o SPair) Eval(env *Env) Any {
+	cas, cds := unlist1R(o)
+	car := Deval(list2(cas, env))
+	cdr := cds.(Evaler).Eval(env)
+	return list1R(car, cdr)
 }
 
 func (o SPair) String() string {
@@ -191,7 +205,7 @@ func listToVector(a Any) SVector {
 	case SPair:
 		return a.(SPair).ToVector().(SVector)
 	}
-	panic(newEvalError("list->vector expected list"))
+	panic(newTypeError("list->vector expected list"))
 }
 
 func IsList(o Any) bool {
@@ -293,6 +307,10 @@ func (o SSymbol) Equal(a Any) bool {
 	return o.name == a.(SSymbol).name
 }
 
+func (o SSymbol) Eval(env *Env) Any {
+	return env.Ref(o)
+}
+
 func (o SSymbol) String() string {
 	return o.name
 }
@@ -326,6 +344,15 @@ func (o SVector) Equal(a Any) bool {
 	return false // TODO
 }
 
+
+func (o SVector) Eval(env *Env) Any {
+	var ret = DmakeZKvector(list1(Sint64(len(o.it)))).(SVector)
+	for i := 0; i < len(o.it); i++ {
+		ret.it[i] = Deval(list2(o.it[i], env))
+	}
+	return ret
+}
+
 func (o SVector) String() string {
 	if len(o.it) == 0 {
 		return "#()"
@@ -356,6 +383,184 @@ func IsEmpty(a Any) bool {
 	return false
 }
 
+// environment type
+
+type Env struct {
+	parent *Env
+	bound  map[string]Any
+}
+
+func NullEnv() *Env {
+	return &Env{bound: make(map[string]Any, 1024)}
+}
+
+func ChildEnv(parent *Env) *Env {
+	return &Env{bound: make(map[string]Any, 1024), parent: parent}
+}
+
+func (env *Env) GetType() int {
+	return TypeCodeEnvSpec
+}
+
+func (env *Env) Equal(a Any) bool {
+	return false
+}
+
+func (env *Env) Has(symbol Any) bool {
+	//fmt.Printf("Env.Has(%s)\n", symbol)
+	if env.Ref(symbol) == nil {
+		return false
+	}
+	return true
+}
+
+func (env *Env) Ref(symbol Any) Any {
+	//fmt.Printf("Env.Ref(%s)\n", symbol)
+	id := symbol.(SSymbol).String()
+	if env.bound[id] != nil {
+		return env.bound[id]
+	}
+	if env.parent == nil {
+		return nil
+	}
+	return env.parent.Ref(symbol)
+}
+
+func (env *Env) Set(symbol, expr Any) Any {
+	//fmt.Printf("Env.Set(%s) %s\n", symbol, expr)
+	if !env.Has(symbol) {
+		panic(newEvalError("set! variable must be prebound"))
+	}
+	value := Deval(list2(expr, env))
+
+	// main logic
+	id := symbol.(SSymbol).name
+	env.bound[id] = value
+	return values0()
+}
+
+func (env *Env) Define(symbol, body Any) Any {
+	fmt.Printf("Env.Define(%s) %s\n", symbol, body)
+	var value Any
+	if IsSymbol(symbol) {
+		value = Kbegin(SSymbol{"begin"}, body, env)
+	} else if IsPair(symbol) {
+		var formals Any
+		symbol, formals = unlist1R(symbol)
+		value = Klambda(SSymbol{"lambda"}, list1R(formals, body), env)
+	} else {
+		panic(newEvalError("define: expected variable or list"))
+	}
+	if !IsSymbol(symbol) {
+		panic(newEvalError("define: expected variable"))
+	}
+
+	// main logic
+	id := symbol.(SSymbol).name
+	env.bound[id] = value
+	return values0()
+}
+
+func (env *Env) String() string {
+	return fmt.Sprintf("#<environment with %d local bindings>", len(env.bound))
+}
+
+func (env *Env) registerName(fn interface{}) string {
+	// intuit function name
+	pc := reflect.ValueOf(fn).Pointer()
+	name := runtime.FuncForPC(pc).Name()
+
+	// strip package name
+	list := strings.Split(name, ".")
+	name = list[len(list)-1]
+
+	// strip first character
+	return UnmangleName(name[1:])
+}
+
+func (env *Env) registerSyntax(fn func(Any, Any, *Env) Any) {
+	n := env.registerName(fn)
+	env.bound[n] = SPrimSyntax{form: fn, name: n}
+}
+
+func (env *Env) register(fn func(Any) Any) {
+	n := env.registerName(fn)
+	env.bound[n] = SPrimProc{call: fn, name: n}
+}
+
+func MangleName(name string) string {
+	const table = "!\"#$%&'*+,-./:;<=>?@^`|~Z"
+	var out = []byte{}
+	var work = []byte(name)
+	for i := 0; i < len(work); i++ {
+		ch := work[i]
+		ix := strings.Index(table, string(ch))
+		if ix != -1 {
+			out = append(out, 'Z', 'A'+byte(ix))
+		} else {
+			out = append(out, ch)
+		}
+	}
+	return string(out)
+}
+
+func UnmangleName(mangled string) string {
+	const table = "!\"#$%&'*+,-./:;<=>?@^`|~Z"
+	var out = []byte{}
+	var work = []byte(mangled)
+	for i := 0; i < len(work); i++ {
+		ch := work[i]
+		if ch == 'Z' {
+			i++
+			ch := work[i]
+			out = append(out, table[ch-'A'])
+		} else {
+			out = append(out, ch)
+		}
+	}
+	return string(out)
+}
+
+// exception type
+
+func PanicToError(expr Any) (value Any, err error) {
+	x := recover()
+	if x != nil {
+		value = expr
+		err = ToError(x)
+		fmt.Printf("ERROR: %s\n", err)
+	}
+	return
+}
+
+func ErrorToPanic(value Any, err error) Any {
+	if err != nil {
+		panic(err)
+	}
+	return value
+}
+
+func ToError(a interface{}) error {
+	switch a.(type) {
+	case error:
+		return a.(error)
+	case string:
+		return newEvalError(a.(string))
+	}
+	return newEvalError("unknown error")
+}
+
+func IsSyntax(kw Any, env *Env) bool {
+	if env.Has(kw) && IsType(env.Ref(kw), TypeCodeSyntax) {
+		return true
+	}
+	return false
+}
+
+func CountParens(s string) int {
+	return strings.Count(s, "(") - strings.Count(s, ")")
+}
+
 // hashtable type
 
 type STable struct {
@@ -364,29 +569,74 @@ type STable struct {
 
 // syntax type
 
-type SSyntax struct {
+type SPrimSyntax struct {
 	form func(Any, Any, *Env) Any
+	name string
+}
+
+type SCaseSyntax struct {
+	env *Env
+	expr Any
+	lits Any
+	body Any
+	name string
+}
+
+type SRuleSyntax struct {
+	env *Env
+	lits Any
+	body Any
 	name string
 }
 
 // syntax methods
 
-func (o SSyntax) GetType() int {
+func (o SPrimSyntax) GetType() int {
 	return TypeCodeSyntax
 }
 
-func (o SSyntax) Equal(a Any) bool {
+func (o SPrimSyntax) Equal(a Any) bool {
 	return false
 }
 
-func (o SSyntax) Transform(kw, st Any, env *Env) (value Any, err error) {
-	defer func () {
-		x := recover()
-		if x != nil {
-			err = ToError(x)
-		}
-	}()
-    return o.form(kw, st, env), nil
+func (o SPrimSyntax) Transform(kw, st Any, env *Env) Any {
+    return o.form(kw, st, env)
+}
+
+func (o SPrimSyntax) String() string {
+	return fmt.Sprintf("#<syntax:%s>", o.name)
+}
+
+func (o SCaseSyntax) GetType() int {
+	return TypeCodeSyntax
+}
+
+func (o SCaseSyntax) Equal(a Any) bool {
+	return false
+}
+
+func (o SCaseSyntax) Transform(kw, st Any, env *Env) Any {
+    return values0()
+}
+
+func (o SCaseSyntax) String() string {
+	return fmt.Sprintf("#<syntax-case:%s>", o.name)
+}
+
+func (o SRuleSyntax) GetType() int {
+	return TypeCodeSyntax
+}
+
+func (o SRuleSyntax) Equal(a Any) bool {
+	return false
+}
+
+func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
+    return values0()
+}
+
+func (o SRuleSyntax) String() string {
+	return fmt.Sprintf("#<syntax-rules:%s>", o.name)
 }
 
 // procedure types
@@ -425,8 +675,8 @@ func (o SPrimProc) Equal(a Any) bool {
 	return false
 }
 
-func (o SPrimProc) Apply(a Any) (Any, error) {
-	return o.call(a), nil
+func (o SPrimProc) Apply(a Any) Any {
+	return o.call(a)
 }
 
 func (o SPrimProc) String() string {
@@ -445,14 +695,18 @@ func (o SLambdaProc) Equal(a Any) bool {
 	return false
 }
 
-func (o SLambdaProc) Apply(a Any) (Any, error) {
+func (o SLambdaProc) Apply(a Any) Any {
+	body := o.body
+	if Length(body) != 1 {
+		body = list1R(SSymbol{"begin"}, body)
+	}
 	cenv := ChildEnv(o.env)
 	if IsSymbol(o.form) {
 		cenv.bound[o.form.(SSymbol).name] = a
-		return Eval(o.body, cenv)
+		return Deval(list2(body, cenv))
 	}
 	if !IsPair(o.form) {
-		return values0(), newEvalError("lambda-apply expected symbol or pair")
+		panic(newEvalError("lambda-apply expected symbol or pair"))
 	}
 
 	// iterate over formal and actual arguments
@@ -465,23 +719,24 @@ func (o SLambdaProc) Apply(a Any) (Any, error) {
 	// check for (a b c . rest) formal arguments
 	if IsSymbol(bvar) {
 		cenv.bound[bvar.(SSymbol).name] = bval
-		return Eval(o.body, cenv)
+		return Deval(list2(body, cenv))
 	}
 
 	// check for argument mismatch
 	switch {
 	case IsNull(bvar) && !IsNull(bval):
-		return values0(), newEvalError("lambda-apply expected less arguments")
+		panic(newEvalError("lambda-apply expected less arguments"))
 	case !IsNull(bvar) && IsNull(bval):
-		return values0(), newEvalError("lambda-apply expected more arguments")
+		panic(newEvalError("lambda-apply expected more arguments"))
 	}
 
-	return Eval(o.body, cenv)
+	return Deval(list2(body, cenv))
 }
 
 func (o SLambdaProc) String() string {
-	return fmt.Sprintf("(lambda %s %s)", o.form, o.body)
+	return list2R(SSymbol{"lambda"}, o.form, o.body).(fmt.Stringer).String()
 }
+
 
 // values type
 
@@ -643,6 +898,30 @@ func unlist3R(o Any) (a Any, b Any, c Any, r Any) {
 	r = r.(SPair).cdr
 	c = r.(SPair).car
 	r = r.(SPair).cdr
+	return
+}
+
+func unlist1O(o Any, d Any) (a Any, r Any) {
+	a = o.(SPair).car
+	r = o.(SPair).cdr
+    if IsPair(r) {
+        r = r.(SPair).car
+    } else {
+        r = d
+    }
+	return
+}
+
+func unlist2O(o Any, d Any) (a Any, b Any, r Any) {
+	a = o.(SPair).car
+	r = o.(SPair).cdr
+	b = r.(SPair).car
+	r = r.(SPair).cdr
+    if IsPair(r) {
+        r = r.(SPair).car
+    } else {
+        r = d
+    }
 	return
 }
 

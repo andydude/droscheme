@@ -86,17 +86,17 @@ func Hash(o Any) uintptr {
 
 type Evaler interface {
 	// (object).Eval(environment)
-	Eval(*Env) (Any, error)
+	Eval(*Env) Any
 }
 
 type Applier interface {
 	// (procedure).Apply(arguments)
-	Apply(Any) (Any, error)
+	Apply(Any) Any
 }
 
 type Transformer interface {
 	// (syntax).Transform(keyword, expression, environment)
-	Transform(Any, Any, *Env) (Any, error)
+	Transform(Any, Any, *Env) Any
 }
 
 // testing
