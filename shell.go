@@ -10,7 +10,7 @@
 package droscheme
 
 import (
-	"fmt"
+//	"fmt"
 	"reflect"
 	"runtime"
 	"strings"
@@ -38,17 +38,15 @@ func (env *Env) Equal(a Any) bool {
 }
 
 func (env *Env) Has(symbol Any) bool {
-	id := symbol.(SSymbol).String()
-	if env.bound[id] != nil {
-		return true
-	}
-	if env.parent == nil {
+	//fmt.Printf("Env.Has(%s)\n", symbol)
+	if env.Ref(symbol) == nil {
 		return false
 	}
-	return env.parent.Has(symbol)
+	return true
 }
 
 func (env *Env) Ref(symbol Any) Any {
+	//fmt.Printf("Env.Ref(%s)\n", symbol)
 	id := symbol.(SSymbol).String()
 	if env.bound[id] != nil {
 		return env.bound[id]
@@ -60,44 +58,49 @@ func (env *Env) Ref(symbol Any) Any {
 }
 
 func (env *Env) Set(symbol, value Any) Any {
+	//fmt.Printf("Env.Set(%s) %s\n", symbol, value)
 	var id string
 	var derr error = nil
 	bvar, bval := symbol, value
-	id = bvar.(SSymbol).name
 	bval, derr = Eval(value, env)
 	if !env.Has(symbol) {
 		derr = newEvalError("set! variable must be prebound")
 	}
-	if derr == nil {
-		env.bound[id] = bval
-	} else {
+	if derr != nil {
 		panic(derr)
 	}
+
+	//
+	id = bvar.(SSymbol).name
+	env.bound[id] = bval
 	return values0()
 }
 
-func (env *Env) Define(symbol, rest Any) Any {
+func (env *Env) Define(symbol, body Any) Any {
+	//fmt.Printf("Env.Define(%s) %s\n", symbol, body)
+	var form Any
+	var value Any
 	var id string
 	var derr error = nil
-	bvar, bval := symbol, rest
-	if IsPair(bvar) {
-		bid, form := unlist1R(bvar)
-		id = bid.(SSymbol).name
-		bval, derr = Eval(list2R(SSymbol{"lambda"}, form, bval), env)
-	} else if IsSymbol(bvar) {
-		id = bvar.(SSymbol).name
-		bval, derr = Eval(list1R(SSymbol{"begin"}, bval), env)
-	} else {
-		derr = newEvalError("expected variable")
+	if IsSymbol(symbol) {
+		value = Kbegin(SSymbol{"begin"}, body, env)
+	} else if IsPair(symbol) {
+		symbol, form = unlist1R(symbol)
+		value = Klambda(SSymbol{"lambda"}, list1R(form, body), env)
 	}
-	if env.Has(symbol) {
-		derr = newEvalError("define variable must be unbound")
+	if !IsSymbol(symbol) {
+		derr = newEvalError("define: expected variable")
 	}
-	if derr == nil {
-		env.bound[id] = bval
-	} else {
+	//if env.Has(symbol) {
+	//	derr = newEvalError("define variable must be unbound")
+	//}
+	if derr != nil {
 		panic(derr)
 	}
+
+	// main logic
+	id = symbol.(SSymbol).name
+	env.bound[id] = value
 	return values0()
 }
 
@@ -114,7 +117,7 @@ func (env *Env) registerName(fn interface{}) string {
 	return UnmangleName(name[1:])
 }
 
-func (env *Env) registerSyntax(fn func(Any, *Env) Any) {
+func (env *Env) registerSyntax(fn func(Any, Any, *Env) Any) {
 	n := env.registerName(fn)
 	env.bound[n] = SSyntax{form: fn, name: n}
 }
@@ -210,16 +213,12 @@ func EvalList(expr Any, env *Env) (value Any, err error) {
 	}
 
 	// check if car is syntactic keyword
-	cas, _ := unlist1R(expr)
-	// TODO: IsSyntax()
-	if IsSymbol(cas) {
-		keyword := cas.(SSymbol).name
-		if IsSyntax(keyword, env) {
-			fmt.Printf("--SYNTAX%s\n", expr)
-			return EvalSyntax(keyword, expr, env)
-		}
+	cas, cds := unlist1R(expr)
+	if IsSymbol(cas) && IsSyntax(cas, env) {
+		//fmt.Printf("--SYNTAX%s\n", expr)
+		return env.Ref(cas).(SSyntax).Transform(cas, cds, env)
 	}
-	fmt.Printf("--PROC%s\n", expr)
+	//fmt.Printf("--PROC%s\n", expr)
 
 	// evaluate each argument
 	list := expr.(SPair).Eval(env)
@@ -243,34 +242,8 @@ func ToError(a interface{}) error {
 	return newEvalError("unknown error")
 }
 
-/* EvalSyntax()
- *
- * a syntax form is (<keyword> <datum> ...)
- * which is given to this function as follows
- *
- * Syntax( toString(keyword), toList(toSymbol(keyword), datum1, ...), env )
- *
- * Note that the keyword is included in 'expr'.
- */
-func EvalSyntax(keyword string, expr Any, env *Env) (value Any, err error) {
-	defer func() {
-		rerr := recover()
-		if rerr != nil {
-			value = values0()
-			err = ToError(rerr)
-		}
-	}()
-
-	if !IsSyntax(keyword, env) {
-		return values0(), newSyntaxError("unknown keyword")
-	}
-
-	syntax := env.Ref(SSymbol{keyword})
-	return syntax.(SSyntax).form(expr, env), nil
-}
-
-func IsSyntax(keyword string, env *Env) bool {
-	if env.Has(SSymbol{keyword}) && IsType(env.Ref(SSymbol{keyword}), TypeCodeSyntax) {
+func IsSyntax(kw Any, env *Env) bool {
+	if env.Has(kw) && IsType(env.Ref(kw), TypeCodeSyntax) {
 		return true
 	}
 	return false

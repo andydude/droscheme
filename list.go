@@ -185,10 +185,13 @@ func (o SPair) ToVector() Any {
 }
 
 func listToVector(a Any) SVector {
-	if IsNull(a) {
+	switch a.(type) {
+	case SNull:
 		return a.(SNull).ToVector().(SVector)
+	case SPair:
+		return a.(SPair).ToVector().(SVector)
 	}
-	return a.(SPair).ToVector().(SVector)
+	panic(newEvalError("list->vector expected list"))
 }
 
 func IsList(o Any) bool {
@@ -335,6 +338,24 @@ func (o SVector) String() string {
 	return fmt.Sprintf("#(%s)", ret[1:])
 }
 
+func IsEmpty(a Any) bool {
+	switch a.(type) {
+	case SNull:
+		return true
+	case SBinary:
+		return len(a.(SBinary).bytes) == 0
+	case SString:
+		return len(a.(SString).text) == 0
+	case SSymbol:
+		return len(a.(SSymbol).name) == 0
+	case SVector:
+		return len(a.(SVector).it) == 0
+	case SValues:
+		return len(a.(SValues).it) == 0
+	}
+	return false
+}
+
 // hashtable type
 
 type STable struct {
@@ -344,7 +365,7 @@ type STable struct {
 // syntax type
 
 type SSyntax struct {
-	form func(Any, *Env) Any
+	form func(Any, Any, *Env) Any
 	name string
 }
 
@@ -356,6 +377,16 @@ func (o SSyntax) GetType() int {
 
 func (o SSyntax) Equal(a Any) bool {
 	return false
+}
+
+func (o SSyntax) Transform(kw, st Any, env *Env) (value Any, err error) {
+	defer func () {
+		x := recover()
+		if x != nil {
+			err = ToError(x)
+		}
+	}()
+    return o.form(kw, st, env), nil
 }
 
 // procedure types
@@ -407,7 +438,7 @@ func (o SLambdaProc) GetType() int {
 }
 
 func (o SLambdaProc) GetHash() uintptr {
-	return 0 // TODO
+	return SString{o.String()}.GetHash()
 }
 
 func (o SLambdaProc) Equal(a Any) bool {
@@ -418,14 +449,33 @@ func (o SLambdaProc) Apply(a Any) (Any, error) {
 	cenv := ChildEnv(o.env)
 	if IsSymbol(o.form) {
 		cenv.bound[o.form.(SSymbol).name] = a
-	} else {
-		// assume list
-		args := listToVector(o.form).it
-		vals := listToVector(a).it
-		for k, _ := range args {
-			cenv.bound[args[k].(SSymbol).name] = vals[k]
-		}
+		return Eval(o.body, cenv)
 	}
+	if !IsPair(o.form) {
+		return values0(), newEvalError("lambda-apply expected symbol or pair")
+	}
+
+	// iterate over formal and actual arguments
+	var bvar, bval Any
+	for bvar, bval = o.form, a; IsPair(bvar) && IsPair(bval); 
+	    bvar, bval = bvar.(SPair).cdr, bval.(SPair).cdr {
+		cenv.bound[bvar.(SPair).car.(SSymbol).name] = bval.(SPair).car
+	}
+
+	// check for (a b c . rest) formal arguments
+	if IsSymbol(bvar) {
+		cenv.bound[bvar.(SSymbol).name] = bval
+		return Eval(o.body, cenv)
+	}
+
+	// check for argument mismatch
+	switch {
+	case IsNull(bvar) && !IsNull(bval):
+		return values0(), newEvalError("lambda-apply expected less arguments")
+	case !IsNull(bvar) && IsNull(bval):
+		return values0(), newEvalError("lambda-apply expected more arguments")
+	}
+
 	return Eval(o.body, cenv)
 }
 
@@ -436,7 +486,7 @@ func (o SLambdaProc) String() string {
 // values type
 
 type SValues struct {
-	values SVector
+	it []Any
 }
 
 // values methods
@@ -454,10 +504,10 @@ func (o SValues) Equal(a Any) bool {
 }
 
 func (o SValues) String() string {
-	if len(o.values.it) == 0 {
+	if len(o.it) == 0 {
 		return ""
 	}
-	return fmt.Sprintf("#<values:%s>", o.values)
+	return fmt.Sprintf("#<values:%s>", o.it)
 }
 
 // type type
@@ -661,16 +711,16 @@ func unproc3R(f func(Any) Any) func(Any, Any, Any, Any) Any {
 
 // represents no return values
 func values0() Any {
-	return SValues{values: SVector{it: []Any{}}}
+	return SValues{it: []Any{}}
 }
 
 // represents 2 return values
 func values2(a, b Any) Any {
-	return SValues{values: SVector{it: []Any{a, b}}}
+	return SValues{it: []Any{a, b}}
 }
 
 // represents multiple return values
 func valuesR(rest Any) Any {
 	vec := listToVector(rest)
-	return SValues{values: vec}
+	return SValues{it: vec.it}
 }

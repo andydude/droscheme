@@ -16,18 +16,18 @@ import (
 
 /*
  * Procedures of the form K<mangled name> recieve arguments as
- *   s = (<keyword> <arg1> ... <argn>)
+ *   kw = <keyword>
+ *   st = (<arg1> ... <argn>)
  * Procedures of the form D<mangled name> recieve arguments as
  *   a = (<arg1> ... <argn>)
  */
 
 // (begin ...)
-func Kbegin(s Any, env *Env) Any {
-	kw, rest := unlist1R(s)
-	if !IsPair(rest) {
+func Kbegin(kw, st Any, env *Env) Any {
+	if !IsPair(st) {
 		return values0()
 	}
-	car, cdr := unlist1R(rest)
+	car, cdr := unlist1R(st)
 	value, err := Eval(car, env)
 	if err != nil {
 		panic(err)
@@ -35,19 +35,19 @@ func Kbegin(s Any, env *Env) Any {
 	if IsNull(cdr) {
 		return value
 	}
-	return Kbegin(list1R(kw, cdr), env)
+	return Kbegin(kw, cdr, env)
 }
 
 // (define var)
 // (define var expr)
-func Kdefine(s Any, env *Env) Any {
-	_, symbol, rest := unlist2R(s)
+func Kdefine(kw, st Any, env *Env) Any {
+	symbol, rest := unlist1R(st)
 	return env.Define(symbol, rest)
 }
 
-func KdumpZKenvironment(s Any, env *Env) Any {
+func KdumpZKenvironment(kw, st Any, env *Env) Any {
 	if env.parent != nil {
-		KdumpZKenvironment(s, env.parent)
+		KdumpZKenvironment(kw, st, env.parent)
 		fmt.Printf("\t---\n")
 	}
 	keys := []string{}
@@ -63,8 +63,8 @@ func KdumpZKenvironment(s Any, env *Env) Any {
 
 // (if c texpr)
 // (if c texpr fexpr)
-func Kif(s Any, env *Env) Any {
-	_, test, texpr, rest := unlist3R(s)
+func Kif(kw, st Any, env *Env) Any {
+	test, texpr, rest := unlist2R(st)
 	c, _ := Eval(test, env)
 	if !IsBool(c) || bool(c.(SBool)) {
 		x, err := Eval(texpr, env)
@@ -84,25 +84,24 @@ func Kif(s Any, env *Env) Any {
 	return values0()
 }
 
-func Klambda(s Any, env *Env) Any {
-	_, form, body := unlist2R(s)
+func Klambda(kw, st Any, env *Env) Any {
+	form, body := unlist1R(st)
 	body = list1R(SSymbol{"begin"}, body)
 	return SLambdaProc{form: form, body: body, env: env}
 }
 
-func Klibrary(s Any, env *Env) Any {
+func Klibrary(kw, st Any, env *Env) Any {
 	return values0()
 }
 
 // (quote expr)
-func Kquote(s Any, env *Env) Any {
-	_, cds := unlist1R(s)
-	return unlist1(cds)
+func Kquote(kw, st Any, env *Env) Any {
+	return unlist1(st)
 }
 
 // (set! var expr)
-func KsetZA(s Any, env *Env) Any {
-	_, symbol, value := unlist3(s)
+func KsetZA(kw, st Any, env *Env) Any {
+	symbol, value := unlist2(st)
 	return env.Set(symbol, value)
 }
 
@@ -219,6 +218,11 @@ func DbinaryZKportZS(a Any) Any {
 	return SBool(IsBinaryPort(unlist1(a)))
 }
 
+func DbooleanZQZS(a Any) Any {
+	b, c := unlist2(a)
+	return SBool(Equal(b, c))
+}
+
 func DbooleanZS(a Any) Any {
 	return SBool(IsBool(unlist1(a)))
 }
@@ -319,7 +323,8 @@ func DcharZPZS(a Any) Any {
 }
 
 func DcharZQZS(a Any) Any {
-	return list0()
+	b, c := unlist2(a)
+	return SBool(Equal(b, c))
 }
 
 func DcharZRZQZS(a Any) Any {
@@ -373,6 +378,10 @@ func Ddenominator(a Any) Any {
 
 func DdynamicZKwind(a Any) Any {
 	return list0()
+}
+
+func DemptyZS(a Any) Any {
+	return SBool(IsEmpty(unlist1(a)))
 }
 
 func DeofZKobjectZS(a Any) Any {
@@ -963,6 +972,11 @@ func Dtruncate(a Any) Any {
 	return list0()
 }
 
+func DtypeZQZS(a Any) Any {
+	b, c := unlist2(a)
+	return SBool(b.GetType() == c.GetType())
+}
+
 // R6RS:u8-list->bytevector
 func Du8ZKlistZKZRbytevector(a Any) Any {
 	var vec = []byte{}
@@ -1103,6 +1117,7 @@ func BuiltinEnv() *Env {
 	env.register(Dappend)
 	env.register(Dapply)
 	env.register(DbinaryZKportZS)
+	env.register(DbooleanZQZS)
 	env.register(DbooleanZS)
 	env.register(DbytevectorZKcopy)
 	env.register(DbytevectorZKcopyZA)
@@ -1139,6 +1154,7 @@ func BuiltinEnv() *Env {
 	env.register(DcurrentZKoutputZKport)
 	env.register(Ddenominator)
 	env.register(DdynamicZKwind)
+	env.register(DemptyZS)
 	env.register(DeofZKobjectZS)
 	env.register(DeqZS)
 	env.register(DequalZS)
@@ -1250,6 +1266,7 @@ func BuiltinEnv() *Env {
 	env.register(DsymbolZS)
 	env.register(DtextualZKportZS)
 	env.register(Dtruncate)
+	env.register(DtypeZQZS)
 	env.register(Du8ZKlistZKZRbytevector)
 	env.register(Du8ZKvectorZKZRbytevector)
 	env.register(Du8ZKreadyZS)
