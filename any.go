@@ -16,21 +16,22 @@ import (
 const (
 	TypeCodeAny     = iota
 	TypeCodeType    // go:SType
-	TypeCodeNull    // go:SNull     s:null?
-	TypeCodePair    // go:SPair     s:pair?
+	TypeCodeNull    // go:SNull     s:null?       -- Evaler interface
+	TypeCodePair    // go:SPair     s:pair?       -- Evaler interface
 	TypeCodeChar    // go:SChar     s:char?
 	TypeCodeBool    // go:SBool     s:boolean?
-	TypeCodeProc    // go:SProc     s:procedure?
+	TypeCodeProc    // go:SProc     s:procedure?  -- Applier interface
 	TypeCodeBinary  // go:SBinary   s:bytevector?
-	TypeCodeNumber  // go:Num       s:number?     -- interface
-	TypeCodePort    // go:Port      s:port?       -- interface
+	TypeCodeNumber  // go:Num       s:number?     -- Num interface
+	TypeCodePort    // go:Port      s:port?       -- Port interface
 	TypeCodeString  // go:SString   s:string?
-	TypeCodeSymbol  // go:SSymbol   s:symbol?
+	TypeCodeSymbol  // go:SSymbol   s:symbol?     -- Evaler interface
 	TypeCodeVector  // go:SVector   s:vector?
+	TypeCodeTable   // go:STable    s:hashtable?
 	TypeCodeRecord  // go:Record                  -- interface
 	TypeCodeLibrary //
 	TypeCodeValues  // multiple return values
-	TypeCodeSyntax
+	TypeCodeSyntax  //                            -- Transformer interface
 	TypeCodeEnvSpec
 
 	// ... we can add more nonstandard types later

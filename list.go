@@ -12,6 +12,7 @@ package droscheme
 import (
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"runtime"
 	"strings"
@@ -19,15 +20,23 @@ import (
 
 // structures and methods in this file
 //
-// SBool
-// SChar
-// SNull
-// SPair
-// SVector
-// SBinary
-// SString
-// SSymbol
-// SType
+// SBool bool
+// SChar rune
+// SNull   struct
+// SPair   struct
+// SBinary struct
+// SString struct
+// SSymbol struct
+// SVector struct
+// SValues struct
+// STable  struct
+// *Env
+// SPrimSyntax
+// SCaseSyntax
+// SRuleSyntax
+// SPrim struct
+// SProc struct
+// SType struct
 // SBytePort
 // SCharPort
 
@@ -383,19 +392,64 @@ func IsEmpty(a Any) bool {
 	return false
 }
 
+// values type
+
+type SValues struct {
+	it []Any
+}
+
+// values methods
+
+func (o SValues) GetType() int {
+	return TypeCodeValues
+}
+
+func (o SValues) GetHash() uintptr {
+	return 0 // TODO
+}
+
+func (o SValues) Equal(a Any) bool {
+	return false
+}
+
+func (o SValues) String() string {
+	if len(o.it) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("#<values:%s>", o.it)
+}
+
+// hashtable type
+
+type STable struct {
+	it map[Any]Any
+}
+
+func (o STable) GetType() int {
+	return TypeCodeTable
+}
+
+func (o STable) GetHash() uintptr {
+	return 0 // TODO
+}
+
+func (o STable) Equal(a Any) bool {
+	return Equal(o, a)
+}
+
+func (o STable) String() string {
+	return fmt.Sprintf("#<hashtable>")
+}
+
 // environment type
 
 type Env struct {
-	parent *Env
 	bound  map[string]Any
+	parent *Env
 }
 
-func NullEnv() *Env {
+func EmptyEnv() *Env {
 	return &Env{bound: make(map[string]Any, 1024)}
-}
-
-func ChildEnv(parent *Env) *Env {
-	return &Env{bound: make(map[string]Any, 1024), parent: parent}
 }
 
 func (env *Env) GetType() int {
@@ -404,6 +458,10 @@ func (env *Env) GetType() int {
 
 func (env *Env) Equal(a Any) bool {
 	return false
+}
+
+func (env *Env) Extend() *Env {
+	return &Env{bound: make(map[string]Any, 1024), parent: env}
 }
 
 func (env *Env) Has(symbol Any) bool {
@@ -440,7 +498,7 @@ func (env *Env) Set(symbol, expr Any) Any {
 }
 
 func (env *Env) Define(symbol, body Any) Any {
-	fmt.Printf("Env.Define(%s) %s\n", symbol, body)
+	//fmt.Printf("Env.Define(%s) %s\n", symbol, body)
 	var value Any
 	if IsSymbol(symbol) {
 		value = Kbegin(SSymbol{"begin"}, body, env)
@@ -559,12 +617,6 @@ func IsSyntax(kw Any, env *Env) bool {
 
 func CountParens(s string) int {
 	return strings.Count(s, "(") - strings.Count(s, ")")
-}
-
-// hashtable type
-
-type STable struct {
-	it map[Any]Any
 }
 
 // syntax type
@@ -697,16 +749,14 @@ func (o SLambdaProc) Equal(a Any) bool {
 
 func (o SLambdaProc) Apply(a Any) Any {
 	body := o.body
-	if Length(body) != 1 {
-		body = list1R(SSymbol{"begin"}, body)
-	}
-	cenv := ChildEnv(o.env)
+	body = list1R(SSymbol{"begin"}, body)
+	cenv := o.env.Extend()
 	if IsSymbol(o.form) {
 		cenv.bound[o.form.(SSymbol).name] = a
 		return Deval(list2(body, cenv))
 	}
 	if !IsPair(o.form) {
-		panic(newEvalError("lambda-apply expected symbol or pair"))
+		return Deval(list2(body, cenv))
 	}
 
 	// iterate over formal and actual arguments
@@ -738,33 +788,6 @@ func (o SLambdaProc) String() string {
 }
 
 
-// values type
-
-type SValues struct {
-	it []Any
-}
-
-// values methods
-
-func (o SValues) GetType() int {
-	return TypeCodeValues
-}
-
-func (o SValues) GetHash() uintptr {
-	return 0 // TODO
-}
-
-func (o SValues) Equal(a Any) bool {
-	return false
-}
-
-func (o SValues) String() string {
-	if len(o.it) == 0 {
-		return ""
-	}
-	return fmt.Sprintf("#<values:%s>", o.it)
-}
-
 // type type
 
 type SType struct {
@@ -786,6 +809,60 @@ func (o SType) GetPortType() int {
 	//return o.portType
 	return 0 // TODO
 }
+
+// port types
+
+type ByteReader interface {
+	ReadByte() (c byte, err error)
+}
+
+type ByteWriter interface {
+	WriteByte(c byte) error
+}
+
+type RuneReader interface {
+	ReadRune() (r rune, err error)
+}
+
+type RuneWriter interface {
+	WriteRune(r rune) error
+}
+
+type SFilePort struct {
+	it *os.File
+}
+
+type SStringPort SString
+
+type SBinaryPort SBinary
+
+func (o SFilePort) GetType() int {
+	return TypeCodePort
+}
+
+func (o SFilePort) Equal(a Any) bool {
+	return false // TODO
+}
+
+func (o SFilePort) ReadByte() (c byte, err error) {
+	c = 0
+	return
+}
+
+func (o SFilePort) WriteByte(c byte) error {
+	return nil
+}
+
+func (o SFilePort) ReadRune() (r rune, err error) {
+	r = 0
+	return
+}
+
+func (o SFilePort) WriteRune(r rune) error {
+	return nil
+}
+
+
 
 func newEvalError(s string) error {
 	return errors.New("EvalError: " + s)

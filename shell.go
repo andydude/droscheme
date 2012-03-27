@@ -9,7 +9,38 @@
  */
 package droscheme
 
+import (
+	"bufio"
+	"fmt"
+//	"io"
+	"os"
+)
+
+// (ds builtin)
+func BuiltinEnv() *Env {
+	return DinteractionZKenvironment(list0()).(*Env)
+}
+
+// (eval expr env)
 func Eval(expr Any, env *Env) (value Any, err error) {
 	defer PanicToError(values0())
 	return Deval(list2(expr, env)), nil
+}
+
+func Load(filename string, env *Env) (value Any, err error) {
+	value = values0()
+	file, err := os.Open(filename)
+	if err != nil {
+		fmt.Printf("Open()\n")
+		return
+	}
+	port := bufio.NewReaderSize(file, 16777216)
+	input, err := port.ReadString(eof)
+	if err != nil {
+		fmt.Printf("ReadString()\n")
+		return
+	}
+
+	value, err = Read(input)
+	return
 }
