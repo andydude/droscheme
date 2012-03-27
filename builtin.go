@@ -16,38 +16,61 @@ import (
 
 /*
  * Procedures of the form K<mangled name> recieve arguments as
- *   s = (<keyword> <arg1> ... <argn>)
+ *   kw = <keyword>
+ *   st = (<arg1> ... <argn>)
  * Procedures of the form D<mangled name> recieve arguments as
  *   a = (<arg1> ... <argn>)
  */
 
 // (begin ...)
-func Kbegin(s Any, env *Env) Any {
-	kw, rest := unlist1R(s)
-	if !IsPair(rest) {
+func Kbegin(kw, st Any, env *Env) Any {
+	if !IsPair(st) {
 		return values0()
 	}
-	car, cdr := unlist1R(rest)
-	value, err := Eval(car, env)
-	if err != nil {
-		panic(err)
-	}
+	car, cdr := unlist1R(st)
+	value := Deval(list2(car, env))
 	if IsNull(cdr) {
 		return value
 	}
-	return Kbegin(list1R(kw, cdr), env)
+	return Kbegin(kw, cdr, env)
 }
 
 // (define var)
 // (define var expr)
-func Kdefine(s Any, env *Env) Any {
-	_, symbol, rest := unlist2R(s)
+// (define (var formals) body)
+// (define (var . formals) body)
+func Kdefine(kw, st Any, env *Env) Any {
+	symbol, rest := unlist1R(st)
 	return env.Define(symbol, rest)
 }
 
-func KdumpZKenvironment(s Any, env *Env) Any {
+func KdefineZKlibrary(kw, st Any, env *Env) Any {
+	//cenv := env.Extend()
+	////names := DlistZKref(list2(st, Sint64(0))) // TODO
+	//exprt := DlistZKref(list2(st, Sint64(1)))
+	////imprt := DlistZKref(list2(st, Sint64(2))) // TODO
+	//begin := DlistZKref(list2(st, Sint64(3)))
+	//Deval(list2(begin, cenv))
+	//exprtIds := exprt.(SPair).cdr.(SPair).ToVector()
+	//for _, symbol := range exprtIds.(SVector).it {
+	//	id := symbol.(SSymbol).String()
+	//	env.bound[id] = cenv.bound[id]
+	//}
+	return values0()
+}
+
+func KdefineZKsyntax(kw, st Any, env *Env) Any {
+	return values0()
+}
+
+func Kdo(kw, st Any, env *Env) Any {
+	return values0()
+}
+
+// (dump-environment) -- for debug only
+func KdumpZKenvironment(kw, st Any, env *Env) Any {
 	if env.parent != nil {
-		KdumpZKenvironment(s, env.parent)
+		KdumpZKenvironment(kw, st, env.parent)
 		fmt.Printf("\t---\n")
 	}
 	keys := []string{}
@@ -63,47 +86,56 @@ func KdumpZKenvironment(s Any, env *Env) Any {
 
 // (if c texpr)
 // (if c texpr fexpr)
-func Kif(s Any, env *Env) Any {
-	_, test, texpr, rest := unlist3R(s)
-	c, _ := Eval(test, env)
+func Kif(kw, st Any, env *Env) Any {
+	// technically this is unlist2O
+	test, texpr, rest := unlist2R(st)
+	c := Deval(list2(test, env))
 	if !IsBool(c) || bool(c.(SBool)) {
-		x, err := Eval(texpr, env)
-		if err != nil {
-			panic(err)
-		}
-		return x
+		return Deval(list2(texpr, env))
 	}
 	if IsPair(rest) {
 		fexpr := unlist1(rest)
-		x, err := Eval(fexpr, env)
-		if err != nil {
-			panic(err)
-		}
-		return x
+		return Deval(list2(fexpr, env))
 	}
 	return values0()
 }
 
-func Klambda(s Any, env *Env) Any {
-	_, form, body := unlist2R(s)
-	body = list1R(SSymbol{"begin"}, body)
+// (current-environment)
+func KcurrentZKenvironment(kw, st Any, env *Env) Any {
+	return env
+}
+
+// (lambda var body)
+// (lambda (formals) body)
+// (lambda (formals . var) body)
+func Klambda(kw, st Any, env *Env) Any {
+	form, body := unlist1R(st)
 	return SLambdaProc{form: form, body: body, env: env}
 }
 
-func Klibrary(s Any, env *Env) Any {
+func Klibrary(kw, st Any, env *Env) Any {
 	return values0()
 }
 
 // (quote expr)
-func Kquote(s Any, env *Env) Any {
-	_, cds := unlist1R(s)
-	return unlist1(cds)
+func Kquote(kw, st Any, env *Env) Any {
+	return unlist1(st)
 }
 
 // (set! var expr)
-func KsetZA(s Any, env *Env) Any {
-	_, symbol, value := unlist3(s)
+func KsetZA(kw, st Any, env *Env) Any {
+	symbol, value := unlist2(st)
 	return env.Set(symbol, value)
+}
+
+func KsyntaxZKcase(kw, st Any, env *Env) Any {
+	expr, literals, body := unlist2R(st)
+	return SCaseSyntax{expr: expr, lits: literals, body: body, env: env}
+}
+
+func KsyntaxZKrules(kw, st Any, env *Env) Any {
+	literals, body := unlist1R(st)
+	return SRuleSyntax{lits: literals, body: body, env: env}
 }
 
 /*
@@ -199,7 +231,13 @@ func DZM(a Any) Any {
 	return DnumZM(list2(x, DZH(ys)))
 }
 
-func Dabs(a Any) Any // derived, should be written in scheme
+func Dacos(a Any) Any {
+	return values0()
+}
+
+func Dangle(a Any) Any {
+	return values0()
+}
 
 func Dappend(a Any) Any {
 	return list0()
@@ -208,15 +246,24 @@ func Dappend(a Any) Any {
 // (apply proc arg1 ... restargs)
 func Dapply(a Any) Any {
 	proc, restargs := unlist2(a)
-	ret, err := proc.(Applier).Apply(restargs)
-	if err != nil {
-		panic(err)
-	}
-	return ret
+	return proc.(Applier).Apply(restargs)
+}
+
+func Dasin(a Any) Any {
+	return values0()
+}
+
+func Datan(a Any) Any {
+	return values0()
 }
 
 func DbinaryZKportZS(a Any) Any {
 	return SBool(IsBinaryPort(unlist1(a)))
+}
+
+func DbooleanZQZS(a Any) Any {
+	b, c := unlist2(a)
+	return SBool(Equal(b, c))
 }
 
 func DbooleanZS(a Any) Any {
@@ -319,7 +366,8 @@ func DcharZPZS(a Any) Any {
 }
 
 func DcharZQZS(a Any) Any {
-	return list0()
+	b, c := unlist2(a)
+	return SBool(Equal(b, c))
 }
 
 func DcharZRZQZS(a Any) Any {
@@ -351,8 +399,11 @@ func DcomplexZS(a Any) Any {
 }
 
 func Dcons(a Any) Any {
-	var b, c = unlist2(a)
-	return list1R(b, c)
+	return list1R(unlist2(a))
+}
+
+func Dcos(a Any) Any {
+	return values0()
 }
 
 func DcurrentZKerrorZKport(a Any) Any {
@@ -371,8 +422,16 @@ func Ddenominator(a Any) Any {
 	return list0()
 }
 
+func Ddisplay(a Any) Any {
+	return values0()
+}
+
 func DdynamicZKwind(a Any) Any {
 	return list0()
+}
+
+func DemptyZS(a Any) Any {
+	return SBool(IsEmpty(unlist1(a)))
 }
 
 func DeofZKobjectZS(a Any) Any {
@@ -409,13 +468,42 @@ func DerrorZKobjectZS(a Any) Any {
 	return list0()
 }
 
+// (eval expression environment)
 func Deval(a Any) Any {
-	expr, _ := unlist1R(a)
-	value, err := Eval(expr, BuiltinEnv())
-	if err != nil {
-		panic(err)
+	expr, opt := unlist2(a)
+	env := opt.(*Env)
+
+	// check for nonpairs
+	if !IsPair(expr) {
+		// check for literals
+		if _, ok := expr.(Evaler); !ok {
+			return expr
+		}
+		//fmt.Printf("--EVALER(%s)\n", expr)
+		return expr.(Evaler).Eval(env)
 	}
-	return value
+
+	// check if car is syntactic keyword
+	cas, cds := unlist1R(expr)
+	if IsSymbol(cas) && IsSyntax(cas, env) {
+		//fmt.Printf("--SYNTAX%s\n", expr)
+		return env.Ref(cas).(Transformer).Transform(cas, cds, env)
+	}
+	//fmt.Printf("--PROC%s\n", expr)
+
+	// evaluate each argument
+	list := expr.(SPair).Eval(env)
+
+	// check if car is procedure
+	car, cdr := unlist1R(list)
+	if !IsProcedure(car) {
+		panic(newTypeError("expected procedure"))
+	}
+	if _, ok := car.(Applier); !ok {
+		panic(newTypeError("expected procedure (Applier)"))
+	}
+
+	return car.(Applier).Apply(cdr)
 }
 
 func DexactZKZRinexact(a Any) Any {
@@ -437,6 +525,10 @@ func DexactZS(a Any) Any {
 	}
 	var t = n.GetNumberType()
 	return SBool(t&NumberTypeCodeInexact == 0)
+}
+
+func Dexp(a Any) Any {
+	return values0()
 }
 
 func Dexpt(a Any) Any {
@@ -518,6 +610,10 @@ func Dhash(a Any) Any {
 	return Sint64(int64(Hash(unlist1(a))))
 }
 
+func DimagZKpart(a Any) Any {
+	return values0()
+}
+
 func DinexactZKZRexact(a Any) Any {
 	return list0()
 }
@@ -541,6 +637,15 @@ func DintegerZKZRchar(a Any) Any {
 
 func DintegerZS(a Any) Any {
 	return SBool(IsInteger(unlist1(a)))
+}
+
+// (interaction-environment)
+func DinteractionZKenvironment(a Any) Any {
+	return DschemeZKreportZKenvironment(list1(Sint64('D')))
+}
+
+func DlastZKpair(a Any) Any {
+	return values0()
 }
 
 func Dlength(a Any) Any {
@@ -595,6 +700,18 @@ func DlistZKtail(a Any) Any {
 
 func DlistZS(a Any) Any {
 	return SBool(IsList(unlist1(a)))
+}
+
+func Dload(a Any) Any {
+	return values0()
+}
+
+func Dlog(a Any) Any {
+	return values0()
+}
+
+func Dmagnitude(a Any) Any {
+	return values0()
 }
 
 func DmakeZM(a Any) Any {
@@ -659,14 +776,6 @@ func Dmap(a Any) Any {
 	return list0()
 }
 
-func Dmax(a Any) Any {
-	return list0()
-}
-
-func Dmin(a Any) Any {
-	return list0()
-}
-
 func DnegativeZS(a Any) Any {
 	return SBool(unlist1(a).(RealNum).Cmp(Sfloat64(0)) == -1)
 }
@@ -677,6 +786,62 @@ func Dnewline(a Any) Any {
 
 func Dnot(a Any) Any {
 	return SBool(!unlist1(a).(SBool))
+}
+
+// (null-environment version)
+func DnullZKenvironment(a Any) Any {
+	env := EmptyEnv()
+	switch v := ToFixnum(unlist1(a)); {
+	case v == 0:
+		return env
+	case v == 'D':
+		env.registerSyntax(KcurrentZKenvironment)
+		env.registerSyntax(KdumpZKenvironment)
+		fallthrough
+	case v == 7:
+		env.registerSyntax(KdefineZKlibrary)
+		//env.registerSyntax(KdefineZKrecordZKtype)
+		//env.registerSyntax(Kguard)
+		//env.registerSyntax(Kparameterize)
+		fallthrough
+	case v == 6:
+		//env.registerSyntax(Kassert)
+		//env.registerSyntax(KcaseZKlambda)
+		//env.registerSyntax(KidentifierZKsyntax)
+		env.registerSyntax(Klibrary)
+		//env.registerSyntax(Kquasisyntax)
+		//env.registerSyntax(Ksyntax)
+		//env.registerSyntax(KsyntaxZKcase)
+		fallthrough
+	case v == 5:
+		env.registerSyntax(KdefineZKsyntax)
+		//env.registerSyntax(KletZKsyntax)
+		//env.registerSyntax(KletrecZKsyntax)
+		env.registerSyntax(KsyntaxZKrules)
+		fallthrough
+	case v <= 4:
+		//env.registerSyntax(Kand)
+		env.registerSyntax(Kbegin)
+		//env.registerSyntax(Kcase)
+		//env.registerSyntax(Kcond)
+		env.registerSyntax(Kdefine)
+		//env.registerSyntax(Kdo)
+		env.registerSyntax(Kif)
+		env.registerSyntax(Klambda)
+		//env.registerSyntax(Klet)
+		//env.registerSyntax(KletZH)
+		//env.registerSyntax(Kletrec)
+		//env.registerSyntax(Kor)
+		//env.registerSyntax(Kquasiquote)
+		env.registerSyntax(Kquote)
+		env.registerSyntax(KsetZA)
+		fallthrough
+	case v == 0:
+		return env
+	default:
+		panic(newSyntaxError("null-environment unknown version"))
+	}
+	return env
 }
 
 func DnullZS(a Any) Any {
@@ -830,6 +995,10 @@ func Drationalize(a Any) Any {
 	return list0()
 }
 
+func Dread(a Any) Any {
+	return values0()
+}
+
 func DreadZKbytevector(a Any) Any {
 	return list0()
 }
@@ -851,6 +1020,10 @@ func DreadZKu8(a Any) Any {
 	return list0()
 }
 
+func DrealZKpart(a Any) Any {
+	return values0()
+}
+
 func DrealZS(a Any) Any {
 	return list0()
 }
@@ -861,6 +1034,400 @@ func Dreverse(a Any) Any {
 
 func Dround(a Any) Any {
 	return list0()
+}
+
+// (scheme-report-environment version)
+func DschemeZKreportZKenvironment(a Any) Any {
+	env := DnullZKenvironment(a).(*Env).Extend()
+	switch v := ToFixnum(unlist1(a)); {
+	case v == 0:
+		return env
+	case v == 'D': // droscheme extensions
+
+		env.register(DnumZH)
+		env.register(DnumZI)
+		env.register(DnumZK)
+		env.register(DnumZM)
+		env.register(DnumZQ)
+		env.register(DnumZP)
+		env.register(DnumZR)
+		env.register(DnumZPZQ)
+		env.register(DnumZRZQ)
+		env.register(DstringZKmap)
+
+		fallthrough
+	case v == 7: // R7RS
+		env.register(DbinaryZKportZS)
+		env.register(DbytevectorZKcopy)
+		env.register(DbytevectorZKcopyZA)
+		env.register(DbytevectorZKcopyZKpartial)
+		env.register(DbytevectorZKcopyZKpartialZA)
+		env.register(DbytevectorZKlength)
+		env.register(DbytevectorZKu8ZKref)
+		env.register(DbytevectorZKu8ZKsetZA)
+		env.register(DbytevectorZKZRu8ZKlist)
+		env.register(DbytevectorZKZRu8ZKvector)
+		env.register(DbytevectorZS)
+		env.register(DcallZKwithZKport)
+		env.register(DcloseZKport)
+		env.register(DcurrentZKerrorZKport)
+		env.register(DemptyZS)
+		env.register(Derror)
+		env.register(DerrorZKobjectZKirritants)
+		env.register(DerrorZKobjectZKmessage)
+		env.register(DerrorZKobjectZS)
+		env.register(DfoldZKleft)
+		env.register(DfoldZKright)
+		env.register(DflushZKoutputZKport)
+		env.register(DgetZKoutputZKbytevector)
+		env.register(DgetZKoutputZKstring)
+		env.register(Dhash)
+		env.register(DmakeZM)
+		env.register(DmakeZKbytevector)
+		env.register(DmakeZKlist)
+		env.register(DmakeZKparameter)
+		env.register(DopenZKinputZKbytevector)
+		env.register(DopenZKinputZKstring)
+		env.register(DopenZKoutputZKbytevector)
+		env.register(DopenZKoutputZKstring)
+		env.register(DpeekZKu8)
+		env.register(DportZKopenZS)
+		env.register(Draise)
+		env.register(DraiseZKcontinuable)
+		env.register(DreadZKbytevector)
+		env.register(DreadZKbytevectorZA)
+		env.register(DreadZKline)
+		env.register(DreadZKu8)
+		env.register(DtextualZKportZS)
+		env.register(DtypeZQZS)
+		env.register(Du8ZKlistZKZRbytevector)
+		env.register(Du8ZKvectorZKZRbytevector)
+		env.register(Du8ZKreadyZS)
+		env.register(Dutf8ZKZRstring)
+		env.register(DwithZKexceptionZKhandler)
+		env.register(DwriteZKbytevector)
+		env.register(DwriteZKpartialZKbytevector)
+		env.register(DwriteZKu8)
+
+		fallthrough
+	case v == 60: // R6RS libraries
+
+		fallthrough
+	case v == 6: // R6RS core
+		//assert
+		//library
+		//env.register(DassertionZKviolation)
+		env.register(DbooleanZQZS)
+		//env.register(DconditionZS)
+		//env.register(Ddiv)
+		//env.register(Ddiv0)
+		//env.register(DdivZKandZKmod)
+		//env.register(Ddiv0ZKandZKmod0)
+		//env.register(Derror)
+		//env.register(Dexact) = inexact->exact
+		//env.register(DexactZKintegerZKsqrt)
+		//env.register(DfiniteZS)
+		//env.register(Dinexact) = exact->inexact
+		//env.register(DinfiniteZS)
+		//env.register(DintegerZKvaluedZS) = integer?
+		//env.register(Dmod)
+		//env.register(Dmod0)
+		//env.register(DnanZS)
+		//env.register(Draise)
+		//env.register(DraiseZKcontinuable)
+		//env.register(DrationalZKvaluedZS) = rational?
+		//env.register(DrealZKvaluedZS) = real?
+		//env.register(DstringZKforZKeach)
+		//env.register(DstringZKmap)
+		//env.register(DsymbolZQZS)
+		//env.register(Dthrow)
+		//env.register(DvectorZKforZKeach)
+		//env.register(DvectorZKmap)
+
+		fallthrough
+	case v == 5: // R5RS
+		//env.register(DvectorZKZRstring)
+		//env.register(DvectorZKcopy)
+		//env.register(DstringZKZRutf8)
+		//env.register(DstringZKZRvector)
+		//env.register(DlistZKcopy)
+
+		env.register(DcallZKwithZKvalues)
+		env.register(DdynamicZKwind)
+		env.register(Deval)
+		env.register(DinteractionZKenvironment)
+		env.register(DnullZKenvironment)
+		env.register(DportZS)
+		env.register(DschemeZKreportZKenvironment)
+		env.register(Dvalues)
+
+		fallthrough
+	case v <= 4: // R4RS
+
+		env.register(DlistZS)
+		env.register(DpeekZKchar)
+		env.register(Dstring)
+
+		fallthrough
+	case v == 3: // R3RS, also introduced delay/force
+
+		env.register(DbooleanZS)
+		env.register(Ddenominator)
+		env.register(DnumberZKZRstring)
+		env.register(Dnumerator)
+		env.register(DprocedureZS)
+		env.register(DstringZKZRnumber)
+
+		fallthrough
+	case v == 2: // R2RS
+
+		env.register(DZH)
+		env.register(DZI)
+		env.register(DZK)
+		env.register(DZM)
+		//env.register(DZP)
+		//env.register(DZPZQ)
+		//env.register(DZQ)
+		//env.register(DZR)
+		//env.register(DZRZQ)
+		//env.register(Dabs) // derived
+		env.register(Dacos)
+		env.register(Dangle)
+		env.register(Dappend)
+		//env.register(DappendZA) // R2RS only
+		env.register(Dapply)
+		env.register(Dasin)
+		//env.register(Dassoc)  // derived
+		//env.register(Dassq)   // derived
+		//env.register(Dassv)   // derived
+		env.register(Datan)
+		env.register(DcallZKwithZKcurrentZKcontinuation)
+		//env.register(DcallZKwithZKinputZKfile)  // R2RS, R4RS, R5RS
+		//env.register(DcallZKwithZKoutputZKfile) // R2RS, R4RS, R5RS
+		env.register(Dcar)
+		//env.register(Dcaar)   // derived
+		//env.register(Dcadr)   // derived
+		//env.register(Dcaaar)  // derived
+		//env.register(Dcaadr)  // derived
+		//env.register(Dcadar)  // derived
+		//env.register(Dcaddr)  // derived
+		//env.register(Dcaaaar) // derived
+		//env.register(Dcaaadr) // derived
+		//env.register(Dcaadar) // derived
+		//env.register(Dcaaddr) // derived
+		//env.register(Dcadaar) // derived
+		//env.register(Dcadadr) // derived
+		//env.register(Dcaddar) // derived
+		//env.register(Dcadddr) // derived
+		//env.register(Dcdaaar) // derived
+		//env.register(Dcdaadr) // derived
+		//env.register(Dcdadar) // derived
+		//env.register(Dcdaddr) // derived
+		//env.register(Dcddaar) // derived
+		//env.register(Dcddadr) // derived
+		//env.register(Dcdddar) // derived
+		//env.register(Dcddddr) // derived
+		//env.register(Dcdaar)  // derived
+		//env.register(Dcdadr)  // derived
+		//env.register(Dcddar)  // derived
+		//env.register(Dcdddr)  // derived
+		//env.register(Dcdar)   // derived
+		//env.register(Dcddr)   // derived
+		env.register(Dcdr)
+		env.register(Dceiling)
+		env.register(DcharZKZRinteger)
+		//env.register(DcharZKalphabeticZS)	  // R2RS, case
+		//env.register(DcharZKciZPZQZS)       // R2RS, case
+		//env.register(DcharZKciZPZS)         // R2RS, case
+		//env.register(DcharZKciZQZS)         // R2RS, case
+		//env.register(DcharZKciZRZQZS)       // R2RS, case
+		//env.register(DcharZKciZRZS)         // R2RS, case
+		//env.register(DcharZKdowncase)       // R2RS, case
+		//env.register(DcharZKlowerZKcaseZS)  // R2RS, case
+		//env.register(DcharZKnumericZS)	  // R2RS, case
+		//env.register(DcharZKupcase)         // R2RS, case
+		//env.register(DcharZKupperZKcaseZS)  // R2RS, case
+		//env.register(DcharZKwhitespaceZS)	  // R2RS, case
+		env.register(DcharZKreadyZS)
+		env.register(DcharZPZQZS)
+		env.register(DcharZPZS)
+		env.register(DcharZQZS)
+		env.register(DcharZRZQZS)
+		env.register(DcharZRZS)
+		env.register(DcharZS)
+		env.register(DcloseZKinputZKport)
+		env.register(DcloseZKoutputZKport)
+		env.register(DcomplexZS)
+		env.register(Dcons)
+		env.register(Dcos)
+		//env.register(DcurrentZKinputZKport)     // R2RS, R4RS, R5RS
+		//env.register(DcurrentZKoutputZKport)    // R2RS, R4RS, R5RS
+		env.register(Ddisplay)
+		env.register(DeofZKobjectZS)
+		env.register(DeqZS)
+		env.register(DequalZS)
+		env.register(DeqvZS)
+		//env.register(DevenZS) // derived
+		env.register(DexactZKZRinexact)
+		env.register(DexactZS)
+		env.register(Dexp)
+		env.register(Dexpt)
+		env.register(Dfloor)
+		env.register(DforZKeach)
+		//env.register(Dgcd) // derived
+		env.register(DimagZKpart)
+		env.register(DinexactZKZRexact)
+		env.register(DinexactZS)
+		env.register(DinputZKportZS)
+		env.register(DintegerZKZRchar)
+		env.register(DintegerZS)
+		env.register(DlastZKpair) // R2RS only
+		//env.register(Dlcm) // derived
+		env.register(Dlength)
+		env.register(Dlist)
+		env.register(DlistZKZRstring)
+		env.register(DlistZKZRvector)
+		env.register(DlistZKref)
+		env.register(DlistZKtail)
+		env.register(Dload)
+		env.register(Dlog)
+		env.register(Dmagnitude)
+		env.register(DmakeZKpolar)
+		env.register(DmakeZKrectangular)
+		env.register(DmakeZKstring)
+		env.register(DmakeZKvector)
+		env.register(Dmap)
+		//env.register(Dmax)	// derived
+		//env.register(Dmember) // derived
+		//env.register(Dmemq)	// derived
+		//env.register(Dmemv)	// derived
+		//env.register(Dmin)	// derived
+		//env.register(Dmodulo)	// derived
+		env.register(DnegativeZS)
+		env.register(Dnewline)
+		env.register(Dnot)
+		env.register(DnullZS)
+		env.register(DnumberZS)
+		//env.register(DobjectZKhash)   // R2RS only
+		//env.register(DobjectZKunhash) // R2RS only
+		//env.register(DoddZS) // derived
+		//env.register(DopenZKinputZKfile)  // R2RS, R4RS, R5RS
+		//env.register(DopenZKoutputZKfile) // R2RS, R4RS, R5RS
+		env.register(DoutputZKportZS)
+		env.register(DpairZS)
+		env.register(DpositiveZS)
+		//env.register(Dquotient)  // derived
+		env.register(DrationalZS)
+		env.register(Drationalize)
+		env.register(Dread)
+		env.register(DreadZKchar)
+		env.register(DrealZKpart)
+		env.register(DrealZS)
+		//env.register(Dremainder) // derived
+		env.register(Dreverse)
+		env.register(Dround)
+		//env.register(DsetZKcarZA) // mutable
+		//env.register(DsetZKcdrZA) // mutable
+		env.register(Dsin)
+		env.register(Dsqrt)
+		env.register(DstringZKZRlist)
+		env.register(DstringZKZRsymbol)
+		env.register(DstringZKappend)
+		//env.register(DstringZKciZPZQZS) // R2RS, case
+		//env.register(DstringZKciZPZS)   // R2RS, case
+		//env.register(DstringZKciZQZS)   // R2RS, case
+		//env.register(DstringZKciZRZQZS) // R2RS, case
+		//env.register(DstringZKciZRZS)   // R2RS, case
+		env.register(DstringZKcopy)
+		env.register(DstringZKfillZA)
+		env.register(DstringZKlength)
+		env.register(DstringZKref)
+		env.register(DstringZKsetZA)
+		env.register(DstringZPZQZS)
+		env.register(DstringZPZS)
+		env.register(DstringZQZS)
+		env.register(DstringZRZQZS)
+		env.register(DstringZRZS)
+		env.register(DstringZS)
+		env.register(Dsubstring)
+		//env.register(DsubstringZKfillZA)        // R2RS only
+		//env.register(DsubstringZKmoveZKleftZA)  // R2RS only
+		//env.register(DsubstringZKmoveZKrightZA) // R2RS only
+		env.register(DsymbolZKZRstring)
+		env.register(DsymbolZS)
+		env.register(Dtan)
+		//env.register(DtranscriptZKoff) // R2RS, R3RS, R4RS, R5RS // deprecated
+		//env.register(DtranscriptZKon)  // R2RS, R3RS, R4RS, R5RS // deprecated
+		env.register(Dtruncate)
+		env.register(Dvector)
+		env.register(DvectorZKZRlist)
+		env.register(DvectorZKfillZA)
+		env.register(DvectorZKlength)
+		env.register(DvectorZKref)
+		env.register(DvectorZKsetZA)
+		env.register(DvectorZS)
+		//env.register(DwithZKinputZKfromZKfile)  // R2RS, R4RS, R5RS
+		//env.register(DwithZKoutputZKtoZKfile)   // R2RS, R4RS, R5RS
+		env.register(Dwrite)
+		env.register(DwriteZKchar)
+		env.register(DzeroZS)
+
+		// syntax
+		//Kquote
+		//Klambda
+		//Kif
+		//Kcond
+		//Kcase
+		//Kand
+		//Kor
+		//Klet
+		//KletZH
+		//Kletrec
+		//Krec -- derived
+		//KnamedZKlambda -- derived
+		//Kbegin
+		//kdo -- derived
+
+		fallthrough
+	case v == 1:
+		//labels
+		//aset'
+		//fluidbind
+		//fluid
+		//fluidset'
+		//catch
+		//block
+		//let
+		//do
+		//iterate
+		//test
+		//cond
+		//or
+		//and
+		//amapcar
+		//amaplist
+		//amapc
+		//prog
+		//schmac
+		//macro
+		//progp
+		//enclose
+		//create!process
+		//start!process
+		//stop!process
+		//terminate
+	default:
+		panic(newSyntaxError("scheme-report-environment unknown version"))
+	}
+	return env
+}
+
+func Dsin(a Any) Any {
+	return values0()
+}
+
+func Dsqrt(a Any) Any {
+	return values0()
 }
 
 func Dstring(a Any) Any {
@@ -955,6 +1522,10 @@ func DsymbolZS(a Any) Any {
 	return SBool(IsSymbol(unlist1(a)))
 }
 
+func Dtan(a Any) Any {
+	return values0()
+}
+
 func DtextualZKportZS(a Any) Any {
 	return SBool(IsTextualPort(unlist1(a)))
 }
@@ -963,15 +1534,20 @@ func Dtruncate(a Any) Any {
 	return list0()
 }
 
+func DtypeZQZS(a Any) Any {
+	b, c := unlist2(a)
+	return SBool(b.GetType() == c.GetType())
+}
+
 // R6RS:u8-list->bytevector
 func Du8ZKlistZKZRbytevector(a Any) Any {
 	var vec = []byte{}
 	for cur := unlist1(a); IsPair(cur); cur = cur.(SPair).cdr {
-		num := ToFixnum(cur.(SPair).car)
-		if int64(byte(num)) != num {
+		num := cur.(SPair).car
+		if !IsByte(num) {
 			panic("TypeError: expected byte")
 		}
-		vec = append(vec, byte(num))
+		vec = append(vec, ToByte(num))
 	}
 	return SBinary{vec}
 }
@@ -1048,16 +1624,43 @@ func DwithZKexceptionZKhandler(a Any) Any {
 	return list0()
 }
 
+func Dwrite(a Any) Any {
+	return values0()
+}
+
 func DwriteZKbytevector(a Any) Any {
-	return list0()
+	bv, port := unlist1O(a, DcurrentZKoutputZKport(list0()))
+	if !IsBinary(bv) {
+		panic(newTypeError("write-bytevector expected bytevector"))
+	}
+	if !IsBinaryPort(port) {
+		panic(newTypeError("write-bytevector expected binary-port"))
+	}
+	if !IsOutputPort(port) {
+		panic(newTypeError("write-bytevector expected output-port"))
+	}
+	//err := port.(ByteWriter).WriteByte(byte(bv))
+	//if err != nil {
+	//	panic(err)
+	//}
+	return values0()
 }
 
 func DwriteZKchar(a Any) Any {
-	ch, port := unlist2(a)
+	ch, port := unlist1O(a, DcurrentZKoutputZKport(list0()))
 	if !IsChar(ch) {
-		panic(newTypeError("expected char"))
+		panic(newTypeError("write-char expected char"))
 	}
-	port.(Port).Write(ch)
+	if !IsTextualPort(port) {
+		panic(newTypeError("write-char expected textual-port"))
+	}
+	if !IsOutputPort(port) {
+		panic(newTypeError("write-char expected output-port"))
+	}
+	err := port.(RuneWriter).WriteRune(rune(ch.(SChar)))
+	if err != nil {
+		panic(err)
+	}
 	return values0()
 }
 
@@ -1066,212 +1669,23 @@ func DwriteZKpartialZKbytevector(a Any) Any {
 }
 
 func DwriteZKu8(a Any) Any {
+	u8, port := unlist1O(a, DcurrentZKoutputZKport(list0()))
+	if !IsByte(u8) {
+		panic(newTypeError("write-u8 expected byte"))
+	}
+	if !IsBinaryPort(port) {
+		panic(newTypeError("write-u8 expected binary-port"))
+	}
+	if !IsOutputPort(port) {
+		panic(newTypeError("write-u8 expected output-port"))
+	}
+	err := port.(ByteWriter).WriteByte(byte(ToFixnum(u8)))
+	if err != nil {
+		panic(err)
+	}
 	return list0()
 }
 
 func DzeroZS(a Any) Any {
 	return SBool(unlist1(a).(RealNum).Cmp(Sint64(0)) == 0)
-}
-
-//
-// registration
-//
-
-// (ds builtin syntax)
-func BuiltinSyntaxEnv() *Env {
-	env := NullEnv()
-
-	env.registerSyntax(Kbegin)
-	env.registerSyntax(Kdefine)
-	env.registerSyntax(KdumpZKenvironment)
-	env.registerSyntax(Kif)
-	env.registerSyntax(Klambda)
-	env.registerSyntax(Kquote)
-	env.registerSyntax(KsetZA)
-
-	return env
-}
-
-// (ds builtin)
-func BuiltinEnv() *Env {
-	env := ChildEnv(BuiltinSyntaxEnv())
-
-	env.register(DZH)
-	env.register(DZI)
-	env.register(DZK)
-	env.register(DZM)
-	env.register(Dappend)
-	env.register(Dapply)
-	env.register(DbinaryZKportZS)
-	env.register(DbooleanZS)
-	env.register(DbytevectorZKcopy)
-	env.register(DbytevectorZKcopyZA)
-	env.register(DbytevectorZKcopyZKpartial)
-	env.register(DbytevectorZKcopyZKpartialZA)
-	env.register(DbytevectorZKlength)
-	env.register(DbytevectorZKu8ZKref)
-	env.register(DbytevectorZKu8ZKsetZA)
-	env.register(DbytevectorZKZRu8ZKlist)
-	env.register(DbytevectorZKZRu8ZKvector)
-	env.register(DbytevectorZS)
-	env.register(DcallZKwithZKcurrentZKcontinuation)
-	env.register(DcallZKwithZKport)
-	env.register(DcallZKwithZKvalues)
-	env.register(DcallZMcc)
-	env.register(Dcar)
-	env.register(Dcdr)
-	env.register(Dceiling)
-	env.register(DcharZKZRinteger)
-	env.register(DcharZKreadyZS)
-	env.register(DcharZPZQZS)
-	env.register(DcharZPZS)
-	env.register(DcharZQZS)
-	env.register(DcharZRZQZS)
-	env.register(DcharZRZS)
-	env.register(DcharZS)
-	env.register(DcloseZKinputZKport)
-	env.register(DcloseZKoutputZKport)
-	env.register(DcloseZKport)
-	env.register(DcomplexZS)
-	env.register(Dcons)
-	env.register(DcurrentZKerrorZKport)
-	env.register(DcurrentZKinputZKport)
-	env.register(DcurrentZKoutputZKport)
-	env.register(Ddenominator)
-	env.register(DdynamicZKwind)
-	env.register(DeofZKobjectZS)
-	env.register(DeqZS)
-	env.register(DequalZS)
-	env.register(DeqvZS)
-	env.register(Derror)
-	env.register(DerrorZKobjectZKirritants)
-	env.register(DerrorZKobjectZKmessage)
-	env.register(DerrorZKobjectZS)
-	env.register(Deval)
-	env.register(DexactZKZRinexact)
-	env.register(DexactZKintegerZKsqrt)
-	env.register(DexactZKintegerZS)
-	env.register(DexactZS)
-	env.register(Dexpt)
-	env.register(Dfloor)
-	env.register(DfoldZKleft)
-	env.register(DfoldZKright)
-	env.register(DflushZKoutputZKport)
-	env.register(DforZKeach)
-	env.register(DgetZKoutputZKbytevector)
-	env.register(DgetZKoutputZKstring)
-	env.register(Dhash)
-	env.register(DinexactZKZRexact)
-	env.register(DinexactZS)
-	env.register(DinputZKportZS)
-	env.register(DintegerZKZRchar)
-	env.register(DintegerZS)
-	env.register(Dlength)
-	env.register(Dlist)
-	env.register(DlistZKZRstring)
-	env.register(DlistZKZRvector)
-	env.register(DlistZKcopy)
-	env.register(DlistZKref)
-	env.register(DlistZKtail)
-	env.register(DlistZS)
-	env.register(DmakeZM)
-	env.register(DmakeZKbytevector)
-	env.register(DmakeZKlist)
-	env.register(DmakeZKparameter)
-	env.register(DmakeZKpolar)
-	env.register(DmakeZKrectangular)
-	env.register(DmakeZKstring)
-	env.register(DmakeZKvector)
-	env.register(Dmap)
-	env.register(Dmax)
-	env.register(Dmin)
-	env.register(DnegativeZS)
-	env.register(Dnewline)
-	env.register(Dnot)
-	env.register(DnullZS)
-	env.register(DnumZH)
-	env.register(DnumZI)
-	env.register(DnumZK)
-	env.register(DnumZM)
-	env.register(DnumZQ)
-	env.register(DnumZP)
-	env.register(DnumZR)
-	env.register(DnumZPZQ)
-	env.register(DnumZRZQ)
-	env.register(DnumberZKZRstring)
-	env.register(DnumberZS)
-	env.register(Dnumerator)
-	env.register(DopenZKinputZKbytevector)
-	env.register(DopenZKinputZKstring)
-	env.register(DopenZKoutputZKbytevector)
-	env.register(DopenZKoutputZKstring)
-	env.register(DoutputZKportZS)
-	env.register(DpairZS)
-	env.register(DpeekZKchar)
-	env.register(DpeekZKu8)
-	env.register(DportZKopenZS)
-	env.register(DportZS)
-	env.register(DpositiveZS)
-	env.register(DprocedureZS)
-	env.register(Draise)
-	env.register(DraiseZKcontinuable)
-	env.register(DrationalZS)
-	env.register(Drationalize)
-	env.register(DreadZKbytevector)
-	env.register(DreadZKbytevectorZA)
-	env.register(DreadZKchar)
-	env.register(DreadZKline)
-	env.register(DreadZKu8)
-	env.register(DrealZS)
-	env.register(Dreverse)
-	env.register(Dround)
-	env.register(Dstring)
-	env.register(DstringZKZRlist)
-	env.register(DstringZKZRnumber)
-	env.register(DstringZKZRsymbol)
-	env.register(DstringZKZRutf8)
-	env.register(DstringZKZRvector)
-	env.register(DstringZKappend)
-	env.register(DstringZKcopy)
-	env.register(DstringZKfillZA)
-	env.register(DstringZKforZKeach)
-	env.register(DstringZKlength)
-	env.register(DstringZKmap)
-	env.register(DstringZKref)
-	env.register(DstringZKsetZA)
-	env.register(DstringZPZQZS)
-	env.register(DstringZPZS)
-	env.register(DstringZQZS)
-	env.register(DstringZRZQZS)
-	env.register(DstringZRZS)
-	env.register(DstringZS)
-	env.register(Dsubstring)
-	env.register(DsymbolZKZRstring)
-	env.register(DsymbolZS)
-	env.register(DtextualZKportZS)
-	env.register(Dtruncate)
-	env.register(Du8ZKlistZKZRbytevector)
-	env.register(Du8ZKvectorZKZRbytevector)
-	env.register(Du8ZKreadyZS)
-	env.register(Dutf8ZKZRstring)
-	env.register(Dvalues)
-	env.register(Dvector)
-	env.register(DvectorZKZRlist)
-	env.register(DvectorZKZRstring)
-	env.register(DvectorZKcopy)
-	env.register(DvectorZKfillZA)
-	env.register(DvectorZKforZKeach)
-	env.register(DvectorZKlength)
-	env.register(DvectorZKmap)
-	env.register(DvectorZKref)
-	env.register(DvectorZKsetZA)
-	env.register(DvectorZS)
-	env.register(DwithZKexceptionZKhandler)
-	env.register(DwriteZKbytevector)
-	env.register(DwriteZKchar)
-	env.register(DwriteZKpartialZKbytevector)
-	env.register(DwriteZKu8)
-	env.register(DzeroZS)
-
-	return env
 }

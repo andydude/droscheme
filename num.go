@@ -184,6 +184,15 @@ type SFlonum struct {
 	prec int
 }
 
+func ToByte(o Any) byte {
+	return byte(ToFixnum(o))
+}
+
+func IsByte(o Any) bool {
+    num := ToFixnum(o)
+	return int64(byte(num)) == num
+}
+
 func IsInteger(a Any) bool {
 	if !IsNumber(a) {
 		return false

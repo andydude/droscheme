@@ -281,7 +281,11 @@ func (lex *Lexer) lexDot() State {
 			panic("expected ...")
 		}
 	} else if lex.isDigit10() {
+		lex.backup()
+		lex.backup()
 		return (*Lexer).lexNumber
+	} else {
+		lex.backup()
 	}
 
 	// assume id
@@ -443,7 +447,8 @@ func (lex *Lexer) lexNumber() State {
 			lex.consume()
 			return (*Lexer).lexNumber
 		default:
-			lex.backup()
+			// this should never happen
+			return nil
 		}
 	} else {
 		lex.backup()
@@ -768,7 +773,7 @@ func (lex *Lexer) isSpecialSubsequent() bool {
 }
 
 func (lex *Lexer) isWhitespace() bool {
-	if lex.ch == ' ' || lex.ch == '\t' || lex.ch == '\n' || lex.ch == 'r' {
+	if lex.ch == ' ' || lex.ch == '\t' || lex.ch == '\n' || lex.ch == '\r' {
 		return true
 	}
 	return false

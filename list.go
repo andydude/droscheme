@@ -12,19 +12,31 @@ package droscheme
 import (
 	"errors"
 	"fmt"
+	"os"
+	"reflect"
+	"runtime"
+	"strings"
 )
 
 // structures and methods in this file
 //
-// SBool
-// SChar
-// SNull
-// SPair
-// SVector
-// SBinary
-// SString
-// SSymbol
-// SType
+// SBool bool
+// SChar rune
+// SNull   struct
+// SPair   struct
+// SBinary struct
+// SString struct
+// SSymbol struct
+// SVector struct
+// SValues struct
+// STable  struct
+// *Env
+// SPrimSyntax
+// SCaseSyntax
+// SRuleSyntax
+// SPrim struct
+// SProc struct
+// SType struct
 // SBytePort
 // SCharPort
 
@@ -140,6 +152,10 @@ func (o SNull) ToVector() Any {
 	return SVector{it: []Any{}}
 }
 
+func (o SNull) Eval(env *Env) Any {
+	return o
+}
+
 // s:pair type
 
 type SPair struct {
@@ -154,16 +170,23 @@ func IsPair(o Any) bool {
 	return ok
 }
 
-func (o SPair) GetType() int {
-	return TypeCodePair
-}
-
 func (o SPair) GetHash() uintptr {
 	return 0 // TODO
 }
 
+func (o SPair) GetType() int {
+	return TypeCodePair
+}
+
 func (o SPair) Equal(a Any) bool {
 	return false // TODO
+}
+
+func (o SPair) Eval(env *Env) Any {
+	cas, cds := unlist1R(o)
+	car := Deval(list2(cas, env))
+	cdr := cds.(Evaler).Eval(env)
+	return list1R(car, cdr)
 }
 
 func (o SPair) String() string {
@@ -185,10 +208,13 @@ func (o SPair) ToVector() Any {
 }
 
 func listToVector(a Any) SVector {
-	if IsNull(a) {
+	switch a.(type) {
+	case SNull:
 		return a.(SNull).ToVector().(SVector)
+	case SPair:
+		return a.(SPair).ToVector().(SVector)
 	}
-	return a.(SPair).ToVector().(SVector)
+	panic(newTypeError("list->vector expected list"))
 }
 
 func IsList(o Any) bool {
@@ -290,6 +316,10 @@ func (o SSymbol) Equal(a Any) bool {
 	return o.name == a.(SSymbol).name
 }
 
+func (o SSymbol) Eval(env *Env) Any {
+	return env.Ref(o)
+}
+
 func (o SSymbol) String() string {
 	return o.name
 }
@@ -323,6 +353,15 @@ func (o SVector) Equal(a Any) bool {
 	return false // TODO
 }
 
+
+func (o SVector) Eval(env *Env) Any {
+	var ret = DmakeZKvector(list1(Sint64(len(o.it)))).(SVector)
+	for i := 0; i < len(o.it); i++ {
+		ret.it[i] = Deval(list2(o.it[i], env))
+	}
+	return ret
+}
+
 func (o SVector) String() string {
 	if len(o.it) == 0 {
 		return "#()"
@@ -335,27 +374,321 @@ func (o SVector) String() string {
 	return fmt.Sprintf("#(%s)", ret[1:])
 }
 
+func IsEmpty(a Any) bool {
+	switch a.(type) {
+	case SNull:
+		return true
+	case SBinary:
+		return len(a.(SBinary).bytes) == 0
+	case SString:
+		return len(a.(SString).text) == 0
+	case SSymbol:
+		return len(a.(SSymbol).name) == 0
+	case SVector:
+		return len(a.(SVector).it) == 0
+	case SValues:
+		return len(a.(SValues).it) == 0
+	}
+	return false
+}
+
+// values type
+
+type SValues struct {
+	it []Any
+}
+
+// values methods
+
+func (o SValues) GetType() int {
+	return TypeCodeValues
+}
+
+func (o SValues) GetHash() uintptr {
+	return 0 // TODO
+}
+
+func (o SValues) Equal(a Any) bool {
+	return false
+}
+
+func (o SValues) String() string {
+	if len(o.it) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("#<values:%s>", o.it)
+}
+
 // hashtable type
 
 type STable struct {
 	it map[Any]Any
 }
 
+func (o STable) GetType() int {
+	return TypeCodeTable
+}
+
+func (o STable) GetHash() uintptr {
+	return 0 // TODO
+}
+
+func (o STable) Equal(a Any) bool {
+	return Equal(o, a)
+}
+
+func (o STable) String() string {
+	return fmt.Sprintf("#<hashtable>")
+}
+
+// environment type
+
+type Env struct {
+	bound  map[string]Any
+	parent *Env
+}
+
+func EmptyEnv() *Env {
+	return &Env{bound: make(map[string]Any, 1024)}
+}
+
+func (env *Env) GetType() int {
+	return TypeCodeEnvSpec
+}
+
+func (env *Env) Equal(a Any) bool {
+	return false
+}
+
+func (env *Env) Extend() *Env {
+	return &Env{bound: make(map[string]Any, 1024), parent: env}
+}
+
+func (env *Env) Has(symbol Any) bool {
+	//fmt.Printf("Env.Has(%s)\n", symbol)
+	if env.Ref(symbol) == nil {
+		return false
+	}
+	return true
+}
+
+func (env *Env) Ref(symbol Any) Any {
+	//fmt.Printf("Env.Ref(%s)\n", symbol)
+	id := symbol.(SSymbol).String()
+	if env.bound[id] != nil {
+		return env.bound[id]
+	}
+	if env.parent == nil {
+		return nil
+	}
+	return env.parent.Ref(symbol)
+}
+
+func (env *Env) Set(symbol, expr Any) Any {
+	//fmt.Printf("Env.Set(%s) %s\n", symbol, expr)
+	if !env.Has(symbol) {
+		panic(newEvalError("set! variable must be prebound"))
+	}
+	value := Deval(list2(expr, env))
+
+	// main logic
+	id := symbol.(SSymbol).name
+	env.bound[id] = value
+	return values0()
+}
+
+func (env *Env) Define(symbol, body Any) Any {
+	//fmt.Printf("Env.Define(%s) %s\n", symbol, body)
+	var value Any
+	if IsSymbol(symbol) {
+		value = Kbegin(SSymbol{"begin"}, body, env)
+	} else if IsPair(symbol) {
+		var formals Any
+		symbol, formals = unlist1R(symbol)
+		value = Klambda(SSymbol{"lambda"}, list1R(formals, body), env)
+	} else {
+		panic(newEvalError("define: expected variable or list"))
+	}
+	if !IsSymbol(symbol) {
+		panic(newEvalError("define: expected variable"))
+	}
+
+	// main logic
+	id := symbol.(SSymbol).name
+	env.bound[id] = value
+	return values0()
+}
+
+func (env *Env) String() string {
+	return fmt.Sprintf("#<environment with %d local bindings>", len(env.bound))
+}
+
+func (env *Env) registerName(fn interface{}) string {
+	// intuit function name
+	pc := reflect.ValueOf(fn).Pointer()
+	name := runtime.FuncForPC(pc).Name()
+
+	// strip package name
+	list := strings.Split(name, ".")
+	name = list[len(list)-1]
+
+	// strip first character
+	return UnmangleName(name[1:])
+}
+
+func (env *Env) registerSyntax(fn func(Any, Any, *Env) Any) {
+	n := env.registerName(fn)
+	env.bound[n] = SPrimSyntax{form: fn, name: n}
+}
+
+func (env *Env) register(fn func(Any) Any) {
+	n := env.registerName(fn)
+	env.bound[n] = SPrimProc{call: fn, name: n}
+}
+
+func MangleName(name string) string {
+	const table = "!\"#$%&'*+,-./:;<=>?@^`|~Z"
+	var out = []byte{}
+	var work = []byte(name)
+	for i := 0; i < len(work); i++ {
+		ch := work[i]
+		ix := strings.Index(table, string(ch))
+		if ix != -1 {
+			out = append(out, 'Z', 'A'+byte(ix))
+		} else {
+			out = append(out, ch)
+		}
+	}
+	return string(out)
+}
+
+func UnmangleName(mangled string) string {
+	const table = "!\"#$%&'*+,-./:;<=>?@^`|~Z"
+	var out = []byte{}
+	var work = []byte(mangled)
+	for i := 0; i < len(work); i++ {
+		ch := work[i]
+		if ch == 'Z' {
+			i++
+			ch := work[i]
+			out = append(out, table[ch-'A'])
+		} else {
+			out = append(out, ch)
+		}
+	}
+	return string(out)
+}
+
+// exception type
+
+func PanicToError(expr Any) (value Any, err error) {
+	x := recover()
+	if x != nil {
+		value = expr
+		err = ToError(x)
+		fmt.Printf("ERROR: %s\n", err)
+	}
+	return
+}
+
+func ErrorToPanic(value Any, err error) Any {
+	if err != nil {
+		panic(err)
+	}
+	return value
+}
+
+func ToError(a interface{}) error {
+	switch a.(type) {
+	case error:
+		return a.(error)
+	case string:
+		return newEvalError(a.(string))
+	}
+	return newEvalError("unknown error")
+}
+
+func IsSyntax(kw Any, env *Env) bool {
+	if env.Has(kw) && IsType(env.Ref(kw), TypeCodeSyntax) {
+		return true
+	}
+	return false
+}
+
+func CountParens(s string) int {
+	return strings.Count(s, "(") - strings.Count(s, ")")
+}
+
 // syntax type
 
-type SSyntax struct {
-	form func(Any, *Env) Any
+type SPrimSyntax struct {
+	form func(Any, Any, *Env) Any
+	name string
+}
+
+type SCaseSyntax struct {
+	env *Env
+	expr Any
+	lits Any
+	body Any
+	name string
+}
+
+type SRuleSyntax struct {
+	env *Env
+	lits Any
+	body Any
 	name string
 }
 
 // syntax methods
 
-func (o SSyntax) GetType() int {
+func (o SPrimSyntax) GetType() int {
 	return TypeCodeSyntax
 }
 
-func (o SSyntax) Equal(a Any) bool {
+func (o SPrimSyntax) Equal(a Any) bool {
 	return false
+}
+
+func (o SPrimSyntax) Transform(kw, st Any, env *Env) Any {
+    return o.form(kw, st, env)
+}
+
+func (o SPrimSyntax) String() string {
+	return fmt.Sprintf("#<syntax:%s>", o.name)
+}
+
+func (o SCaseSyntax) GetType() int {
+	return TypeCodeSyntax
+}
+
+func (o SCaseSyntax) Equal(a Any) bool {
+	return false
+}
+
+func (o SCaseSyntax) Transform(kw, st Any, env *Env) Any {
+    return values0()
+}
+
+func (o SCaseSyntax) String() string {
+	return fmt.Sprintf("#<syntax-case:%s>", o.name)
+}
+
+func (o SRuleSyntax) GetType() int {
+	return TypeCodeSyntax
+}
+
+func (o SRuleSyntax) Equal(a Any) bool {
+	return false
+}
+
+func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
+    return values0()
+}
+
+func (o SRuleSyntax) String() string {
+	return fmt.Sprintf("#<syntax-rules:%s>", o.name)
 }
 
 // procedure types
@@ -394,8 +727,8 @@ func (o SPrimProc) Equal(a Any) bool {
 	return false
 }
 
-func (o SPrimProc) Apply(a Any) (Any, error) {
-	return o.call(a), nil
+func (o SPrimProc) Apply(a Any) Any {
+	return o.call(a)
 }
 
 func (o SPrimProc) String() string {
@@ -407,58 +740,53 @@ func (o SLambdaProc) GetType() int {
 }
 
 func (o SLambdaProc) GetHash() uintptr {
-	return 0 // TODO
+	return SString{o.String()}.GetHash()
 }
 
 func (o SLambdaProc) Equal(a Any) bool {
 	return false
 }
 
-func (o SLambdaProc) Apply(a Any) (Any, error) {
-	cenv := ChildEnv(o.env)
+func (o SLambdaProc) Apply(a Any) Any {
+	body := o.body
+	body = list1R(SSymbol{"begin"}, body)
+	cenv := o.env.Extend()
 	if IsSymbol(o.form) {
 		cenv.bound[o.form.(SSymbol).name] = a
-	} else {
-		// assume list
-		args := listToVector(o.form).it
-		vals := listToVector(a).it
-		for k, _ := range args {
-			cenv.bound[args[k].(SSymbol).name] = vals[k]
-		}
+		return Deval(list2(body, cenv))
 	}
-	return Eval(o.body, cenv)
+	if !IsPair(o.form) {
+		return Deval(list2(body, cenv))
+	}
+
+	// iterate over formal and actual arguments
+	var bvar, bval Any
+	for bvar, bval = o.form, a; IsPair(bvar) && IsPair(bval); 
+	    bvar, bval = bvar.(SPair).cdr, bval.(SPair).cdr {
+		cenv.bound[bvar.(SPair).car.(SSymbol).name] = bval.(SPair).car
+	}
+
+	// check for (a b c . rest) formal arguments
+	if IsSymbol(bvar) {
+		cenv.bound[bvar.(SSymbol).name] = bval
+		return Deval(list2(body, cenv))
+	}
+
+	// check for argument mismatch
+	switch {
+	case IsNull(bvar) && !IsNull(bval):
+		panic(newEvalError("lambda-apply expected less arguments"))
+	case !IsNull(bvar) && IsNull(bval):
+		panic(newEvalError("lambda-apply expected more arguments"))
+	}
+
+	return Deval(list2(body, cenv))
 }
 
 func (o SLambdaProc) String() string {
-	return fmt.Sprintf("(lambda %s %s)", o.form, o.body)
+	return list2R(SSymbol{"lambda"}, o.form, o.body).(fmt.Stringer).String()
 }
 
-// values type
-
-type SValues struct {
-	values SVector
-}
-
-// values methods
-
-func (o SValues) GetType() int {
-	return TypeCodeValues
-}
-
-func (o SValues) GetHash() uintptr {
-	return 0 // TODO
-}
-
-func (o SValues) Equal(a Any) bool {
-	return false
-}
-
-func (o SValues) String() string {
-	if len(o.values.it) == 0 {
-		return ""
-	}
-	return fmt.Sprintf("#<values:%s>", o.values)
-}
 
 // type type
 
@@ -481,6 +809,60 @@ func (o SType) GetPortType() int {
 	//return o.portType
 	return 0 // TODO
 }
+
+// port types
+
+type ByteReader interface {
+	ReadByte() (c byte, err error)
+}
+
+type ByteWriter interface {
+	WriteByte(c byte) error
+}
+
+type RuneReader interface {
+	ReadRune() (r rune, err error)
+}
+
+type RuneWriter interface {
+	WriteRune(r rune) error
+}
+
+type SFilePort struct {
+	it *os.File
+}
+
+type SStringPort SString
+
+type SBinaryPort SBinary
+
+func (o SFilePort) GetType() int {
+	return TypeCodePort
+}
+
+func (o SFilePort) Equal(a Any) bool {
+	return false // TODO
+}
+
+func (o SFilePort) ReadByte() (c byte, err error) {
+	c = 0
+	return
+}
+
+func (o SFilePort) WriteByte(c byte) error {
+	return nil
+}
+
+func (o SFilePort) ReadRune() (r rune, err error) {
+	r = 0
+	return
+}
+
+func (o SFilePort) WriteRune(r rune) error {
+	return nil
+}
+
+
 
 func newEvalError(s string) error {
 	return errors.New("EvalError: " + s)
@@ -596,6 +978,30 @@ func unlist3R(o Any) (a Any, b Any, c Any, r Any) {
 	return
 }
 
+func unlist1O(o Any, d Any) (a Any, r Any) {
+	a = o.(SPair).car
+	r = o.(SPair).cdr
+    if IsPair(r) {
+        r = r.(SPair).car
+    } else {
+        r = d
+    }
+	return
+}
+
+func unlist2O(o Any, d Any) (a Any, b Any, r Any) {
+	a = o.(SPair).car
+	r = o.(SPair).cdr
+	b = r.(SPair).car
+	r = r.(SPair).cdr
+    if IsPair(r) {
+        r = r.(SPair).car
+    } else {
+        r = d
+    }
+	return
+}
+
 // trying to make higher-order functions
 
 func proc1(f func(Any) Any) func(Any) Any {
@@ -661,16 +1067,16 @@ func unproc3R(f func(Any) Any) func(Any, Any, Any, Any) Any {
 
 // represents no return values
 func values0() Any {
-	return SValues{values: SVector{it: []Any{}}}
+	return SValues{it: []Any{}}
 }
 
 // represents 2 return values
 func values2(a, b Any) Any {
-	return SValues{values: SVector{it: []Any{a, b}}}
+	return SValues{it: []Any{a, b}}
 }
 
 // represents multiple return values
 func valuesR(rest Any) Any {
 	vec := listToVector(rest)
-	return SValues{values: vec}
+	return SValues{it: vec.it}
 }
