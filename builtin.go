@@ -9,11 +9,6 @@
  */
 package droscheme
 
-import (
-	"fmt"
-	"sort"
-)
-
 /*
  * Procedures of the form K<mangled name> recieve arguments as
  *   kw = <keyword>
@@ -44,6 +39,7 @@ func Kdefine(kw, st Any, env *Env) Any {
 	return env.Define(symbol, rest)
 }
 
+// (define-library (module name) ...) // R7RS
 func KdefineZKlibrary(kw, st Any, env *Env) Any {
 	//cenv := env.Extend()
 	////names := DlistZKref(list2(st, Sint64(0))) // TODO
@@ -69,18 +65,7 @@ func Kdo(kw, st Any, env *Env) Any {
 
 // (dump-environment) -- for debug only
 func KdumpZKenvironment(kw, st Any, env *Env) Any {
-	if env.parent != nil {
-		KdumpZKenvironment(kw, st, env.parent)
-		fmt.Printf("\t---\n")
-	}
-	keys := []string{}
-	for k, _ := range env.bound {
-		keys = append(keys, k)
-	}
-	sort.Sort(sort.StringSlice(keys))
-	for _, key := range keys {
-		fmt.Printf("\t%s=%s\n", key, env.bound[key])
-	}
+	env.dump()
 	return values0()
 }
 
@@ -100,7 +85,7 @@ func Kif(kw, st Any, env *Env) Any {
 	return values0()
 }
 
-// (current-environment)
+// (current-environment) -- for debug only
 func KcurrentZKenvironment(kw, st Any, env *Env) Any {
 	return env
 }
@@ -113,6 +98,56 @@ func Klambda(kw, st Any, env *Env) Any {
 	return SLambdaProc{form: form, body: body, env: env}
 }
 
+// (let)
+func Klet(kw, st Any, env *Env) Any {
+	binds, body := unlist1R(st)
+
+	// separate variables and values
+	bvars, bvals := bindingsToPair(binds)
+
+	// evaluate each item of the list
+	bvals = bvals.(Evaler).Eval(env)
+
+	// the invisible lambda
+	lam := Klambda(NewSymbol("lambda"), list1R(bvars, body), env)
+	return Dapply(list2(lam, bvals))
+}
+
+// (let*)
+func KletZH(kw, st Any, env *Env) Any {
+	binds, body := unlist1R(st)
+	if IsNull(binds) {
+		return Klet(kw, st, env)
+	}
+	cenv := env.Extend()
+
+	// separate variables and values
+	bvars, bvals := bindingsToPair(binds)
+	vvars := listToVector(bvars).it
+	vvals := listToVector(bvals).it
+	for k, _ := range vvars {
+		cenv.Define(vvars[k], list1(Deval(list2(vvals[k], cenv))))
+	}
+
+	return Kbegin(NewSymbol("begin"), body, cenv)
+}
+
+// (letrec)
+func Kletrec(kw, st Any, env *Env) Any {
+	return values0()
+}
+
+// (let-values)
+func KletZKvalues(kw, st Any, env *Env) Any {
+	return values0()
+}
+
+// (letrec-values)
+func KletrecZKvalues(kw, st Any, env *Env) Any {
+	return values0()
+}
+
+// (library (module name) ...) // R6RS
 func Klibrary(kw, st Any, env *Env) Any {
 	return values0()
 }
@@ -232,7 +267,8 @@ func DZM(a Any) Any {
 }
 
 func Dacos(a Any) Any {
-	return values0()
+	x := unlist1(a)
+	return x.(TrigNum).ArcCos()
 }
 
 func Dangle(a Any) Any {
@@ -250,11 +286,17 @@ func Dapply(a Any) Any {
 }
 
 func Dasin(a Any) Any {
-	return values0()
+	x := unlist1(a)
+	return x.(TrigNum).ArcSin()
 }
 
 func Datan(a Any) Any {
-	return values0()
+	xa, ya := unlist1R(a)
+	x, y := Sfloat64(ToFlonum(xa.(Num))), Sfloat64(1)
+	if !IsNull(ya) {
+		y = Sfloat64(ToFlonum(unlist1(ya).(Num)))
+	}
+	return x.ArcTan(y)
 }
 
 func DbinaryZKportZS(a Any) Any {
@@ -334,7 +376,7 @@ func DcallZKwithZKvalues(a Any) Any {
 }
 
 func DcallZMcc(a Any) Any {
-	return list0()
+	return DcallZKwithZKcurrentZKcontinuation(a)
 }
 
 func Dcar(a Any) Any {
@@ -403,7 +445,8 @@ func Dcons(a Any) Any {
 }
 
 func Dcos(a Any) Any {
-	return values0()
+	x := unlist1(a)
+	return x.(TrigNum).Cos()
 }
 
 func DcurrentZKerrorZKport(a Any) Any {
@@ -528,11 +571,13 @@ func DexactZS(a Any) Any {
 }
 
 func Dexp(a Any) Any {
-	return values0()
+	x := unlist1(a)
+	return x.(TrigNum).Exp()
 }
 
 func Dexpt(a Any) Any {
-	return list0()
+	x, y := unify2(a)
+	return x.(TrigNum).Pow(y)
 }
 
 func Dfloor(a Any) Any {
@@ -707,7 +752,12 @@ func Dload(a Any) Any {
 }
 
 func Dlog(a Any) Any {
-	return values0()
+	xa, ya := unlist1R(a)
+	if IsNull(ya) {
+		return xa.(TrigNum).Ln()
+	}
+	x, y := unify(xa.(Num), unlist1(ya).(Num))
+	return x.(TrigNum).Log(y)
 }
 
 func Dmagnitude(a Any) Any {
@@ -828,8 +878,8 @@ func DnullZKenvironment(a Any) Any {
 		//env.registerSyntax(Kdo)
 		env.registerSyntax(Kif)
 		env.registerSyntax(Klambda)
-		//env.registerSyntax(Klet)
-		//env.registerSyntax(KletZH)
+		env.registerSyntax(Klet)
+		env.registerSyntax(KletZH)
 		//env.registerSyntax(Kletrec)
 		//env.registerSyntax(Kor)
 		//env.registerSyntax(Kquasiquote)
@@ -1044,6 +1094,8 @@ func DschemeZKreportZKenvironment(a Any) Any {
 		return env
 	case v == 'D': // droscheme extensions
 
+		env.register(DbytevectorZKZRu8ZKlist)
+		env.register(DbytevectorZKZRu8ZKvector)
 		env.register(DnumZH)
 		env.register(DnumZI)
 		env.register(DnumZK)
@@ -1054,6 +1106,8 @@ func DschemeZKreportZKenvironment(a Any) Any {
 		env.register(DnumZPZQ)
 		env.register(DnumZRZQ)
 		env.register(DstringZKmap)
+		env.register(Du8ZKlistZKZRbytevector)
+		env.register(Du8ZKvectorZKZRbytevector)
 
 		fallthrough
 	case v == 7: // R7RS
@@ -1065,8 +1119,6 @@ func DschemeZKreportZKenvironment(a Any) Any {
 		env.register(DbytevectorZKlength)
 		env.register(DbytevectorZKu8ZKref)
 		env.register(DbytevectorZKu8ZKsetZA)
-		env.register(DbytevectorZKZRu8ZKlist)
-		env.register(DbytevectorZKZRu8ZKvector)
 		env.register(DbytevectorZS)
 		env.register(DcallZKwithZKport)
 		env.register(DcloseZKport)
@@ -1100,8 +1152,6 @@ func DschemeZKreportZKenvironment(a Any) Any {
 		env.register(DreadZKu8)
 		env.register(DtextualZKportZS)
 		env.register(DtypeZQZS)
-		env.register(Du8ZKlistZKZRbytevector)
-		env.register(Du8ZKvectorZKZRbytevector)
 		env.register(Du8ZKreadyZS)
 		env.register(Dutf8ZKZRstring)
 		env.register(DwithZKexceptionZKhandler)
@@ -1164,7 +1214,7 @@ func DschemeZKreportZKenvironment(a Any) Any {
 		fallthrough
 	case v <= 4: // R4RS
 
-		env.register(DlistZS)
+		env.register(DlistZS) // looks like this replaced DlastZKpair
 		env.register(DpeekZKchar)
 		env.register(Dstring)
 
@@ -1423,11 +1473,13 @@ func DschemeZKreportZKenvironment(a Any) Any {
 }
 
 func Dsin(a Any) Any {
-	return values0()
+	x := unlist1(a)
+	return x.(TrigNum).Sin()
 }
 
 func Dsqrt(a Any) Any {
-	return values0()
+	x := unlist1(a)
+	return x.(TrigNum).Sqrt()
 }
 
 func Dstring(a Any) Any {
@@ -1523,7 +1575,8 @@ func DsymbolZS(a Any) Any {
 }
 
 func Dtan(a Any) Any {
-	return values0()
+	x := unlist1(a)
+	return x.(TrigNum).Tan()
 }
 
 func DtextualZKportZS(a Any) Any {

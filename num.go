@@ -81,12 +81,13 @@ type Num interface {
 
 type TrigNum interface {
 	Num
-	ArcCos(Num) Num
-	ArcSin(Num) Num
-	ArcTan(Num, Num) Num
-	Cos(Num) Num
-	Sin(Num) Num
-	Tan(Num) Num
+	ArcCos() Num
+	ArcSin() Num
+	ArcTan(Num) Num
+	Cos() Num
+	Sin() Num
+	Tan() Num
+	Sqrt() Num
 	Pow(Num) Num
 	Log(Num) Num
 	Exp() Num
@@ -276,7 +277,7 @@ func ToInteger(n Num) SInteger {
 	case SInteger:
 		return n.(SInteger)
 	}
-	panic("ToRational()")
+	panic("ToInteger()")
 }
 
 func ToRational(n Num) SRational {
@@ -636,6 +637,50 @@ func (o Sfloat32) Shr(n Num) Num { return Sfloat32(0) } // wrong
 
 // F64
 
+func (o Sfloat64) ArcCos() Num {
+	return Sfloat64(math.Acos(float64(o)))
+}
+
+func (o Sfloat64) ArcSin() Num {
+	return Sfloat64(math.Asin(float64(o)))
+}
+
+func (o Sfloat64) ArcTan(n Num) Num {
+	return Sfloat64(math.Atan2(float64(o), ToFlonum(n)))
+}
+
+func (o Sfloat64) Cos() Num {
+	return Sfloat64(math.Cos(float64(o)))
+}
+
+func (o Sfloat64) Sin() Num {
+	return Sfloat64(math.Sin(float64(o)))
+}
+
+func (o Sfloat64) Tan() Num {
+	return Sfloat64(math.Tan(float64(o)))
+}
+
+func (o Sfloat64) Sqrt() Num {
+	return Sfloat64(math.Sqrt(float64(o)))
+}
+
+func (o Sfloat64) Pow(n Num) Num {
+	return Sfloat64(math.Pow(float64(o), ToFlonum(n)))
+}
+
+func (o Sfloat64) Log(n Num) Num {
+	return Sfloat64(math.Log(float64(o))/math.Log(ToFlonum(n)))
+}
+
+func (o Sfloat64) Exp() Num {
+	return Sfloat64(math.Exp(float64(o)))
+}
+
+func (o Sfloat64) Ln() Num {
+	return Sfloat64(math.Log(float64(o)))
+}
+
 func (o Sfloat64) MakeRect(n RealNum) ComplexNum {
 	return NewComplex(o, Sfloat64(ToFlonum(n)))
 }
@@ -645,7 +690,9 @@ func (o Sfloat64) MakePolar(n RealNum) ComplexNum {
 func (o Sfloat64) String() string {
 	return strings.Trim(fmt.Sprintf("%f", o), "0")
 }
-func (o Sfloat64) Equal(n Any) bool { return o == n.(Sfloat64) }
+func (o Sfloat64) Equal(n Any) bool {
+	return o == n.(Sfloat64)
+}
 func (o Sfloat64) Cmp(n Num) int {
 	if o < n.(Sfloat64) {
 		return -1

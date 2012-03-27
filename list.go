@@ -15,6 +15,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"sort"
 	"strings"
 )
 
@@ -217,6 +218,22 @@ func listToVector(a Any) SVector {
 	panic(newTypeError("list->vector expected list"))
 }
 
+func bindingsToPair(a Any) (ls, rs Any) {
+	//fmt.Printf("bindingsToPair(%s)\n", a)
+	var lhs = []Any{}
+	var rhs = []Any{}
+	var car SPair
+	var cur Any
+	for cur = a; IsPair(cur); cur = cur.(SPair).cdr {
+		car = cur.(SPair).car.(SPair)
+		lhs = append(lhs, car.car)
+		rhs = append(rhs, car.cdr.(SPair).car)		
+	}
+	ls = NewVector(lhs).ToList()
+	rs = NewVector(rhs).ToList()
+	return
+}
+
 func IsList(o Any) bool {
 	// By definition, all lists are chains of pairs that have
 	// finite length and are terminated by the empty list. [R6RS]
@@ -308,6 +325,10 @@ func IsSymbol(o Any) bool {
 	return IsType(o, TypeCodeSymbol)
 }
 
+func NewSymbol(s string) SSymbol {
+	return SSymbol{name: s}
+}
+
 func (o SSymbol) GetType() int {
 	return TypeCodeSymbol
 }
@@ -334,11 +355,15 @@ func IsVector(a Any) bool {
 	return IsType(a, TypeCodeVector)
 }
 
+func NewVector(a []Any) SVector {
+	return SVector{it: a}
+}
+
 func (o SVector) ToList() Any {
 	if len(o.it) == 0 {
 		return SNull{}
 	}
-	return SPair{o.it[0], SVector{it: o.it[1:]}.ToList()}
+	return SPair{o.it[0], NewVector(o.it[1:]).ToList()}
 }
 
 func (o SVector) GetType() int {
@@ -521,6 +546,21 @@ func (env *Env) Define(symbol, body Any) Any {
 
 func (env *Env) String() string {
 	return fmt.Sprintf("#<environment with %d local bindings>", len(env.bound))
+}
+
+func (env *Env) dump() {
+	if env.parent != nil {
+		env.parent.dump()
+		fmt.Printf("\t---\n")
+	}
+	keys := []string{}
+	for k, _ := range env.bound {
+		keys = append(keys, k)
+	}
+	sort.Sort(sort.StringSlice(keys))
+	for _, key := range keys {
+		fmt.Printf("\t%s=%s\n", key, env.bound[key])
+	}
 }
 
 func (env *Env) registerName(fn interface{}) string {
