@@ -17,6 +17,7 @@ import (
 	"os"
 )
 
+var gLibrary string = ""
 var gDontEval bool = false
 var gEnv *droscheme.Env
 var gExpr string = ""
@@ -31,6 +32,7 @@ func arguments() {
 	flag.StringVar(&gExpr, "e", "", "evaluate expr, then exit")
 	flag.StringVar(&gFilename, "f", "", "evaluate file, then exit")
 	flag.BoolVar(&gInteract, "i", false, "interactive mode (default)")
+	flag.StringVar(&gLibrary, "l", "", "load a scheme library")
 	flag.StringVar(&gMangle, "m", "", "mangle a scheme name")
 	flag.StringVar(&gUnmangle, "u", "", "unmangle a go name")
 	flag.Usage = usage
@@ -130,10 +132,16 @@ func main() {
 
 	arguments()
 
+	/* This creates a new environment that is empty
+	 * but its parent is the builtin environment.
+	 */
+	gEnv = droscheme.BuiltinEnv().Extend()
+
 	if gMangle != "" {
 		fmt.Printf("%s\n", droscheme.MangleName(gMangle))
 		os.Exit(0)
 	}
+
 	if gUnmangle != "" {
 		fmt.Printf("%s\n", droscheme.UnmangleName(gUnmangle))
 		os.Exit(0)
@@ -141,6 +149,10 @@ func main() {
 
 	if gFilename != "" {
 		gShell = false
+		_, err := droscheme.Load(gFilename, gEnv)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	if gExpr != "" {
@@ -150,11 +162,6 @@ func main() {
 	if gInteract {
 		gShell = true
 	}
-
-	/* This creates a new environment that is empty
-	 * but its parent is the builtin environment.
-	 */
-	gEnv = droscheme.ChildEnv(droscheme.BuiltinEnv())
 
 	if gShell {
 		shell()
