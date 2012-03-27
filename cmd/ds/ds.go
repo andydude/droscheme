@@ -149,9 +149,13 @@ func main() {
 
 	if gFilename != "" {
 		gShell = false
+		fmt.Printf("\n--loading--\n")
 		_, err := droscheme.Load(gFilename, gEnv)
+		fmt.Printf("\n--loaded--\n")
 		if err != nil {
-			panic(err)
+			if err.Error() != "EOF" {
+				panic(err)
+			}
 		}
 	}
 

@@ -191,6 +191,8 @@ func (lex *Lexer) lexToken() State {
 	switch r := lex.peek(); {
 	case r == eof:
 		return nil
+	case r == ';':
+		return (*Lexer).lexLineComment
 	case r == '"':
 		return (*Lexer).lexString
 	case r == '#':
@@ -395,11 +397,19 @@ func (lex *Lexer) lexSigns() State {
 	return (*Lexer).lexId
 }
 
-//func (lex *Lexer) lexRealSign() State {
-//}
-//
-//func (lex *Lexer) lexImagSign() State {
-//}
+func (lex *Lexer) lexLineComment() State {
+	for lex.ch != '\n' {
+		lex.next()
+	}
+	lex.backup()
+	lex.consume()
+	return (*Lexer).lexToken
+}
+
+func (lex *Lexer) lexNestedComment() State {
+	// TODO
+	return (*Lexer).lexToken
+}
 
 // <identifier>
 func (lex *Lexer) lexId() State {

@@ -186,7 +186,7 @@ func (o SPair) Equal(a Any) bool {
 func (o SPair) Eval(env *Env) Any {
 	cas, cds := unlist1R(o)
 	car := Deval(list2(cas, env))
-	cdr := cds.(Evaler).Eval(env)
+	cdr := DevalZKliteral(list2(cds, env))
 	return list1R(car, cdr)
 }
 
@@ -338,7 +338,11 @@ func (o SSymbol) Equal(a Any) bool {
 }
 
 func (o SSymbol) Eval(env *Env) Any {
-	return env.Ref(o)
+	value := env.Ref(o)
+	if value == nil {
+		panic(newEvalError("variable not bound in environment"))
+	}
+	return value
 }
 
 func (o SSymbol) String() string {
@@ -377,7 +381,6 @@ func (o SVector) GetHash() uintptr {
 func (o SVector) Equal(a Any) bool {
 	return false // TODO
 }
-
 
 func (o SVector) Eval(env *Env) Any {
 	var ret = DmakeZKvector(list1(Sint64(len(o.it)))).(SVector)
@@ -526,11 +529,11 @@ func (env *Env) Define(symbol, body Any) Any {
 	//fmt.Printf("Env.Define(%s) %s\n", symbol, body)
 	var value Any
 	if IsSymbol(symbol) {
-		value = Kbegin(SSymbol{"begin"}, body, env)
+		value = NewBegin(body, env)
 	} else if IsPair(symbol) {
 		var formals Any
 		symbol, formals = unlist1R(symbol)
-		value = Klambda(SSymbol{"lambda"}, list1R(formals, body), env)
+		value = NewLambdaProc(list1R(formals, body), env)
 	} else {
 		panic(newEvalError("define: expected variable or list"))
 	}
@@ -751,6 +754,14 @@ func NewPrimProc(fn func(Any) Any) Any {
 	return SPrimProc{call: fn}
 }
 
+func NewBegin(body Any, env *Env) Any {
+	return Kbegin(NewSymbol("begin"), body, env)
+}
+
+func NewLambdaProc(rest Any, env *Env) Any {
+	return Klambda(NewSymbol("lambda"), rest, env)
+}
+
 func IsProcedure(o Any) bool {
 	return IsType(o, TypeCodeProc)
 }
@@ -824,9 +835,12 @@ func (o SLambdaProc) Apply(a Any) Any {
 }
 
 func (o SLambdaProc) String() string {
-	return list2R(SSymbol{"lambda"}, o.form, o.body).(fmt.Stringer).String()
+	return o.ToList().(fmt.Stringer).String()
 }
 
+func (o SLambdaProc) ToList() Any {
+	return list2R(SSymbol{"lambda"}, o.form, o.body)
+}
 
 // type type
 

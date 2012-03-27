@@ -10,10 +10,6 @@
 package droscheme
 
 import (
-	"bufio"
-	"fmt"
-//	"io"
-	"os"
 )
 
 // (ds builtin)
@@ -28,19 +24,6 @@ func Eval(expr Any, env *Env) (value Any, err error) {
 }
 
 func Load(filename string, env *Env) (value Any, err error) {
-	value = values0()
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Printf("Open()\n")
-		return
-	}
-	port := bufio.NewReaderSize(file, 16777216)
-	input, err := port.ReadString(eof)
-	if err != nil {
-		fmt.Printf("ReadString()\n")
-		return
-	}
-
-	value, err = Read(input)
-	return
+	defer PanicToError(values0())
+	return Dload(list2(SString{filename}, env)), nil
 }

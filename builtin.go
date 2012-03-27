@@ -9,6 +9,12 @@
  */
 package droscheme
 
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
+
 /*
  * Procedures of the form K<mangled name> recieve arguments as
  *   kw = <keyword>
@@ -19,6 +25,9 @@ package droscheme
 
 // (begin ...)
 func Kbegin(kw, st Any, env *Env) Any {
+	if kw.(SSymbol).name != "begin" {
+		panic("begin expected begin")
+	}
 	if !IsPair(st) {
 		return values0()
 	}
@@ -85,6 +94,10 @@ func Kif(kw, st Any, env *Env) Any {
 	return values0()
 }
 
+func KcaseZKlambda(kw, st Any, env *Env) Any {
+	return values0()
+}
+
 // (current-environment) -- for debug only
 func KcurrentZKenvironment(kw, st Any, env *Env) Any {
 	return env
@@ -94,6 +107,9 @@ func KcurrentZKenvironment(kw, st Any, env *Env) Any {
 // (lambda (formals) body)
 // (lambda (formals . var) body)
 func Klambda(kw, st Any, env *Env) Any {
+	if kw.(SSymbol).name != "lambda" {
+		panic("lambda expected lambda")
+	}
 	form, body := unlist1R(st)
 	return SLambdaProc{form: form, body: body, env: env}
 }
@@ -109,7 +125,7 @@ func Klet(kw, st Any, env *Env) Any {
 	bvals = bvals.(Evaler).Eval(env)
 
 	// the invisible lambda
-	lam := Klambda(NewSymbol("lambda"), list1R(bvars, body), env)
+	lam := NewLambdaProc(list1R(bvars, body), env)
 	return Dapply(list2(lam, bvals))
 }
 
@@ -129,7 +145,7 @@ func KletZH(kw, st Any, env *Env) Any {
 		cenv.Define(vvars[k], list1(Deval(list2(vvals[k], cenv))))
 	}
 
-	return Kbegin(NewSymbol("begin"), body, cenv)
+	return NewBegin(body, cenv)
 }
 
 // (letrec)
@@ -466,6 +482,7 @@ func Ddenominator(a Any) Any {
 }
 
 func Ddisplay(a Any) Any {
+	fmt.Printf("%s\n", unlist1(a).(SString).text)
 	return values0()
 }
 
@@ -511,6 +528,20 @@ func DerrorZKobjectZS(a Any) Any {
 	return list0()
 }
 
+// this is to compensate for failing
+// to put an .Eval method on every object
+// (eval-literal expression environment)
+func DevalZKliteral(a Any) Any {
+	expr, opt := unlist2(a)
+	env := opt.(*Env)
+
+	// check for literals
+	if _, ok := expr.(Evaler); !ok {
+		return expr
+	}
+	return expr.(Evaler).Eval(env)
+}
+
 // (eval expression environment)
 func Deval(a Any) Any {
 	expr, opt := unlist2(a)
@@ -518,12 +549,7 @@ func Deval(a Any) Any {
 
 	// check for nonpairs
 	if !IsPair(expr) {
-		// check for literals
-		if _, ok := expr.(Evaler); !ok {
-			return expr
-		}
-		//fmt.Printf("--EVALER(%s)\n", expr)
-		return expr.(Evaler).Eval(env)
+		return DevalZKliteral(a)
 	}
 
 	// check if car is syntactic keyword
@@ -535,7 +561,7 @@ func Deval(a Any) Any {
 	//fmt.Printf("--PROC%s\n", expr)
 
 	// evaluate each argument
-	list := expr.(SPair).Eval(env)
+	list := DevalZKliteral(a)
 
 	// check if car is procedure
 	car, cdr := unlist1R(list)
@@ -690,15 +716,22 @@ func DinteractionZKenvironment(a Any) Any {
 }
 
 func DlastZKpair(a Any) Any {
-	return values0()
+	if IsNull(unlist1(a)) {
+		return list0()
+	}
+	var cur SPair = unlist1(a).(SPair)
+	for IsPair(cur.cdr) {
+		cur = cur.cdr.(SPair)
+	}
+	return cur
 }
 
 func Dlength(a Any) Any {
 	return Sint64(Length(unlist1(a)))
 }
 
-// this is the easiest function ever
 func Dlist(a Any) Any {
+	// so easy
 	return a
 }
 
@@ -748,6 +781,42 @@ func DlistZS(a Any) Any {
 }
 
 func Dload(a Any) Any {
+	fs, opt := unlist1O(a, BuiltinEnv())
+	filename := fs.(SString).text
+	env := opt.(*Env)
+	value := values0()
+
+	// open
+	file, err := os.Open(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	// slurp
+	port := bufio.NewReaderSize(file, 16777216)
+	input, err := port.ReadString(eof)
+	if err != nil {
+		if err.Error() != "EOF" {
+			panic(err)
+		}
+		err = nil
+	}
+
+	// read
+	value, err = Read("(begin "+input+")") // hack
+	if err != nil {
+		if err.Error() != "EOF" {
+			panic(err)
+		}
+		err = nil
+	}
+
+	// eval
+	_, err = Eval(value, env)
+	if err != nil {
+		panic(err)
+	}
+
 	return values0()
 }
 
@@ -856,7 +925,7 @@ func DnullZKenvironment(a Any) Any {
 		fallthrough
 	case v == 6:
 		//env.registerSyntax(Kassert)
-		//env.registerSyntax(KcaseZKlambda)
+		env.registerSyntax(KcaseZKlambda)
 		//env.registerSyntax(KidentifierZKsyntax)
 		env.registerSyntax(Klibrary)
 		//env.registerSyntax(Kquasisyntax)
@@ -1086,16 +1155,18 @@ func Dround(a Any) Any {
 	return list0()
 }
 
-// (scheme-report-environment version)
-func DschemeZKreportZKenvironment(a Any) Any {
+// (scheme-primitive-environment version)
+func DschemeZKprimitiveZKenvironment(a Any) Any {
 	env := DnullZKenvironment(a).(*Env).Extend()
 	switch v := ToFixnum(unlist1(a)); {
 	case v == 0:
 		return env
+
 	case v == 'D': // droscheme extensions
 
 		env.register(DbytevectorZKZRu8ZKlist)
 		env.register(DbytevectorZKZRu8ZKvector)
+		env.register(DevalZKliteral)
 		env.register(DnumZH)
 		env.register(DnumZI)
 		env.register(DnumZK)
@@ -1111,6 +1182,7 @@ func DschemeZKreportZKenvironment(a Any) Any {
 
 		fallthrough
 	case v == 7: // R7RS
+
 		env.register(DbinaryZKportZS)
 		env.register(DbytevectorZKcopy)
 		env.register(DbytevectorZKcopyZA)
@@ -1472,6 +1544,20 @@ func DschemeZKreportZKenvironment(a Any) Any {
 	return env
 }
 
+// (scheme-report-environment version)
+func DschemeZKreportZKenvironment(a Any) Any {
+	env := DschemeZKprimitiveZKenvironment(a).(*Env).Extend()
+	switch ToFixnum(unlist1(a)) {
+	case 7:
+		// load (scheme base)
+	case 6:
+		// load (rnrs base)
+	default:
+		// load (ds base)
+	}
+	return env
+}
+
 func Dsin(a Any) Any {
 	x := unlist1(a)
 	return x.(TrigNum).Sin()
@@ -1678,6 +1764,7 @@ func DwithZKexceptionZKhandler(a Any) Any {
 }
 
 func Dwrite(a Any) Any {
+	fmt.Printf("%s\n", unlist1(a))
 	return values0()
 }
 
