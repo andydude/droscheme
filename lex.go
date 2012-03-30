@@ -398,7 +398,7 @@ func (lex *Lexer) lexSigns() State {
 }
 
 func (lex *Lexer) lexLineComment() State {
-	for lex.ch != '\n' {
+	for lex.ch != '\n' && lex.ch != eof {
 		lex.next()
 	}
 	lex.backup()

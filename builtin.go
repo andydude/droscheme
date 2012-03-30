@@ -282,6 +282,26 @@ func DZM(a Any) Any {
 	return DnumZM(list2(x, DZH(ys)))
 }
 
+//func DZP(a Any) Any {
+//	return DfoldZKright(list3(NewPrimProc(DnumZH), Sint64(1), a))
+//}
+//
+//func DZQ(a Any) Any {
+//	return DfoldZKright(list3(NewPrimProc(DnumZH), Sint64(1), a))
+//}
+//
+//func DZR(a Any) Any {
+//	return DfoldZKright(list3(NewPrimProc(DnumZH), Sint64(1), a))
+//}
+//
+//func DZPZQ(a Any) Any {
+//	return DfoldZKright(list3(NewPrimProc(Dnum), Sint64(1), a))
+//}
+//
+//func DZRZQ(a Any) Any {
+//	return DfoldZKright(list3(NewPrimProc(DnumZH), Sint64(1), a))
+//}
+
 func Dacos(a Any) Any {
 	x := unlist1(a)
 	return x.(TrigNum).ArcCos()
@@ -291,9 +311,9 @@ func Dangle(a Any) Any {
 	return values0()
 }
 
-func Dappend(a Any) Any {
-	return list0()
-}
+//func Dappend(a Any) Any {
+//	return list0()
+//}
 
 // (apply proc arg1 ... restargs)
 func Dapply(a Any) Any {
@@ -396,11 +416,11 @@ func DcallZMcc(a Any) Any {
 }
 
 func Dcar(a Any) Any {
-	return unlist1(a).(SPair).car
+	return unlist1(a).(*List).car
 }
 
 func Dcdr(a Any) Any {
-	return unlist1(a).(SPair).cdr
+	return unlist1(a).(*List).cdr
 }
 
 func Dceiling(a Any) Any {
@@ -408,7 +428,7 @@ func Dceiling(a Any) Any {
 }
 
 func DcharZKZRinteger(a Any) Any {
-	return Sint64(a.(SChar))
+	return Sint64(unlist1(a).(SChar))
 }
 
 func DcharZKreadyZS(a Any) Any {
@@ -719,9 +739,9 @@ func DlastZKpair(a Any) Any {
 	if IsNull(unlist1(a)) {
 		return list0()
 	}
-	var cur SPair = unlist1(a).(SPair)
+	var cur *List = unlist1(a).(*List)
 	for IsPair(cur.cdr) {
-		cur = cur.cdr.(SPair)
+		cur = cur.cdr.(*List)
 	}
 	return cur
 }
@@ -736,14 +756,19 @@ func Dlist(a Any) Any {
 }
 
 func DlistZKZRstring(a Any) Any {
-	return list0()
+	stv := DlistZKZRvector(a).(SVector)
+	str := make([]rune, len(stv.it))
+	for k, _ := range stv.it {
+		str[k] = rune(stv.it[k].(SChar))
+	}
+	return NewString(string(str))
 }
 
 // (list->vector l)
 func DlistZKZRvector(a Any) Any {
 	var vec = []Any{}
-	for cur := unlist1(a); IsPair(cur); cur = cur.(SPair).cdr {
-		vec = append(vec, cur.(SPair).car)
+	for cur := unlist1(a); IsPair(cur); cur = cur.(*List).cdr {
+		vec = append(vec, cur.(*List).car)
 	}
 	return SVector{it: vec}
 }
@@ -757,9 +782,9 @@ func DlistZKcopy(a Any) Any {
 func DlistZKref(a Any) Any {
 	list, ka := unlist2(a)
 	k := ToFixnum(ka)
-	for cur := list; IsPair(cur); k, cur = k-1, cur.(SPair).cdr {
+	for cur := list; IsPair(cur); k, cur = k-1, cur.(*List).cdr {
 		if k == 0 {
-			return cur.(SPair).car
+			return cur.(*List).car
 		}
 	}
 	panic(newTypeError("list-ref"))
@@ -768,9 +793,9 @@ func DlistZKref(a Any) Any {
 func DlistZKtail(a Any) Any {
 	list, ka := unlist2(a)
 	k := ToFixnum(ka)
-	for cur := list; IsPair(cur); k, cur = k-1, cur.(SPair).cdr {
+	for cur := list; IsPair(cur); k, cur = k-1, cur.(*List).cdr {
 		if k == 0 {
-			return cur.(SPair).cdr
+			return cur.(*List).cdr
 		}
 	}
 	panic(newTypeError("list-tail"))
@@ -803,7 +828,7 @@ func Dload(a Any) Any {
 	}
 
 	// read
-	value, err = Read("(begin "+input+")") // hack
+	value, err = Read("(begin "+input+"\n)") // hack
 	if err != nil {
 		if err.Error() != "EOF" {
 			panic(err)
@@ -844,7 +869,7 @@ func DmakeZKbytevector(a Any) Any {
 	k, rest := unlist1R(a)
 	var fill byte = 0
 	if IsPair(rest) {
-		fill = byte(ToFixnum(rest.(SPair).car))
+		fill = byte(ToFixnum(rest.(*List).car))
 	}
 	n := int(ToFixnum(k))
 	v := make([]byte, n, 256)
@@ -881,7 +906,7 @@ func DmakeZKvector(a Any) Any {
 	k, rest := unlist1R(a)
 	var fill Any = SNull{}
 	if IsPair(rest) {
-		fill = rest.(SPair).car
+		fill = rest.(*List).car
 	}
 	n := int(ToFixnum(k))
 	v := make([]Any, n, 256)
@@ -1155,6 +1180,20 @@ func Dround(a Any) Any {
 	return list0()
 }
 
+// (set-car! ls expr)
+func DsetZKcarZA(a Any) Any {
+	ls, value := unlist2(a)
+	ls.(*List).car = value
+	return Dvoid(list0())
+}
+
+// (set-cdr! ls expr)
+func DsetZKcdrZA(a Any) Any {
+	ls, value := unlist2(a)
+	ls.(*List).cdr = value
+	return Dvoid(list0())
+}
+
 // (scheme-primitive-environment version)
 func DschemeZKprimitiveZKenvironment(a Any) Any {
 	env := DnullZKenvironment(a).(*Env).Extend()
@@ -1303,10 +1342,10 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		fallthrough
 	case v == 2: // R2RS
 
-		env.register(DZH)
-		env.register(DZI)
-		env.register(DZK)
-		env.register(DZM)
+		//env.register(DZH)
+		//env.register(DZI)
+		//env.register(DZK)
+		//env.register(DZM)
 		//env.register(DZP)
 		//env.register(DZPZQ)
 		//env.register(DZQ)
@@ -1315,9 +1354,9 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		//env.register(Dabs) // derived
 		env.register(Dacos)
 		env.register(Dangle)
-		env.register(Dappend)
+		//env.register(Dappend) // derived
 		//env.register(DappendZA) // R2RS only
-		env.register(Dapply)
+		env.register(Dapply) // derived
 		env.register(Dasin)
 		//env.register(Dassoc)  // derived
 		//env.register(Dassq)   // derived
@@ -1448,8 +1487,8 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		//env.register(Dremainder) // derived
 		env.register(Dreverse)
 		env.register(Dround)
-		//env.register(DsetZKcarZA) // mutable
-		//env.register(DsetZKcdrZA) // mutable
+		env.register(DsetZKcarZA) // mutable
+		env.register(DsetZKcdrZA) // mutable
 		env.register(Dsin)
 		env.register(Dsqrt)
 		env.register(DstringZKZRlist)
@@ -1492,7 +1531,7 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		//env.register(DwithZKoutputZKtoZKfile)   // R2RS, R4RS, R5RS
 		env.register(Dwrite)
 		env.register(DwriteZKchar)
-		env.register(DzeroZS)
+		//env.register(DzeroZS)
 
 		// syntax
 		//Kquote
@@ -1573,7 +1612,13 @@ func Dstring(a Any) Any {
 }
 
 func DstringZKZRlist(a Any) Any {
-	return list0()
+	sta := unlist1(a).(SString)
+	str := []rune(sta.text)
+	stv := make([]Any, len(str))
+	for k, _ := range str {
+		stv[k] = SChar(str[k])
+	}
+	return DvectorZKZRlist(list1(NewVector(stv)))
 }
 
 func DstringZKZRnumber(a Any) Any {
@@ -1681,8 +1726,8 @@ func DtypeZQZS(a Any) Any {
 // R6RS:u8-list->bytevector
 func Du8ZKlistZKZRbytevector(a Any) Any {
 	var vec = []byte{}
-	for cur := unlist1(a); IsPair(cur); cur = cur.(SPair).cdr {
-		num := cur.(SPair).car
+	for cur := unlist1(a); IsPair(cur); cur = cur.(*List).cdr {
+		num := cur.(*List).car
 		if !IsByte(num) {
 			panic("TypeError: expected byte")
 		}
@@ -1757,6 +1802,10 @@ func DvectorZKsetZA(a Any) Any {
 
 func DvectorZS(a Any) Any {
 	return SBool(IsVector(unlist1(a)))
+}
+
+func Dvoid(a Any) Any {
+	return values0()
 }
 
 func DwithZKexceptionZKhandler(a Any) Any {

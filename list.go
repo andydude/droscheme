@@ -159,7 +159,7 @@ func (o SNull) Eval(env *Env) Any {
 
 // s:pair type
 
-type SPair struct {
+type List struct {
 	car Any
 	cdr Any
 }
@@ -167,30 +167,30 @@ type SPair struct {
 // s:pair methods
 
 func IsPair(o Any) bool {
-	var _, ok = o.(SPair)
+	var _, ok = o.(*List)
 	return ok
 }
 
-func (o SPair) GetHash() uintptr {
+func (o *List) GetHash() uintptr {
 	return 0 // TODO
 }
 
-func (o SPair) GetType() int {
+func (o *List) GetType() int {
 	return TypeCodePair
 }
 
-func (o SPair) Equal(a Any) bool {
+func (o *List) Equal(a Any) bool {
 	return false // TODO
 }
 
-func (o SPair) Eval(env *Env) Any {
+func (o *List) Eval(env *Env) Any {
 	cas, cds := unlist1R(o)
 	car := Deval(list2(cas, env))
 	cdr := DevalZKliteral(list2(cds, env))
 	return list1R(car, cdr)
 }
 
-func (o SPair) String() string {
+func (o *List) String() string {
 	if IsList(o) {
 		v := listToVector(o)
 		s := fmt.Sprintf("%s", v)
@@ -199,11 +199,11 @@ func (o SPair) String() string {
 	return fmt.Sprintf("(%s . %s)", o.car, o.cdr)
 }
 
-func (o SPair) ToVector() Any {
+func (o *List) ToVector() Any {
 	var ret = []Any{}
 	var cur Any
-	for cur = o; IsPair(cur); cur = cur.(SPair).cdr {
-		ret = append(ret, cur.(SPair).car)
+	for cur = o; IsPair(cur); cur = cur.(*List).cdr {
+		ret = append(ret, cur.(*List).car)
 	}
 	return SVector{it: ret}
 }
@@ -212,8 +212,8 @@ func listToVector(a Any) SVector {
 	switch a.(type) {
 	case SNull:
 		return a.(SNull).ToVector().(SVector)
-	case SPair:
-		return a.(SPair).ToVector().(SVector)
+	case *List:
+		return a.(*List).ToVector().(SVector)
 	}
 	panic(newTypeError("list->vector expected list"))
 }
@@ -222,12 +222,12 @@ func bindingsToPair(a Any) (ls, rs Any) {
 	//fmt.Printf("bindingsToPair(%s)\n", a)
 	var lhs = []Any{}
 	var rhs = []Any{}
-	var car SPair
+	var car *List
 	var cur Any
-	for cur = a; IsPair(cur); cur = cur.(SPair).cdr {
-		car = cur.(SPair).car.(SPair)
+	for cur = a; IsPair(cur); cur = cur.(*List).cdr {
+		car = cur.(*List).car.(*List)
 		lhs = append(lhs, car.car)
-		rhs = append(rhs, car.cdr.(SPair).car)		
+		rhs = append(rhs, car.cdr.(*List).car)		
 	}
 	ls = NewVector(lhs).ToList()
 	rs = NewVector(rhs).ToList()
@@ -243,7 +243,7 @@ func IsList(o Any) bool {
 	case TypeCodeNull:
 		return true
 	case TypeCodePair:
-		return IsList(o.(SPair).cdr)
+		return IsList(o.(*List).cdr)
 	}
 	return false
 }
@@ -252,7 +252,7 @@ func Length(o Any) int {
 	// cycle detection (only needed in mutable model)
 	switch o.GetType() {
 	case TypeCodePair:
-		return 1 + Length(o.(SPair).cdr)
+		return 1 + Length(o.(*List).cdr)
 	case TypeCodeNull:
 		return 0
 	}
@@ -299,6 +299,10 @@ func IsString(a Any) bool {
 	return IsType(a, TypeCodeString)
 }
 
+func NewString(s string) Any {
+	return SString{text: s}
+}
+
 func (o SString) GetType() int {
 	return TypeCodeString
 }
@@ -340,7 +344,7 @@ func (o SSymbol) Equal(a Any) bool {
 func (o SSymbol) Eval(env *Env) Any {
 	value := env.Ref(o)
 	if value == nil {
-		panic(newEvalError("variable not bound in environment"))
+		panic(newEvalError("variable not bound in environment: " + o.name))
 	}
 	return value
 }
@@ -367,7 +371,7 @@ func (o SVector) ToList() Any {
 	if len(o.it) == 0 {
 		return SNull{}
 	}
-	return SPair{o.it[0], NewVector(o.it[1:]).ToList()}
+	return &List{o.it[0], NewVector(o.it[1:]).ToList()}
 }
 
 func (o SVector) GetType() int {
@@ -813,8 +817,8 @@ func (o SLambdaProc) Apply(a Any) Any {
 	// iterate over formal and actual arguments
 	var bvar, bval Any
 	for bvar, bval = o.form, a; IsPair(bvar) && IsPair(bval); 
-	    bvar, bval = bvar.(SPair).cdr, bval.(SPair).cdr {
-		cenv.bound[bvar.(SPair).car.(SSymbol).name] = bval.(SPair).car
+	    bvar, bval = bvar.(*List).cdr, bval.(*List).cdr {
+		cenv.bound[bvar.(*List).car.(SSymbol).name] = bval.(*List).car
 	}
 
 	// check for (a b c . rest) formal arguments
@@ -826,9 +830,9 @@ func (o SLambdaProc) Apply(a Any) Any {
 	// check for argument mismatch
 	switch {
 	case IsNull(bvar) && !IsNull(bval):
-		panic(newEvalError("lambda-apply expected less arguments"))
+		panic(newEvalError("lambda-apply expected less arguments"+body.(fmt.Stringer).String()))
 	case !IsNull(bvar) && IsNull(bval):
-		panic(newEvalError("lambda-apply expected more arguments"))
+		panic(newEvalError("lambda-apply expected more arguments"+body.(fmt.Stringer).String()))
 	}
 
 	return Deval(list2(body, cenv))
@@ -916,8 +920,6 @@ func (o SFilePort) WriteRune(r rune) error {
 	return nil
 }
 
-
-
 func newEvalError(s string) error {
 	return errors.New("EvalError: " + s)
 }
@@ -946,42 +948,41 @@ func list0() Any {
 }
 
 func list1(a Any) Any {
-	return SPair{a, SNull{}}
+	return list1R(a, list0())
 }
 
 func list2(a, b Any) Any {
-	return SPair{a, SPair{b, SNull{}}}
+	return list1R(a, list1R(b, list0()))
 }
 
 func list3(a, b, c Any) Any {
-	return SPair{a, SPair{b, SPair{c, SNull{}}}}
+	return list1R(a, list1R(b, list1R(c, list0())))
 }
 
 func list1R(a, rest Any) Any {
-	return SPair{a, rest}
+	return &List{a, rest}
 }
 
 func list2R(a, b, rest Any) Any {
-	return SPair{a, SPair{b, rest}}
+	return list1R(a, list1R(b, rest))
 }
 
 func list3R(a, b, c, rest Any) Any {
-	return SPair{a, SPair{b, SPair{c, rest}}}
+	return list1R(a, list1R(b, list1R(c, rest)))
 }
 
 func listR(most, last Any) Any {
 	//// this would have worked in the mutable model
 	//var lastpair Any
 	//for lastpair = most;
-	//IsPair(lastpair.(SPair).cdr);
-	//lastpair = lastpair.(SPair).cdr {}
-	//lastpair.(SPair).cdr = last
+	//IsPair(lastpair.(*List).cdr);
+	//lastpair = lastpair.(*List).cdr {}
+	//lastpair.(*List).cdr = last
 	//return most
 
 	// immutable model requires reconstruction
 	if IsPair(most) {
-		return SPair{most.(SPair).car,
-			listR(most.(SPair).cdr, last)}
+		return list1R(most.(*List).car, listR(most.(*List).cdr, last))
 	}
 
 	// assume IsNull
@@ -989,54 +990,54 @@ func listR(most, last Any) Any {
 }
 
 func unlist1(o Any) Any {
-	return o.(SPair).car
+	return o.(*List).car
 }
 
 func unlist2(o Any) (a, b Any) {
-	a = o.(SPair).car
-	b = o.(SPair).cdr
-	b = b.(SPair).car
+	a = o.(*List).car
+	b = o.(*List).cdr
+	b = b.(*List).car
 	return
 }
 
 func unlist3(o Any) (a, b, c Any) {
-	a = o.(SPair).car
-	c = o.(SPair).cdr
-	b = c.(SPair).car
-	c = c.(SPair).cdr
-	c = c.(SPair).car
+	a = o.(*List).car
+	c = o.(*List).cdr
+	b = c.(*List).car
+	c = c.(*List).cdr
+	c = c.(*List).car
 	return
 }
 
 func unlist1R(o Any) (a Any, r Any) {
-	a = o.(SPair).car
-	r = o.(SPair).cdr
+	a = o.(*List).car
+	r = o.(*List).cdr
 	return
 }
 
 func unlist2R(o Any) (a Any, b Any, r Any) {
-	a = o.(SPair).car
-	r = o.(SPair).cdr
-	b = r.(SPair).car
-	r = r.(SPair).cdr
+	a = o.(*List).car
+	r = o.(*List).cdr
+	b = r.(*List).car
+	r = r.(*List).cdr
 	return
 }
 
 func unlist3R(o Any) (a Any, b Any, c Any, r Any) {
-	a = o.(SPair).car
-	r = o.(SPair).cdr
-	b = r.(SPair).car
-	r = r.(SPair).cdr
-	c = r.(SPair).car
-	r = r.(SPair).cdr
+	a = o.(*List).car
+	r = o.(*List).cdr
+	b = r.(*List).car
+	r = r.(*List).cdr
+	c = r.(*List).car
+	r = r.(*List).cdr
 	return
 }
 
 func unlist1O(o Any, d Any) (a Any, r Any) {
-	a = o.(SPair).car
-	r = o.(SPair).cdr
+	a = o.(*List).car
+	r = o.(*List).cdr
     if IsPair(r) {
-        r = r.(SPair).car
+        r = r.(*List).car
     } else {
         r = d
     }
@@ -1044,12 +1045,12 @@ func unlist1O(o Any, d Any) (a Any, r Any) {
 }
 
 func unlist2O(o Any, d Any) (a Any, b Any, r Any) {
-	a = o.(SPair).car
-	r = o.(SPair).cdr
-	b = r.(SPair).car
-	r = r.(SPair).cdr
+	a = o.(*List).car
+	r = o.(*List).cdr
+	b = r.(*List).car
+	r = r.(*List).cdr
     if IsPair(r) {
-        r = r.(SPair).car
+        r = r.(*List).car
     } else {
         r = d
     }
