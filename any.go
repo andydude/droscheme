@@ -33,6 +33,7 @@ const (
 	TypeCodeValues  // multiple return values
 	TypeCodeSyntax  //                            -- Transformer interface
 	TypeCodeEnvSpec
+	TypeCodeVoid
 
 	// ... we can add more nonstandard types later
 

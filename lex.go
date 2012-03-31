@@ -130,6 +130,13 @@ func (lex *Lexer) match(valid string) {
 }
 
 func (lex *Lexer) getSpan() string {
+	defer func() {
+		x := recover()
+		if x != nil {
+			fmt.Printf("s=%s, p=%s, w=%s\n", lex.start, lex.pos, lex.width)
+			panic("error in getSpan()")
+		}
+	}()
 	return lex.input[lex.start:lex.pos]
 }
 
@@ -255,7 +262,15 @@ func (lex *Lexer) lexChar() State {
 	// assume we've consumed #\ already
 	ch := lex.next()
 	if ch == 'x' {
-		// TODO
+		lex.peek()
+		lex.consume()
+		for lex.isDigit16() {
+			lex.next()
+		}
+		lex.backup()
+		base = 16
+		ret := lex.getInt().(Sint64)
+		lex.emitDatum(CHAR, SChar(ret))
 	} else {
 		lex.emitDatum(CHAR, SChar(ch))
 	}

@@ -111,7 +111,7 @@ func Klambda(kw, st Any, env *Env) Any {
 		panic("lambda expected lambda")
 	}
 	form, body := unlist1R(st)
-	return SLambdaProc{form: form, body: body, env: env}
+	return SProc{form: form, body: body, env: env}
 }
 
 // (let)
@@ -125,7 +125,7 @@ func Klet(kw, st Any, env *Env) Any {
 	bvals = bvals.(Evaler).Eval(env)
 
 	// the invisible lambda
-	lam := NewLambdaProc(list1R(bvars, body), env)
+	lam := NewLambda(list1R(bvars, body), env)
 	return Dapply(list2(lam, bvals))
 }
 
@@ -226,80 +226,60 @@ func KsyntaxZKrules(kw, st Any, env *Env) Any {
  *   ZZ = 'Z'
  */
 
-/* (*) -- derived, but useful
- *
- * (define (* . rest)
- *   (fold-right num* 1 rest))
- */
-func DZH(a Any) Any {
-	return DfoldZKright(list3(NewPrimProc(DnumZH), Sint64(1), a))
-}
-
-/* (+) -- derived, but useful
- *
- * (define (+ . rest)
- *   (fold-right num+ 0 rest))
- */
-func DZI(a Any) Any {
-	return DfoldZKright(list3(NewPrimProc(DnumZI), Sint64(0), a))
-}
-
-/* (-) -- derived, but useful
- *
- * (define -
- *   (case-lambda
- *     (() 0)
- *     ((a) (num- 0 a))
- *     ((a . rest) (num- a (+ . rest)))))
- */
-func DZK(a Any) Any {
-	if IsNull(a) {
-		return Sint64(0)
-	}
-	x, ys := unlist1R(a)
-	if IsNull(ys) {
-		return DnumZK(list2(Sint64(0), x))
-	}
-	return DnumZK(list2(x, DZI(ys)))
-}
-
-/* (/) -- derived, but useful
- *
- * (define /
- *   (case-lambda
- *     (() 1)
- *     ((a) (num/ 1 a))
- *     ((a . rest) (num/ a (* . rest)))))
- */
-func DZM(a Any) Any {
-	if IsNull(a) {
-		return Sint64(1)
-	}
-	x, ys := unlist1R(a)
-	if IsNull(ys) {
-		return DnumZM(list2(Sint64(1), x))
-	}
-	return DnumZM(list2(x, DZH(ys)))
-}
-
-//func DZP(a Any) Any {
-//	return DfoldZKright(list3(NewPrimProc(DnumZH), Sint64(1), a))
+///* (*) -- derived, but useful
+// *
+// * (define (* . rest)
+// *   (fold-right num* 1 rest))
+// */
+//func DZH(a Any) Any {
+//	return DfoldZKright(list3(NewPrim(DnumZH), Sint64(1), a))
 //}
 //
-//func DZQ(a Any) Any {
-//	return DfoldZKright(list3(NewPrimProc(DnumZH), Sint64(1), a))
+///* (+) -- derived, but useful
+// *
+// * (define (+ . rest)
+// *   (fold-right num+ 0 rest))
+// */
+//func DZI(a Any) Any {
+//	return DfoldZKright(list3(NewPrim(DnumZI), Sint64(0), a))
 //}
 //
-//func DZR(a Any) Any {
-//	return DfoldZKright(list3(NewPrimProc(DnumZH), Sint64(1), a))
+///* (-) -- derived, but useful
+// *
+// * (define -
+// *   (case-lambda
+// *     (() 0)
+// *     ((a) (num- 0 a))
+// *     ((a . rest) (num- a (+ . rest)))))
+// */
+//func DZK(a Any) Any {
+//	if IsNull(a) {
+//		return Sint64(0)
+//	}
+//	x, ys := unlist1R(a)
+//	if IsNull(ys) {
+//		return DnumZK(list2(Sint64(0), x))
+//	}
+//	return DnumZK(list2(x, DZI(ys)))
 //}
 //
-//func DZPZQ(a Any) Any {
-//	return DfoldZKright(list3(NewPrimProc(Dnum), Sint64(1), a))
-//}
-//
-//func DZRZQ(a Any) Any {
-//	return DfoldZKright(list3(NewPrimProc(DnumZH), Sint64(1), a))
+///* (/) -- derived, but useful
+// *
+// * (define /
+// *   (case-lambda
+// *     (() 1)
+// *     ((a) (num/ 1 a))
+// *     ((a . rest) (num/ a (* . rest)))))
+// */
+//func DZM(a Any) Any {
+//	if IsNull(a) {
+//		return Sint64(1)
+//	}
+//	x, ys := unlist1R(a)
+//	if IsNull(ys) {
+//		return DnumZM(list2(Sint64(1), x))
+//	}
+//	return DnumZM(list2(x, DZH(ys)))
 //}
 
 func Dacos(a Any) Any {
@@ -316,9 +296,18 @@ func Dangle(a Any) Any {
 //}
 
 // (apply proc arg1 ... restargs)
+/*
+(define (cons* . rest)
+  (append (most rest) (last rest)))
+ * (define (apply proc . rest)
+ *     (define (apply-1 args) (proc . args))
+ *     (apply-1 (cons* . rest)))
+ */
 func Dapply(a Any) Any {
-	proc, restargs := unlist2(a)
-	return proc.(Applier).Apply(restargs)
+	//proc, rest := unlist2(a)
+	//return proc.(Applier).Apply(rest)
+	proc, rest := unlist1R(a)
+	return proc.(Applier).Apply(DlistZH(rest))
 }
 
 func Dasin(a Any) Any {
@@ -750,9 +739,17 @@ func Dlength(a Any) Any {
 	return Sint64(Length(unlist1(a)))
 }
 
+// (list ...)
 func Dlist(a Any) Any {
 	// so easy
 	return a
+}
+
+// (list* ...)
+func DlistZH(a Any) Any {
+	// so hard
+	v := DlistZKZRvector(list1(a))
+	return DvectorZKZRlistZH(list1(v))
 }
 
 func DlistZKZRstring(a Any) Any {
@@ -770,6 +767,18 @@ func DlistZKZRvector(a Any) Any {
 	for cur := unlist1(a); IsPair(cur); cur = cur.(*List).cdr {
 		vec = append(vec, cur.(*List).car)
 	}
+	return SVector{it: vec}
+}
+
+// (list*->vector l)
+func DlistZHZKZRvector(a Any) Any {
+	var vec = []Any{}
+	var cur Any
+	for cur = unlist1(a); IsPair(cur.(*List).cdr); cur = cur.(*List).cdr {
+		vec = append(vec, cur.(*List).car)
+	}
+	vec = append(vec, cur.(*List).car)
+	vec = append(vec, cur.(*List).cdr)
 	return SVector{it: vec}
 }
 
@@ -865,6 +874,8 @@ func DmakeZM(a Any) Any {
 	return NewRational64(n, d)
 }
 
+// (make-bytevector k)
+// (make-bytevector k byte)
 func DmakeZKbytevector(a Any) Any {
 	k, rest := unlist1R(a)
 	var fill byte = 0
@@ -1206,18 +1217,21 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		env.register(DbytevectorZKZRu8ZKlist)
 		env.register(DbytevectorZKZRu8ZKvector)
 		env.register(DevalZKliteral)
+		env.register(DlistZH)
+		env.register(DlistZHZKZRvector)
 		env.register(DnumZH)
 		env.register(DnumZI)
 		env.register(DnumZK)
 		env.register(DnumZM)
-		env.register(DnumZQ)
 		env.register(DnumZP)
-		env.register(DnumZR)
 		env.register(DnumZPZQ)
+		env.register(DnumZQ)
+		env.register(DnumZR)
 		env.register(DnumZRZQ)
-		env.register(DstringZKmap)
 		env.register(Du8ZKlistZKZRbytevector)
 		env.register(Du8ZKvectorZKZRbytevector)
+		env.register(DvectorZKZRlistZH)
+		env.register(Dvoid)
 
 		fallthrough
 	case v == 7: // R7RS
@@ -1261,6 +1275,7 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		env.register(DreadZKbytevectorZA)
 		env.register(DreadZKline)
 		env.register(DreadZKu8)
+		env.register(DstringZKmap)
 		env.register(DtextualZKportZS)
 		env.register(DtypeZQZS)
 		env.register(Du8ZKreadyZS)
@@ -1302,16 +1317,16 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		//env.register(DstringZKmap)
 		//env.register(DsymbolZQZS)
 		//env.register(Dthrow)
-		//env.register(DvectorZKforZKeach)
-		//env.register(DvectorZKmap)
+		env.register(DvectorZKforZKeach)
+		env.register(DvectorZKmap)
+		env.register(DvectorZKZRstring)
+		env.register(DvectorZKcopy)
+		env.register(DstringZKZRutf8)
+		env.register(DstringZKZRvector)
+		env.register(DlistZKcopy)
 
 		fallthrough
 	case v == 5: // R5RS
-		//env.register(DvectorZKZRstring)
-		//env.register(DvectorZKcopy)
-		//env.register(DstringZKZRutf8)
-		//env.register(DstringZKZRvector)
-		//env.register(DlistZKcopy)
 
 		env.register(DcallZKwithZKvalues)
 		env.register(DdynamicZKwind)
@@ -1612,13 +1627,7 @@ func Dstring(a Any) Any {
 }
 
 func DstringZKZRlist(a Any) Any {
-	sta := unlist1(a).(SString)
-	str := []rune(sta.text)
-	stv := make([]Any, len(str))
-	for k, _ := range str {
-		stv[k] = SChar(str[k])
-	}
-	return DvectorZKZRlist(list1(NewVector(stv)))
+	return DvectorZKZRlist(list1(DstringZKZRvector(a)))
 }
 
 func DstringZKZRnumber(a Any) Any {
@@ -1634,7 +1643,13 @@ func DstringZKZRutf8(a Any) Any {
 }
 
 func DstringZKZRvector(a Any) Any {
-	return list0()
+	sta := unlist1(a).(SString)
+	str := []rune(sta.text)
+	stv := make([]Any, len(str))
+	for k, _ := range str {
+		stv[k] = SChar(str[k])
+	}
+	return NewVector(stv)
 }
 
 func DstringZKappend(a Any) Any {
@@ -1765,14 +1780,65 @@ func DvectorZKZRlist(a Any) Any {
 	return list1R(vec.it[0], DvectorZKZRlist(list1(SVector{it: vec.it[1:]})))
 }
 
+// (vector->list* v)
+func DvectorZKZRlistZH(a Any) Any {
+	vec := unlist1(a).(SVector)
+	switch len(vec.it) {
+	case 0:
+		return list0()
+	case 1:
+		return vec.it[0]
+	case 2:
+		return list1R(vec.it[0], vec.it[1])
+	}
+	return list1R(vec.it[0], DvectorZKZRlistZH(list1(SVector{it: vec.it[1:]})))
+}
+
 func DvectorZKZRstring(a Any) Any {
-	return list0()
+	vec := unlist1(a).(SVector).it
+	vev := make([]rune, len(vec))
+	for k, _ := range vec {
+		vev[k] = rune(ToFixnum(vec[k]))
+	}
+	return NewString(string(vev))
 }
 
+// (vector-copy vector)
+// (vector-copy vector start)
+// (vector-copy vector start end)
+// (vector-copy vector start end fill)
 func DvectorZKcopy(a Any) Any {
-	return list0()
+	vac, opt := unlist1R(a)
+	vec := vac.(SVector)
+	var inlen = len(vec.it)
+	var str Any = Sint64(0)
+	var end Any = Sint64(inlen)
+	var fil Any = list0()
+	if !IsNull(opt) {
+		str, opt = unlist1R(opt)
+		if !IsNull(opt) {
+			end, opt = unlist1R(opt)
+			if !IsNull(opt) {
+				fil, opt = unlist1R(opt)
+			}
+		}
+	}
+	var s = int(ToFixnum(str))
+	var e = int(ToFixnum(end))
+	var outlen = e - s
+	var ret = DmakeZKvector(list2(Sint64(outlen), fil)).(SVector)
+	if e > inlen {
+		// we need copy from start to inlen
+		copy(ret.it[0:inlen - s], vec.it[s:inlen])
+	} else {
+		// we need copy from start to end
+		copy(ret.it[0:outlen - s], vec.it[s:outlen])
+	}
+	return ret
 }
 
+// (vector-fill! vector fill)
+// (vector-fill! vector fill start end)
 func DvectorZKfillZA(a Any) Any {
 	return list0()
 }
@@ -1805,7 +1871,7 @@ func DvectorZS(a Any) Any {
 }
 
 func Dvoid(a Any) Any {
-	return values0()
+	return SVoid{}
 }
 
 func DwithZKexceptionZKhandler(a Any) Any {

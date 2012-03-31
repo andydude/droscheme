@@ -1,3 +1,7 @@
+- Ledgend:
+  []      -- means TODO
+  [X]     -- means done!
+
 - Ports
   [] byte ports
   [] char ports
@@ -12,6 +16,7 @@
   [] move list.go to types.go
 
 - (define-syntax)
+- (syntax-rules)
   [] research
 
 - (dynamic-wind)
@@ -19,3 +24,135 @@
 
 - (call/cc)
   [] research
+
+- (scheme base) R7RS
+  If you don't see the function here, then it means 
+  that it's been implemented completely
+  [] and
+  [] bytevector-copy
+  [] bytevector-copy!
+  [] bytevector-copy-partial
+  [] bytevector-copy-partial!
+  [X] bytevector-length
+  [X] bytevector-ref
+  [X] bytevector-set!
+  [] call/cc
+  [] call-with-port
+  [] call-with-values
+  [] case
+  [X] ceiling -- depends on floor
+  [X] char->integer
+  [] char-ready?
+  [] close-input-port
+  [] close-output-port
+  [] close-port
+  [] cond
+  [] cond-expand
+  [] current-error-port
+  [] current-input-port
+  [] current-output-port
+  [] define-record-type
+  [] define-syntax
+  [] define-values
+  [] do
+  [] dynamic-wind
+  [] eof-object?
+  [] error
+  [] error-object-irritants
+  [] error-object-message
+  [] error-object?
+  [] exact-integer-sqrt
+  [X] exact-integer?
+  [] floor
+  [] flush-output-port
+  [X] for-each
+  [X] map -- base (map f xs) and full (map f . rest) are done
+  [] gcd
+  [] get-output-bytevector
+  [] get-output-string
+  [] guard
+  [] import
+  [X] lambda
+  [] lcm
+  [X] let
+  [X] let*
+  [] let*-values
+  [] let-syntax
+  [] let-values
+  [] letrec
+  [] letrec*
+  [] letrec-syntax
+  [X] list->string
+  [X] list-copy
+  [X] make-bytevector
+  [X] make-list
+  [] make-parameter
+  [] make-string
+  [X] make-vector
+  [] max
+  [] min
+  [] newline
+  [] number->string
+  [] open-input-bytevector
+  [] open-input-string
+  [] open-output-bytevector
+  [] open-output-string
+  [] or
+  [] parameterize
+  [] peek-char
+  [] peek-u8
+  [] port-open?
+  [] rationalize
+  [] read-bytevector
+  [] read-bytevector!
+  [] read-char
+  [] read-line
+  [] read-u8
+  [X] reverse
+  [] round
+  [X] set!
+  [X] set-car!
+  [X] set-cdr!
+  [X] string->list
+  [] string->number
+  [] string->symbol
+  [X] string->utf8
+  [] string->vector
+  [] string-append
+  [] string-copy
+  [] string-fill!
+  [X] string-for-each
+  [X] string-length
+  [X] string-map
+  [] string-ref
+  [] string-set!
+  [] substring
+  [] symbol->string
+  [] syntax-error
+  [] syntax-rules
+  [X] truncate -- depends on floor
+  [] u8-ready?
+  [] unless
+  [X] utf8->string
+  [X] values
+  [] vector->list
+  [] vector->string
+  [] vector-copy
+  [] vector-fill!
+  [X] vector-for-each
+  [X] vector-length
+  [X] vector-map
+  [X] vector-ref
+  [X] vector-set!
+  [] when
+  [] with-exception-handler
+  [] write-bytevector
+  [] write-char
+  [] write-partial-bytevector
+  [] write-u8
+  [] zero?
+  [X] integer->char
+
+(andmap ...)
+
+

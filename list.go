@@ -116,7 +116,26 @@ func (o SChar) Equal(a Any) bool {
 }
 
 func (o SChar) String() string {
+	if 0x20 < o && o < 0x7F {
+		return fmt.Sprintf("#\\%s", string([]byte{byte(o)}))
+	}
 	return fmt.Sprintf("#\\x%X", int(o))
+}
+
+// void type
+
+type SVoid struct{}
+
+func (o SVoid) GetType() int {
+	return TypeCodeVoid
+}
+
+func (_ SVoid) Equal(a Any) bool {
+	return IsType(a, TypeCodeVoid)
+}
+
+func (_ SVoid) String() string {
+	return ""
 }
 
 // null type
@@ -394,6 +413,15 @@ func (o SVector) Eval(env *Env) Any {
 	return ret
 }
 
+func (o SVector) Ref(k Any) Any {
+	return o.it[ToFixnum(k)]
+}
+
+func (o SVector) Set(k, v Any) Any {
+	o.it[ToFixnum(k)] = v
+	return Dvoid(list0())
+}
+
 func (o SVector) String() string {
 	if len(o.it) == 0 {
 		return "#()"
@@ -537,7 +565,7 @@ func (env *Env) Define(symbol, body Any) Any {
 	} else if IsPair(symbol) {
 		var formals Any
 		symbol, formals = unlist1R(symbol)
-		value = NewLambdaProc(list1R(formals, body), env)
+		value = NewLambda(list1R(formals, body), env)
 	} else {
 		panic(newEvalError("define: expected variable or list"))
 	}
@@ -590,7 +618,7 @@ func (env *Env) registerSyntax(fn func(Any, Any, *Env) Any) {
 
 func (env *Env) register(fn func(Any) Any) {
 	n := env.registerName(fn)
-	env.bound[n] = SPrimProc{call: fn, name: n}
+	env.bound[n] = SPrim{call: fn, name: n}
 }
 
 func MangleName(name string) string {
@@ -740,12 +768,12 @@ func (o SRuleSyntax) String() string {
 
 // procedure types
 
-type SPrimProc struct {
+type SPrim struct {
 	call func(Any) Any
 	name string
 }
 
-type SLambdaProc struct {
+type SProc struct {
 	env  *Env
 	form Any
 	body Any
@@ -754,15 +782,15 @@ type SLambdaProc struct {
 
 // procedure methods
 
-func NewPrimProc(fn func(Any) Any) Any {
-	return SPrimProc{call: fn}
+func NewPrim(fn func(Any) Any) Any {
+	return SPrim{call: fn}
 }
 
 func NewBegin(body Any, env *Env) Any {
 	return Kbegin(NewSymbol("begin"), body, env)
 }
 
-func NewLambdaProc(rest Any, env *Env) Any {
+func NewLambda(rest Any, env *Env) Any {
 	return Klambda(NewSymbol("lambda"), rest, env)
 }
 
@@ -770,39 +798,39 @@ func IsProcedure(o Any) bool {
 	return IsType(o, TypeCodeProc)
 }
 
-func (o SPrimProc) GetType() int {
+func (o SPrim) GetType() int {
 	return TypeCodeProc
 }
 
-func (o SPrimProc) GetHash() uintptr {
+func (o SPrim) GetHash() uintptr {
 	return 0 // TODO
 }
 
-func (o SPrimProc) Equal(a Any) bool {
+func (o SPrim) Equal(a Any) bool {
 	return false
 }
 
-func (o SPrimProc) Apply(a Any) Any {
+func (o SPrim) Apply(a Any) Any {
 	return o.call(a)
 }
 
-func (o SPrimProc) String() string {
+func (o SPrim) String() string {
 	return fmt.Sprintf("#<procedure:%s>", o.name)
 }
 
-func (o SLambdaProc) GetType() int {
+func (o SProc) GetType() int {
 	return TypeCodeProc
 }
 
-func (o SLambdaProc) GetHash() uintptr {
+func (o SProc) GetHash() uintptr {
 	return SString{o.String()}.GetHash()
 }
 
-func (o SLambdaProc) Equal(a Any) bool {
+func (o SProc) Equal(a Any) bool {
 	return false
 }
 
-func (o SLambdaProc) Apply(a Any) Any {
+func (o SProc) Apply(a Any) Any {
 	body := o.body
 	body = list1R(SSymbol{"begin"}, body)
 	cenv := o.env.Extend()
@@ -838,11 +866,11 @@ func (o SLambdaProc) Apply(a Any) Any {
 	return Deval(list2(body, cenv))
 }
 
-func (o SLambdaProc) String() string {
+func (o SProc) String() string {
 	return o.ToList().(fmt.Stringer).String()
 }
 
-func (o SLambdaProc) ToList() Any {
+func (o SProc) ToList() Any {
 	return list2R(SSymbol{"lambda"}, o.form, o.body)
 }
 
@@ -866,6 +894,30 @@ func (o SType) GetType() int {
 func (o SType) GetPortType() int {
 	//return o.portType
 	return 0 // TODO
+}
+
+func TypeCode(a Any) int {
+	switch a.(type) {
+	case SBool: return TypeCodeBool
+	case SChar:	return TypeCodeChar
+	case SNull: return TypeCodeNull  
+	case *List: return TypeCodePair
+	case SPrim: return TypeCodeProc
+	case SProc: return TypeCodeProc
+	//case SType: return TypeCodeType
+	case SVoid:	return TypeCodeVoid
+	case SBinary: return TypeCodeBinary
+	case SString: return TypeCodeString
+	case SSymbol: return TypeCodeSymbol
+	case SValues: return TypeCodeValues
+	case SVector: return TypeCodeVector
+	case STable: return TypeCodeTable
+	case *Env: return TypeCodeEnvSpec
+	case SPrimSyntax: return TypeCodeSyntax
+	case SCaseSyntax: return TypeCodeSyntax
+	case SRuleSyntax: return TypeCodeSyntax
+	}
+	return TypeCodeAny
 }
 
 // port types
