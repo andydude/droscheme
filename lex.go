@@ -258,7 +258,7 @@ func (lex *Lexer) lexString() State {
 	lex.backup()
 	lex.match1('"')
 
-	lex.emitDatum(STRING, SString{string(contents)})
+	lex.emitDatum(STRING, NewString(contents))
 	return (*Lexer).lexToken
 }
 

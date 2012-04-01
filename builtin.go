@@ -139,8 +139,8 @@ func KletZH(kw, st Any, env *Env) Any {
 
 	// separate variables and values
 	bvars, bvals := bindingsToPair(binds)
-	vvars := listToVector(bvars).it
-	vvals := listToVector(bvals).it
+	vvars := listToVector(bvars)
+	vvals := listToVector(bvals)
 	for k, _ := range vvars {
 		cenv.Define(vvars[k], list1(Deval(list2(vvals[k], cenv))))
 	}
@@ -354,17 +354,17 @@ func DbytevectorZKcopyZKpartialZA(a Any) Any {
 }
 
 func DbytevectorZKlength(a Any) Any {
-	return Sint64(len(unlist1(a).(SBinary).bytes))
+	return Sint64(len(unlist1(a).(SBinary)))
 }
 
 func DbytevectorZKu8ZKref(a Any) Any {
 	o, k := unlist2(a)
-	return Sint64(o.(SBinary).bytes[ToFixnum(k)])
+	return Sint64(o.(SBinary)[ToFixnum(k)])
 }
 
 func DbytevectorZKu8ZKsetZA(a Any) Any {
 	o, k, v := unlist3(a)
-	o.(SBinary).bytes[ToFixnum(k)] = byte(ToFixnum(v))
+	o.(SBinary)[ToFixnum(k)] = byte(ToFixnum(v))
 	return values0()
 }
 
@@ -375,11 +375,11 @@ func DbytevectorZKZRu8ZKlist(a Any) Any {
 
 func DbytevectorZKZRu8ZKvector(a Any) Any {
 	bvec := unlist1(a).(SBinary)
-	blen := len(bvec.bytes)
+	blen := len(bvec)
 	vany := DmakeZKvector(list1(Sint64(blen)))
 	v := vany.(SVector)
 	for i := 0; i < blen; i++ {
-		v.it[i] = Sint64(bvec.bytes[i])
+		v[i] = Sint64(bvec[i])
 	}
 	return vany
 }
@@ -491,7 +491,7 @@ func Ddenominator(a Any) Any {
 }
 
 func Ddisplay(a Any) Any {
-	fmt.Printf("%s\n", unlist1(a).(SString).text)
+	fmt.Printf("%s\n", unlist1(a).(SString))
 	return values0()
 }
 
@@ -753,12 +753,7 @@ func DlistZH(a Any) Any {
 }
 
 func DlistZKZRstring(a Any) Any {
-	stv := DlistZKZRvector(a).(SVector)
-	str := make([]rune, len(stv.it))
-	for k, _ := range stv.it {
-		str[k] = rune(stv.it[k].(SChar))
-	}
-	return NewString(string(str))
+	return DvectorZKZRstring(list1(DlistZKZRvector(a)))
 }
 
 // (list->vector l)
@@ -767,7 +762,7 @@ func DlistZKZRvector(a Any) Any {
 	for cur := unlist1(a); IsPair(cur); cur = cur.(*List).cdr {
 		vec = append(vec, cur.(*List).car)
 	}
-	return SVector{it: vec}
+	return NewVector(vec)
 }
 
 // (list*->vector l)
@@ -779,7 +774,7 @@ func DlistZHZKZRvector(a Any) Any {
 	}
 	vec = append(vec, cur.(*List).car)
 	vec = append(vec, cur.(*List).cdr)
-	return SVector{it: vec}
+	return NewVector(vec)
 }
 
 func DlistZKcopy(a Any) Any {
@@ -816,7 +811,7 @@ func DlistZS(a Any) Any {
 
 func Dload(a Any) Any {
 	fs, opt := unlist1O(a, BuiltinEnv())
-	filename := fs.(SString).text
+	filename := fs.(SString).GoString()
 	env := opt.(*Env)
 	value := values0()
 
@@ -916,7 +911,7 @@ func DmakeZKvector(a Any) Any {
 	for i := 0; i < n; i++ {
 		v[i] = fill
 	}
-	return SVector{it: v}
+	return NewVector(v)
 }
 
 func Dmap(a Any) Any {
@@ -1631,12 +1626,12 @@ func DstringZKZRsymbol(a Any) Any {
 }
 
 func DstringZKZRutf8(a Any) Any {
-	return SBinary{bytes: []byte(unlist1(a).(SString).text)}
+	return NewBinary([]byte(unlist1(a).(SString).GoString()))
 }
 
 func DstringZKZRvector(a Any) Any {
 	sta := unlist1(a).(SString)
-	str := []rune(sta.text)
+	str := []rune(sta)
 	stv := make([]Any, len(str))
 	for k, _ := range str {
 		stv[k] = SChar(str[k])
@@ -1669,11 +1664,13 @@ func DstringZKmap(a Any) Any {
 }
 
 func DstringZKref(a Any) Any {
-	return list0()
+	o, k := unlist2(a)
+	return o.(SString).Ref(k)
 }
 
 func DstringZKsetZA(a Any) Any {
-	return list0()
+	o, k, v := unlist3(a)
+	return o.(SString).Set(k, v)
 }
 
 func DstringZPZQZS(a Any) Any {
@@ -1740,7 +1737,7 @@ func Du8ZKlistZKZRbytevector(a Any) Any {
 		}
 		vec = append(vec, ToByte(num))
 	}
-	return SBinary{vec}
+	return NewBinary(vec)
 }
 
 func Du8ZKvectorZKZRbytevector(a Any) Any {
@@ -1752,7 +1749,7 @@ func Du8ZKreadyZS(a Any) Any {
 }
 
 func Dutf8ZKZRstring(a Any) Any {
-	return SString{text: string(unlist1(a).(SBinary).bytes)}
+	return NewString([]rune(string(unlist1(a).(SBinary))))
 }
 
 func Dvalues(a Any) Any {
@@ -1766,33 +1763,33 @@ func Dvector(a Any) Any {
 // (vector->list v)
 func DvectorZKZRlist(a Any) Any {
 	vec := unlist1(a).(SVector)
-	if len(vec.it) == 0 {
+	if len(vec) == 0 {
 		return list0()
 	}
-	return list1R(vec.it[0], DvectorZKZRlist(list1(SVector{it: vec.it[1:]})))
+	return list1R(vec[0], DvectorZKZRlist(list1(NewVector(vec[1:]))))
 }
 
 // (vector->list* v)
 func DvectorZKZRlistZH(a Any) Any {
 	vec := unlist1(a).(SVector)
-	switch len(vec.it) {
+	switch len(vec) {
 	case 0:
 		return list0()
 	case 1:
-		return vec.it[0]
+		return vec[0]
 	case 2:
-		return list1R(vec.it[0], vec.it[1])
+		return list1R(vec[0], vec[1])
 	}
-	return list1R(vec.it[0], DvectorZKZRlistZH(list1(SVector{it: vec.it[1:]})))
+	return list1R(vec[0], DvectorZKZRlistZH(list1(NewVector(vec[1:]))))
 }
 
 func DvectorZKZRstring(a Any) Any {
-	vec := unlist1(a).(SVector).it
+	vec := unlist1(a).(SVector)
 	vev := make([]rune, len(vec))
 	for k, _ := range vec {
 		vev[k] = rune(ToFixnum(vec[k]))
 	}
-	return NewString(string(vev))
+	return NewString(vev)
 }
 
 // (vector-copy vector)
@@ -1802,7 +1799,7 @@ func DvectorZKZRstring(a Any) Any {
 func DvectorZKcopy(a Any) Any {
 	vac, opt := unlist1R(a)
 	vec := vac.(SVector)
-	var inlen = len(vec.it)
+	var inlen = len(vec)
 	var str Any = Sint64(0)
 	var end Any = Sint64(inlen)
 	var fil Any = list0()
@@ -1821,10 +1818,10 @@ func DvectorZKcopy(a Any) Any {
 	var ret = DmakeZKvector(list2(Sint64(outlen), fil)).(SVector)
 	if e > inlen {
 		// we need copy from start to inlen
-		copy(ret.it[0:inlen - s], vec.it[s:inlen])
+		copy(ret[0:inlen - s], vec[s:inlen])
 	} else {
 		// we need copy from start to end
-		copy(ret.it[0:outlen - s], vec.it[s:outlen])
+		copy(ret[0:outlen - s], vec[s:outlen])
 	}
 	return ret
 }
@@ -1834,7 +1831,7 @@ func DvectorZKcopy(a Any) Any {
 func DvectorZKfillZA(a Any) Any {
 	vac, opt := unlist1R(a)
 	vec := vac.(SVector)
-	var inlen = len(vec.it)
+	var inlen = len(vec)
 	var fil Any = list0()
 	var str Any = Sint64(0)
 	var end Any = Sint64(inlen)
@@ -1850,7 +1847,7 @@ func DvectorZKfillZA(a Any) Any {
 	var s = int(ToFixnum(str))
 	var e = int(ToFixnum(end))
 	for i := s; i < e; i++ {
-		vec.it[i] = fil
+		vec[i] = fil
 	}
 	return list0()
 }
@@ -1860,7 +1857,7 @@ func DvectorZKforZKeach(a Any) Any {
 }
 
 func DvectorZKlength(a Any) Any {
-	return Sint64(len(unlist1(a).(SVector).it))
+	return Sint64(len(unlist1(a).(SVector)))
 }
 
 func DvectorZKmap(a Any) Any {
@@ -1869,13 +1866,12 @@ func DvectorZKmap(a Any) Any {
 
 func DvectorZKref(a Any) Any {
 	o, k := unlist2(a)
-	return o.(SVector).it[ToFixnum(k)]
+	return o.(SVector).Ref(k)
 }
 
 func DvectorZKsetZA(a Any) Any {
 	o, k, v := unlist3(a)
-	o.(SVector).it[ToFixnum(k)] = v
-	return values0()
+	return o.(SVector).Set(k, v)
 }
 
 func DvectorZS(a Any) Any {

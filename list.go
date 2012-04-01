@@ -169,7 +169,7 @@ func (_ SNull) String() string {
 }
 
 func (o SNull) ToVector() Any {
-	return SVector{it: []Any{}}
+	return SVector([]Any{})
 }
 
 func (o SNull) Eval(env *Env) Any {
@@ -224,7 +224,7 @@ func (o *List) ToVector() Any {
 	for cur = o; IsPair(cur); cur = cur.(*List).cdr {
 		ret = append(ret, cur.(*List).car)
 	}
-	return SVector{it: ret}
+	return NewVector(ret)
 }
 
 func listToVector(a Any) SVector {
@@ -280,12 +280,14 @@ func Length(o Any) int {
 
 // s:bytevector type
 
-type SBinary struct {
-	bytes []byte
-}
+type SBinary []byte
 
 func IsBinary(o Any) bool {
 	return IsType(o, TypeCodeBinary)
+}
+
+func NewBinary(b []byte) SBinary {
+	return SBinary(b)
 }
 
 func (o SBinary) GetType() int {
@@ -302,24 +304,36 @@ func (o SBinary) Equal(a Any) bool {
 
 func (o SBinary) String() string {
 	var ret string = ""
-	for i := 0; i < len(o.bytes); i++ {
-		ret += fmt.Sprintf(" %s", Sint64(o.bytes[i]))
+	for i := 0; i < len(o); i++ {
+		ret += fmt.Sprintf(" %s", Sint64(o[i]))
 	}
 	return fmt.Sprintf("#u8(%s)", ret[1:])
 }
 
+func (o SBinary) Ref(k Any) Any {
+	return Sint64(o[ToFixnum(k)])
+}
+
+func (o SBinary) Set(k, v Any) Any {
+	o[ToFixnum(k)] = byte(ToFixnum(v))
+	return Dvoid(list0())
+}
+
+
 // s:string type
 
-type SString struct {
-	text string
-}
+type SString []rune
 
 func IsString(a Any) bool {
 	return IsType(a, TypeCodeString)
 }
 
-func NewString(s string) Any {
-	return SString{text: s}
+func NewString(s []rune) Any {
+	return SString(s)
+}
+
+func (o SString) GoString() string {
+	return string([]rune(o))
 }
 
 func (o SString) GetType() int {
@@ -335,7 +349,16 @@ func (o SString) Equal(a Any) bool {
 }
 
 func (o SString) String() string {
-	return fmt.Sprintf("\"%s\"", o.text)
+	return fmt.Sprintf("\"%s\"", string([]rune(o)))
+}
+
+func (o SString) Ref(k Any) Any {
+	return SChar(o[ToFixnum(k)])
+}
+
+func (o SString) Set(k, v Any) Any {
+	o[ToFixnum(k)] = rune(ToFixnum(v))
+	return Dvoid(list0())
 }
 
 // symbol type
@@ -374,23 +397,21 @@ func (o SSymbol) String() string {
 
 // vector type
 
-type SVector struct {
-	it []Any
-}
+type SVector []Any
 
 func IsVector(a Any) bool {
 	return IsType(a, TypeCodeVector)
 }
 
 func NewVector(a []Any) SVector {
-	return SVector{it: a}
+	return SVector(a)
 }
 
 func (o SVector) ToList() Any {
-	if len(o.it) == 0 {
+	if len(o) == 0 {
 		return SNull{}
 	}
-	return &List{o.it[0], NewVector(o.it[1:]).ToList()}
+	return &List{o[0], NewVector(o[1:]).ToList()}
 }
 
 func (o SVector) GetType() int {
@@ -406,30 +427,30 @@ func (o SVector) Equal(a Any) bool {
 }
 
 func (o SVector) Eval(env *Env) Any {
-	var ret = DmakeZKvector(list1(Sint64(len(o.it)))).(SVector)
-	for i := 0; i < len(o.it); i++ {
-		ret.it[i] = Deval(list2(o.it[i], env))
+	var ret = DmakeZKvector(list1(Sint64(len(o)))).(SVector)
+	for i := 0; i < len(o); i++ {
+		ret[i] = Deval(list2(o[i], env))
 	}
 	return ret
 }
 
 func (o SVector) Ref(k Any) Any {
-	return o.it[ToFixnum(k)]
+	return o[ToFixnum(k)]
 }
 
 func (o SVector) Set(k, v Any) Any {
-	o.it[ToFixnum(k)] = v
+	o[ToFixnum(k)] = v
 	return Dvoid(list0())
 }
 
 func (o SVector) String() string {
-	if len(o.it) == 0 {
+	if len(o) == 0 {
 		return "#()"
 	}
 
 	var ret string = ""
-	for i := 0; i < len(o.it); i++ {
-		ret += fmt.Sprintf(" %s", o.it[i])
+	for i := 0; i < len(o); i++ {
+		ret += fmt.Sprintf(" %s", o[i])
 	}
 	return fmt.Sprintf("#(%s)", ret[1:])
 }
@@ -439,26 +460,28 @@ func IsEmpty(a Any) bool {
 	case SNull:
 		return true
 	case SBinary:
-		return len(a.(SBinary).bytes) == 0
+		return len(a.(SBinary)) == 0
 	case SString:
-		return len(a.(SString).text) == 0
+		return len(a.(SString)) == 0
 	case SSymbol:
 		return len(a.(SSymbol).name) == 0
 	case SVector:
-		return len(a.(SVector).it) == 0
+		return len(a.(SVector)) == 0
 	case SValues:
-		return len(a.(SValues).it) == 0
+		return len(a.(SValues)) == 0
 	}
 	return false
 }
 
 // values type
 
-type SValues struct {
-	it []Any
-}
+type SValues []Any
 
 // values methods
+
+func NewValues(a []Any) Any {
+	return SValues(a)
+}
 
 func (o SValues) GetType() int {
 	return TypeCodeValues
@@ -473,10 +496,10 @@ func (o SValues) Equal(a Any) bool {
 }
 
 func (o SValues) String() string {
-	if len(o.it) == 0 {
+	if len(o) == 0 {
 		return ""
 	}
-	return fmt.Sprintf("#<values:%s>", o.it)
+	return fmt.Sprintf("#<values:%s>", o)
 }
 
 // label type
@@ -849,7 +872,8 @@ func (o SProc) GetType() int {
 }
 
 func (o SProc) GetHash() uintptr {
-	return SString{o.String()}.GetHash()
+	//return NewString([]rune(o.String())).GetHash()
+	return 0
 }
 
 func (o SProc) Equal(a Any) bool {
@@ -971,6 +995,7 @@ type SFilePort struct {
 type SStringPort SString
 
 type SBinaryPort SBinary
+
 
 func (o SFilePort) GetType() int {
 	return TypeCodePort
@@ -1200,16 +1225,16 @@ func unproc3R(f func(Any) Any) func(Any, Any, Any, Any) Any {
 
 // represents no return values
 func values0() Any {
-	return SValues{it: []Any{}}
+	return NewValues([]Any{})
 }
 
 // represents 2 return values
 func values2(a, b Any) Any {
-	return SValues{it: []Any{a, b}}
+	return NewValues([]Any{a, b})
 }
 
 // represents multiple return values
 func valuesR(rest Any) Any {
 	vec := listToVector(rest)
-	return SValues{it: vec.it}
+	return SValues(vec)
 }
