@@ -479,6 +479,32 @@ func (o SValues) String() string {
 	return fmt.Sprintf("#<values:%s>", o.it)
 }
 
+// label type
+
+type SLabel struct {
+	it Any
+	label int
+}
+
+func NewLabel(l, d Any) Any {
+	return SLabel{it: d, label: int(l.(SLabel).it.(Sint64))}
+}
+
+func (o SLabel) GetType() int {
+	return TypeCodeLabel
+}
+
+func (o SLabel) Equal(a Any) bool {
+	return false
+}
+
+func (o SLabel) String() string {
+	if o.it == nil {
+		return fmt.Sprintf("#%d#", o.label)
+	}
+	return fmt.Sprintf("#%d=%s", o.label, o.it)
+}
+
 // hashtable type
 
 type STable struct {

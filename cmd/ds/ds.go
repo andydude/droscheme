@@ -60,6 +60,29 @@ func getLine(in *bufio.Reader, prompt string) (string, error) {
 	return in.ReadString('\n')
 }
 
+func doReadEval(str string) error {
+
+	//R
+	val, lerr := droscheme.Read(str)
+	if lerr != nil {
+		fmt.Println("ReadError: " + lerr.Error())
+		return lerr
+	}
+	
+	if val == nil {
+		return nil
+	}
+	
+	//E
+	_, verr := droscheme.Eval(val, gEnv)
+	if verr != nil {
+		fmt.Println("EvalError: " + verr.Error())
+		return verr
+	}
+
+	return nil
+}
+
 func shell() {
 	defer func() {
 		if x := recover(); x != nil {
@@ -171,6 +194,10 @@ func main() {
 	}
 
 	if gExpr != "" {
+		err := doReadEval(gExpr)
+		if err != nil {
+			panic(err)
+		}
 		gShell = false
 	}
 

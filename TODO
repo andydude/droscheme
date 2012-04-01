@@ -40,8 +40,6 @@
   [] call-with-port
   [] call-with-values
   [] case
-  [X] ceiling -- depends on floor
-  [X] char->integer
   [] char-ready?
   [] close-input-port
   [] close-output-port
@@ -75,6 +73,7 @@
   [X] lambda
   [] lcm
   [X] let
+  [] let loop
   [X] let*
   [] let*-values
   [] let-syntax
@@ -82,12 +81,10 @@
   [] letrec
   [] letrec*
   [] letrec-syntax
-  [X] list->string
-  [X] list-copy
   [X] make-bytevector
   [X] make-list
   [] make-parameter
-  [] make-string
+  [X] make-string
   [X] make-vector
   [] max
   [] min
@@ -117,7 +114,7 @@
   [] string->number
   [] string->symbol
   [X] string->utf8
-  [] string->vector
+  [X] string->vector
   [] string-append
   [] string-copy
   [] string-fill!
@@ -130,15 +127,14 @@
   [] symbol->string
   [] syntax-error
   [] syntax-rules
-  [X] truncate -- depends on floor
   [] u8-ready?
   [] unless
   [X] utf8->string
   [X] values
-  [] vector->list
-  [] vector->string
-  [] vector-copy
-  [] vector-fill!
+  [X] vector->list
+  [X] vector->string
+  [X] vector-copy
+  [X] vector-fill!
   [X] vector-for-each
   [X] vector-length
   [X] vector-map
@@ -153,6 +149,8 @@
   [] zero?
   [X] integer->char
 
-(andmap ...)
-
+- Other
+  [] make Seq interface
+  [] remove Equal() method
+  [] remove GetType() method
 

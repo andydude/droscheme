@@ -246,6 +246,8 @@ func IsComplex(a Any) bool {
 
 func ToFixnum(a Any) int64 {
 	switch a.(type) {
+	case SChar:
+		return int64(a.(SChar))
 	case Sint64:
 		return reflect.ValueOf(a).Int()
 	case Sfloat64:

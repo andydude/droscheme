@@ -877,17 +877,7 @@ func DmakeZM(a Any) Any {
 // (make-bytevector k)
 // (make-bytevector k byte)
 func DmakeZKbytevector(a Any) Any {
-	k, rest := unlist1R(a)
-	var fill byte = 0
-	if IsPair(rest) {
-		fill = byte(ToFixnum(rest.(*List).car))
-	}
-	n := int(ToFixnum(k))
-	v := make([]byte, n, 256)
-	for i := 0; i < n; i++ {
-		v[i] = fill
-	}
-	return SBinary{bytes: v}
+	return Du8ZKvectorZKZRbytevector(list1(DmakeZKvector(a)))
 }
 
 func DmakeZKlist(a Any) Any {
@@ -908,8 +898,10 @@ func DmakeZKrectangular(a Any) Any {
 	return NewComplex(x.(Num), y.(Num))
 }
 
+// (make-string k)
+// (make-string k char)
 func DmakeZKstring(a Any) Any {
-	return list0()
+	return DvectorZKZRstring(list1(DmakeZKvector(a)))
 }
 
 // (make-vector k fill?)
@@ -1840,6 +1832,26 @@ func DvectorZKcopy(a Any) Any {
 // (vector-fill! vector fill)
 // (vector-fill! vector fill start end)
 func DvectorZKfillZA(a Any) Any {
+	vac, opt := unlist1R(a)
+	vec := vac.(SVector)
+	var inlen = len(vec.it)
+	var fil Any = list0()
+	var str Any = Sint64(0)
+	var end Any = Sint64(inlen)
+	if !IsNull(opt) {
+		fil, opt = unlist1R(opt)
+		if !IsNull(opt) {
+			str, opt = unlist1R(opt)
+			if !IsNull(opt) {
+				end, opt = unlist1R(opt)
+			}
+		}
+	}
+	var s = int(ToFixnum(str))
+	var e = int(ToFixnum(end))
+	for i := s; i < e; i++ {
+		vec.it[i] = fil
+	}
 	return list0()
 }
 

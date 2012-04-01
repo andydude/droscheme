@@ -65,6 +65,10 @@ func (t *yySymType) String() string {
 // lexer methods
 //
 
+func (lex *Lexer) emitLabel(label int) {
+	lex.emitDatum(LABEL, NewLabel(Sint64(label), nil))
+}
+
 func (lex *Lexer) emitDatum(token int, datum Any) {
 	lex.tokens <- newToken(token, datum)
 	lex.consume()
@@ -367,6 +371,18 @@ func (lex *Lexer) lexHash() State {
 		lex.backup()
 		lex.backup()
 		return (*Lexer).lexNumber
+	}
+
+	if lex.isDigit10() {
+		lex.peek()
+		lex.consume()
+		for lex.isDigit10() {
+			lex.next()
+		}
+		lex.backup()
+		base = 10
+		label := lex.getInt().(Sint64)
+		lex.emitLabel(int(label))
 	}
 
 	// readtable support could go here

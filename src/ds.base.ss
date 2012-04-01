@@ -403,6 +403,7 @@
   (- a (* b (floor-quotient a b))))
 
 ;(define (flush-output-port))
+;
 
 ;(define fold-left
 ;  (case-lambda
@@ -487,7 +488,7 @@
 ;(define (make-bytevector))
 ;(define (make-list))
 ;(define (make-parameter))
-;(define (make-string))
+;(define (make-string k))
 ;(define (make-vector))
 
 (define (map-1 proc ls)
