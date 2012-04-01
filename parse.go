@@ -1,5 +1,5 @@
 
-//line parse.y:32
+//line parse.y:33
 package droscheme
 
 import (
@@ -15,7 +15,6 @@ var err error // return value for parsing errors
 type	yySymType	struct {
 	yys	int;
     datum Any;
-    label int; // this is for recursive structures
 	token int; // this is for token identifiers
 }
 const	ID	= 57346
@@ -60,13 +59,12 @@ var	yyStatenames	 =[]string {
 const	yyErrCode	= 2
 const	yyMaxDepth	= 200
 
-//line parse.y:231
+//line parse.y:226
 
-// BEGIN lexer
+// BEGIN functions
 
 func (lex *Lexer) Lex(lval *yySymType) int {
 	tok := lex.nextToken()
-	// can we use copy() instead?
 	lval.datum = tok.datum
 	lval.token = tok.token
 	return lval.token
@@ -87,6 +85,8 @@ func Read(input string) (Any, error) {
 	err = nil
 	return ret, err2
 }
+
+// END functions
 
 //line yacctab:1
 var	yyExca = []int {
@@ -401,157 +401,156 @@ yydefault:
 	switch yynt {
 
 case 1:
-//line parse.y:85
+//line parse.y:84
 {
-	YYVAL.datum = YYS[yypt-0].datum
-	ret = YYVAL.datum
+		YYVAL.datum = YYS[yypt-0].datum
+		ret = YYVAL.datum
 	}
 case 2:
-//line parse.y:90
+//line parse.y:89
 {
-	YYVAL.datum = YYS[yypt-0].datum
-	ret = YYVAL.datum
+		YYVAL.datum = YYS[yypt-0].datum
+		ret = YYVAL.datum
 	}
 case 3:
-//line parse.y:95
+//line parse.y:94
 {
-	//$$.label = $1
-	//$$.datum = $3
+        YYVAL.datum = NewLabel(YYS[yypt-2].datum, YYS[yypt-0].datum)
 	}
 case 4:
-//line parse.y:100
+//line parse.y:98
 {
-	//$$.label = $1
+		YYVAL.datum = YYS[yypt-1].datum
 	}
 case 5:
-//line parse.y:106
+//line parse.y:104
 {
-	YYVAL.datum = YYS[yypt-0].datum
+        YYVAL.datum = YYS[yypt-0].datum
 	}
 case 6:
-//line parse.y:110
+//line parse.y:108
 {
-	YYVAL.datum = YYS[yypt-0].datum
-	}
+        YYVAL.datum = YYS[yypt-0].datum
+    }
 case 7:
-//line parse.y:114
+//line parse.y:112
 {
-	YYVAL.datum = YYS[yypt-0].datum
+        YYVAL.datum = YYS[yypt-0].datum
 	}
 case 8:
-//line parse.y:118
+//line parse.y:116
 {
-	YYVAL.datum = YYS[yypt-0].datum
+        YYVAL.datum = YYS[yypt-0].datum
 	}
 case 9:
-//line parse.y:122
+//line parse.y:120
 {
-	YYVAL.datum = YYS[yypt-0].datum
+        YYVAL.datum = YYS[yypt-0].datum
 	}
 case 10:
-//line parse.y:127
+//line parse.y:125
 {
-	YYVAL.datum = YYS[yypt-0].datum
+        YYVAL.datum = YYS[yypt-0].datum
 	}
 case 11:
-//line parse.y:133
+//line parse.y:131
 {
-	YYVAL.datum = YYS[yypt-0].datum
+        YYVAL.datum = YYS[yypt-0].datum
 	}
 case 12:
-//line parse.y:139
+//line parse.y:137
 {
-    YYVAL.datum = YYS[yypt-0].datum
+        YYVAL.datum = YYS[yypt-0].datum
 	}
 case 13:
-//line parse.y:143
+//line parse.y:141
 {
-    YYVAL.datum = YYS[yypt-0].datum
+        YYVAL.datum = YYS[yypt-0].datum
 	}
 case 14:
-//line parse.y:149
+//line parse.y:147
 {
-    YYVAL.datum = YYS[yypt-1].datum
+        YYVAL.datum = YYS[yypt-1].datum
 	}
 case 15:
-//line parse.y:153
+//line parse.y:151
 {
-	YYVAL.datum = listR(YYS[yypt-3].datum, YYS[yypt-1].datum)
+        YYVAL.datum = listR(YYS[yypt-3].datum, YYS[yypt-1].datum)
 	}
 case 16:
-//line parse.y:157
+//line parse.y:155
 {
-	YYVAL.datum = YYS[yypt-0].datum
+        YYVAL.datum = YYS[yypt-0].datum
     }
 case 17:
-//line parse.y:163
+//line parse.y:161
 {
-	YYVAL.datum = list1(YYS[yypt-0].datum)
+        YYVAL.datum = list1(YYS[yypt-0].datum)
 	}
 case 18:
-//line parse.y:167
+//line parse.y:165
 {
-	YYVAL.datum = list1R(YYS[yypt-1].datum, YYS[yypt-0].datum)
+        YYVAL.datum = list1R(YYS[yypt-1].datum, YYS[yypt-0].datum)
 	}
 case 19:
-//line parse.y:173
+//line parse.y:171
 {
-	YYVAL.datum = YYS[yypt-0].datum
+        YYVAL.datum = YYS[yypt-0].datum
 	}
 case 20:
-//line parse.y:177
+//line parse.y:175
 {
-	YYVAL.datum = list0()
+        YYVAL.datum = list0()
 	}
 case 21:
-//line parse.y:183
+//line parse.y:181
 {
-	YYVAL.datum = list2(SSymbol{"quote"}, YYS[yypt-0].datum)
+        YYVAL.datum = list2(SSymbol{"quote"}, YYS[yypt-0].datum)
 	}
 case 22:
-//line parse.y:187
+//line parse.y:185
 {
-	YYVAL.datum = list2(SSymbol{"quasiquote"}, YYS[yypt-0].datum)
+        YYVAL.datum = list2(SSymbol{"quasiquote"}, YYS[yypt-0].datum)
 	}
 case 23:
-//line parse.y:191
+//line parse.y:189
 {
-	YYVAL.datum = list2(SSymbol{"unquote"}, YYS[yypt-0].datum)
+        YYVAL.datum = list2(SSymbol{"unquote"}, YYS[yypt-0].datum)
 	}
 case 24:
-//line parse.y:195
+//line parse.y:193
 {
-	YYVAL.datum = list2(SSymbol{"unquote-splicing"}, YYS[yypt-0].datum)
+        YYVAL.datum = list2(SSymbol{"unquote-splicing"}, YYS[yypt-0].datum)
 	}
 case 25:
-//line parse.y:199
+//line parse.y:197
 {
-	YYVAL.datum = list2(SSymbol{"syntax"}, YYS[yypt-0].datum)
+        YYVAL.datum = list2(SSymbol{"syntax"}, YYS[yypt-0].datum)
 	}
 case 26:
-//line parse.y:203
+//line parse.y:201
 {
-	YYVAL.datum = list2(SSymbol{"quasisyntax"}, YYS[yypt-0].datum)
+        YYVAL.datum = list2(SSymbol{"quasisyntax"}, YYS[yypt-0].datum)
 	}
 case 27:
-//line parse.y:207
+//line parse.y:205
 {
-	YYVAL.datum = list2(SSymbol{"unsyntax"}, YYS[yypt-0].datum)
+        YYVAL.datum = list2(SSymbol{"unsyntax"}, YYS[yypt-0].datum)
 	}
 case 28:
-//line parse.y:211
+//line parse.y:209
 {
-	YYVAL.datum = list2(SSymbol{"unsyntax-splicing"}, YYS[yypt-0].datum)
+        YYVAL.datum = list2(SSymbol{"unsyntax-splicing"}, YYS[yypt-0].datum)
 	}
 case 29:
-//line parse.y:217
+//line parse.y:215
 {
-	YYVAL.datum = DlistZKZRvector(list1(YYS[yypt-1].datum))
+        YYVAL.datum = DlistZKZRvector(list1(YYS[yypt-1].datum))
 	}
 case 30:
-//line parse.y:223
+//line parse.y:221
 {
-	YYVAL.datum = Du8ZKlistZKZRbytevector(list1(YYS[yypt-1].datum))
+        YYVAL.datum = Du8ZKlistZKZRbytevector(list1(YYS[yypt-1].datum))
 	}
 	}
 	goto yystack /* stack new state and value */

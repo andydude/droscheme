@@ -45,7 +45,6 @@ var err error // return value for parsing errors
 // expands to yySymType
 %union {
     datum Any;
-    label int; // this is for recursive structures
 	token int; // this is for token identifiers
 }
 
@@ -59,7 +58,7 @@ var err error // return value for parsing errors
 %token <datum> NUMBER
 %token <datum> CHAR
 %token <datum> STRING
-%token <label> LABEL
+%token <datum> LABEL
 %token <token> VECTORPAREN   /* "#(" */
 %token <token> U8VECTORPAREN /* "#u8(" */
 %token <token> QUOTE     /* "'" */
@@ -83,149 +82,145 @@ var err error // return value for parsing errors
 datum:
 	simpledatum
 	{
-	$$ = $1
-	ret = $$
+		$$ = $1
+		ret = $$
 	}
 |	compounddatum
 	{
-	$$ = $1
-	ret = $$
+		$$ = $1
+		ret = $$
 	}
 |	LABEL '=' datum
 	{
-	//$$.label = $1
-	//$$.datum = $3
+        $$ = NewLabel($1, $3)
 	}
 |	LABEL '#'
 	{
-	//$$.label = $1
+		$$ = $1
 	}
 
 simpledatum:
 	BOOL
 	{
-	$$ = $1
+        $$ = $1
 	}
 |	NUMBER
 	{
-	$$ = $1
-	}
+        $$ = $1
+    }
 |	CHAR
 	{
-	$$ = $1
+        $$ = $1
 	}
 |	STRING
 	{
-	$$ = $1
+        $$ = $1
 	}
 |	symbol
 	{
-	$$ = $1
+        $$ = $1
 	}
 // This is our name for bytevector, in case we want to support all SRFI-4 vectors
 |	u8vector
 	{
-	$$ = $1
+        $$ = $1
 	}
 
 symbol:
 	ID
 	{
-	$$ = $1
+        $$ = $1
 	}
 
 compounddatum:
 	list
 	{
-    $$ = $1
+        $$ = $1
 	}
 |	vector
 	{
-    $$ = $1
+        $$ = $1
 	}
 
 list:
 	'(' datums0 ')'
 	{
-    $$ = $2
+        $$ = $2
 	}
 |	'(' datums1 '.' datum ')'
 	{
-	$$ = listR($2, $4)
+        $$ = listR($2, $4)
 	}
 |	abbreviation
     {
-	$$ = $1
+        $$ = $1
     }
 
 datums1:
 	datum
 	{
-	$$ = list1($1)
+        $$ = list1($1)
 	}
 |	datum datums1
 	{
-	$$ = list1R($1, $2)
+        $$ = list1R($1, $2)
 	}
 
 datums0:
 	datums1
 	{
-	$$ = $1
+        $$ = $1
 	}
 |	/*empty*/
 	{
-	$$ = list0()
+        $$ = list0()
 	}
 
 abbreviation:
 	QUOTE datum
 	{
-	$$ = list2(SSymbol{"quote"}, $2)
+        $$ = list2(SSymbol{"quote"}, $2)
 	}
 |	QQUOTE datum
 	{
-	$$ = list2(SSymbol{"quasiquote"}, $2)
+        $$ = list2(SSymbol{"quasiquote"}, $2)
 	}
 |	UNQUOTE datum
 	{
-	$$ = list2(SSymbol{"unquote"}, $2)
+        $$ = list2(SSymbol{"unquote"}, $2)
 	}
 |	UNQUOTES datum
 	{
-	$$ = list2(SSymbol{"unquote-splicing"}, $2)
+        $$ = list2(SSymbol{"unquote-splicing"}, $2)
 	}
 |	SYNTAX datum
 	{
-	$$ = list2(SSymbol{"syntax"}, $2)
+        $$ = list2(SSymbol{"syntax"}, $2)
 	}
 |	QSYNTAX datum
 	{
-	$$ = list2(SSymbol{"quasisyntax"}, $2)
+        $$ = list2(SSymbol{"quasisyntax"}, $2)
 	}
 |	UNSYNTAX datum
 	{
-	$$ = list2(SSymbol{"unsyntax"}, $2)
+        $$ = list2(SSymbol{"unsyntax"}, $2)
 	}
 |	UNSYNTAXS datum
 	{
-	$$ = list2(SSymbol{"unsyntax-splicing"}, $2)
+        $$ = list2(SSymbol{"unsyntax-splicing"}, $2)
 	}
 
 vector:
 	VECTORPAREN datums0 ')'
 	{
-	$$ = DlistZKZRvector(list1($2))
+        $$ = DlistZKZRvector(list1($2))
 	}
 
 u8vector:
 	U8VECTORPAREN datums0 ')'
 	{
-	$$ = Du8ZKlistZKZRbytevector(list1($2))
+        $$ = Du8ZKlistZKZRbytevector(list1($2))
 	}
-
-//LABEL:
-//	'#' Digits1
 
 // END grammar
 %%

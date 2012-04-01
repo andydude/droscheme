@@ -65,6 +65,10 @@ func (t *yySymType) String() string {
 // lexer methods
 //
 
+func (lex *Lexer) emitLabel(label int) {
+	lex.emitDatum(LABEL, NewLabel(Sint64(label), nil))
+}
+
 func (lex *Lexer) emitDatum(token int, datum Any) {
 	lex.tokens <- newToken(token, datum)
 	lex.consume()
@@ -130,6 +134,13 @@ func (lex *Lexer) match(valid string) {
 }
 
 func (lex *Lexer) getSpan() string {
+	defer func() {
+		x := recover()
+		if x != nil {
+			fmt.Printf("s=%s, p=%s, w=%s\n", lex.start, lex.pos, lex.width)
+			panic("error in getSpan()")
+		}
+	}()
 	return lex.input[lex.start:lex.pos]
 }
 
@@ -191,6 +202,8 @@ func (lex *Lexer) lexToken() State {
 	switch r := lex.peek(); {
 	case r == eof:
 		return nil
+	case r == ';':
+		return (*Lexer).lexLineComment
 	case r == '"':
 		return (*Lexer).lexString
 	case r == '#':
@@ -245,7 +258,7 @@ func (lex *Lexer) lexString() State {
 	lex.backup()
 	lex.match1('"')
 
-	lex.emitDatum(STRING, SString{string(contents)})
+	lex.emitDatum(STRING, NewString(contents))
 	return (*Lexer).lexToken
 }
 
@@ -253,7 +266,15 @@ func (lex *Lexer) lexChar() State {
 	// assume we've consumed #\ already
 	ch := lex.next()
 	if ch == 'x' {
-		// TODO
+		lex.peek()
+		lex.consume()
+		for lex.isDigit16() {
+			lex.next()
+		}
+		lex.backup()
+		base = 16
+		ret := lex.getInt().(Sint64)
+		lex.emitDatum(CHAR, SChar(ret))
 	} else {
 		lex.emitDatum(CHAR, SChar(ch))
 	}
@@ -352,6 +373,18 @@ func (lex *Lexer) lexHash() State {
 		return (*Lexer).lexNumber
 	}
 
+	if lex.isDigit10() {
+		lex.peek()
+		lex.consume()
+		for lex.isDigit10() {
+			lex.next()
+		}
+		lex.backup()
+		base = 10
+		label := lex.getInt().(Sint64)
+		lex.emitLabel(int(label))
+	}
+
 	// readtable support could go here
 
 	return nil
@@ -395,11 +428,19 @@ func (lex *Lexer) lexSigns() State {
 	return (*Lexer).lexId
 }
 
-//func (lex *Lexer) lexRealSign() State {
-//}
-//
-//func (lex *Lexer) lexImagSign() State {
-//}
+func (lex *Lexer) lexLineComment() State {
+	for lex.ch != '\n' && lex.ch != eof {
+		lex.next()
+	}
+	lex.backup()
+	lex.consume()
+	return (*Lexer).lexToken
+}
+
+func (lex *Lexer) lexNestedComment() State {
+	// TODO
+	return (*Lexer).lexToken
+}
 
 // <identifier>
 func (lex *Lexer) lexId() State {

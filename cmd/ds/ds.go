@@ -24,6 +24,7 @@ var gExpr string = ""
 var gFilename string = ""
 var gInteract bool = false
 var gMangle string = ""
+var gRootPath string = ""
 var gShell bool = true
 var gUnmangle string = ""
 
@@ -57,6 +58,29 @@ func process() {
 func getLine(in *bufio.Reader, prompt string) (string, error) {
 	fmt.Printf("%s> ", prompt)
 	return in.ReadString('\n')
+}
+
+func doReadEval(str string) error {
+
+	//R
+	val, lerr := droscheme.Read(str)
+	if lerr != nil {
+		fmt.Println("ReadError: " + lerr.Error())
+		return lerr
+	}
+	
+	if val == nil {
+		return nil
+	}
+	
+	//E
+	_, verr := droscheme.Eval(val, gEnv)
+	if verr != nil {
+		fmt.Println("EvalError: " + verr.Error())
+		return verr
+	}
+
+	return nil
 }
 
 func shell() {
@@ -137,6 +161,18 @@ func main() {
 	 */
 	gEnv = droscheme.BuiltinEnv().Extend()
 
+	/* This is where the scheme libraries are stored
+	 */
+	gRootPath = os.Getenv("DROSCHEME_ROOT")
+	//fmt.Printf("root=%s\n", gRootPath)
+	if gRootPath != "" {
+		filename := gRootPath + "/src/ds.base.ss"
+		_, err := droscheme.Load(filename, gEnv)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	if gMangle != "" {
 		fmt.Printf("%s\n", droscheme.MangleName(gMangle))
 		os.Exit(0)
@@ -151,11 +187,17 @@ func main() {
 		gShell = false
 		_, err := droscheme.Load(gFilename, gEnv)
 		if err != nil {
-			panic(err)
+			if err.Error() != "EOF" {
+				panic(err)
+			}
 		}
 	}
 
 	if gExpr != "" {
+		err := doReadEval(gExpr)
+		if err != nil {
+			panic(err)
+		}
 		gShell = false
 	}
 

@@ -295,11 +295,30 @@ To convert from (2) to (1):
 
 
 
-=== Globals
+=== Data Model
 
-var parseValue Any
-var parseErr error
-var lexBase int = 10
-var lexInexact bool
-var evalEnv Env
-var evalErr error
+Ds type Go type	Scm type
+-----   -------	-------
+SBool	bool	boolean?
+SChar	rune	char?
+SNull   struct	null?
+SPair   struct	pair?
+SBinary []byte	bytevector?
+SString []rune	string?
+SSymbol string	symbol?
+SVector []Any   vector?
+SValues []Any   values?
+STable  map[Any]Any
+
+*Pair
+*Env
+
+SPrimSyntax
+SCaseSyntax
+SRuleSyntax
+SPrim struct
+SProc struct
+SType struct
+SBytePort
+SCharPort
+SFilePort
