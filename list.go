@@ -15,6 +15,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"sort"
 	"strings"
 )
 
@@ -115,7 +116,26 @@ func (o SChar) Equal(a Any) bool {
 }
 
 func (o SChar) String() string {
+	if 0x20 < o && o < 0x7F {
+		return fmt.Sprintf("#\\%s", string([]byte{byte(o)}))
+	}
 	return fmt.Sprintf("#\\x%X", int(o))
+}
+
+// void type
+
+type SVoid struct{}
+
+func (o SVoid) GetType() int {
+	return TypeCodeVoid
+}
+
+func (_ SVoid) Equal(a Any) bool {
+	return IsType(a, TypeCodeVoid)
+}
+
+func (_ SVoid) String() string {
+	return ""
 }
 
 // null type
@@ -149,7 +169,7 @@ func (_ SNull) String() string {
 }
 
 func (o SNull) ToVector() Any {
-	return SVector{it: []Any{}}
+	return SVector([]Any{})
 }
 
 func (o SNull) Eval(env *Env) Any {
@@ -158,7 +178,7 @@ func (o SNull) Eval(env *Env) Any {
 
 // s:pair type
 
-type SPair struct {
+type List struct {
 	car Any
 	cdr Any
 }
@@ -166,30 +186,30 @@ type SPair struct {
 // s:pair methods
 
 func IsPair(o Any) bool {
-	var _, ok = o.(SPair)
+	var _, ok = o.(*List)
 	return ok
 }
 
-func (o SPair) GetHash() uintptr {
+func (o *List) GetHash() uintptr {
 	return 0 // TODO
 }
 
-func (o SPair) GetType() int {
+func (o *List) GetType() int {
 	return TypeCodePair
 }
 
-func (o SPair) Equal(a Any) bool {
+func (o *List) Equal(a Any) bool {
 	return false // TODO
 }
 
-func (o SPair) Eval(env *Env) Any {
+func (o *List) Eval(env *Env) Any {
 	cas, cds := unlist1R(o)
 	car := Deval(list2(cas, env))
-	cdr := cds.(Evaler).Eval(env)
+	cdr := DevalZKliteral(list2(cds, env))
 	return list1R(car, cdr)
 }
 
-func (o SPair) String() string {
+func (o *List) String() string {
 	if IsList(o) {
 		v := listToVector(o)
 		s := fmt.Sprintf("%s", v)
@@ -198,23 +218,39 @@ func (o SPair) String() string {
 	return fmt.Sprintf("(%s . %s)", o.car, o.cdr)
 }
 
-func (o SPair) ToVector() Any {
+func (o *List) ToVector() Any {
 	var ret = []Any{}
 	var cur Any
-	for cur = o; IsPair(cur); cur = cur.(SPair).cdr {
-		ret = append(ret, cur.(SPair).car)
+	for cur = o; IsPair(cur); cur = cur.(*List).cdr {
+		ret = append(ret, cur.(*List).car)
 	}
-	return SVector{it: ret}
+	return NewVector(ret)
 }
 
 func listToVector(a Any) SVector {
 	switch a.(type) {
 	case SNull:
 		return a.(SNull).ToVector().(SVector)
-	case SPair:
-		return a.(SPair).ToVector().(SVector)
+	case *List:
+		return a.(*List).ToVector().(SVector)
 	}
 	panic(newTypeError("list->vector expected list"))
+}
+
+func bindingsToPair(a Any) (ls, rs Any) {
+	//fmt.Printf("bindingsToPair(%s)\n", a)
+	var lhs = []Any{}
+	var rhs = []Any{}
+	var car *List
+	var cur Any
+	for cur = a; IsPair(cur); cur = cur.(*List).cdr {
+		car = cur.(*List).car.(*List)
+		lhs = append(lhs, car.car)
+		rhs = append(rhs, car.cdr.(*List).car)		
+	}
+	ls = NewVector(lhs).ToList()
+	rs = NewVector(rhs).ToList()
+	return
 }
 
 func IsList(o Any) bool {
@@ -226,7 +262,7 @@ func IsList(o Any) bool {
 	case TypeCodeNull:
 		return true
 	case TypeCodePair:
-		return IsList(o.(SPair).cdr)
+		return IsList(o.(*List).cdr)
 	}
 	return false
 }
@@ -235,7 +271,7 @@ func Length(o Any) int {
 	// cycle detection (only needed in mutable model)
 	switch o.GetType() {
 	case TypeCodePair:
-		return 1 + Length(o.(SPair).cdr)
+		return 1 + Length(o.(*List).cdr)
 	case TypeCodeNull:
 		return 0
 	}
@@ -244,12 +280,14 @@ func Length(o Any) int {
 
 // s:bytevector type
 
-type SBinary struct {
-	bytes []byte
-}
+type SBinary []byte
 
 func IsBinary(o Any) bool {
 	return IsType(o, TypeCodeBinary)
+}
+
+func NewBinary(b []byte) SBinary {
+	return SBinary(b)
 }
 
 func (o SBinary) GetType() int {
@@ -266,20 +304,36 @@ func (o SBinary) Equal(a Any) bool {
 
 func (o SBinary) String() string {
 	var ret string = ""
-	for i := 0; i < len(o.bytes); i++ {
-		ret += fmt.Sprintf(" %s", Sint64(o.bytes[i]))
+	for i := 0; i < len(o); i++ {
+		ret += fmt.Sprintf(" %s", Sint64(o[i]))
 	}
 	return fmt.Sprintf("#u8(%s)", ret[1:])
 }
 
+func (o SBinary) Ref(k Any) Any {
+	return Sint64(o[ToFixnum(k)])
+}
+
+func (o SBinary) Set(k, v Any) Any {
+	o[ToFixnum(k)] = byte(ToFixnum(v))
+	return Dvoid(list0())
+}
+
+
 // s:string type
 
-type SString struct {
-	text string
-}
+type SString []rune
 
 func IsString(a Any) bool {
 	return IsType(a, TypeCodeString)
+}
+
+func NewString(s []rune) Any {
+	return SString(s)
+}
+
+func (o SString) GoString() string {
+	return string([]rune(o))
 }
 
 func (o SString) GetType() int {
@@ -295,7 +349,16 @@ func (o SString) Equal(a Any) bool {
 }
 
 func (o SString) String() string {
-	return fmt.Sprintf("\"%s\"", o.text)
+	return fmt.Sprintf("\"%s\"", string([]rune(o)))
+}
+
+func (o SString) Ref(k Any) Any {
+	return SChar(o[ToFixnum(k)])
+}
+
+func (o SString) Set(k, v Any) Any {
+	o[ToFixnum(k)] = rune(ToFixnum(v))
+	return Dvoid(list0())
 }
 
 // symbol type
@@ -308,6 +371,10 @@ func IsSymbol(o Any) bool {
 	return IsType(o, TypeCodeSymbol)
 }
 
+func NewSymbol(s string) SSymbol {
+	return SSymbol{name: s}
+}
+
 func (o SSymbol) GetType() int {
 	return TypeCodeSymbol
 }
@@ -317,7 +384,11 @@ func (o SSymbol) Equal(a Any) bool {
 }
 
 func (o SSymbol) Eval(env *Env) Any {
-	return env.Ref(o)
+	value := env.Ref(o)
+	if value == nil {
+		panic(newEvalError("variable not bound in environment: " + o.name))
+	}
+	return value
 }
 
 func (o SSymbol) String() string {
@@ -326,19 +397,21 @@ func (o SSymbol) String() string {
 
 // vector type
 
-type SVector struct {
-	it []Any
-}
+type SVector []Any
 
 func IsVector(a Any) bool {
 	return IsType(a, TypeCodeVector)
 }
 
+func NewVector(a []Any) SVector {
+	return SVector(a)
+}
+
 func (o SVector) ToList() Any {
-	if len(o.it) == 0 {
+	if len(o) == 0 {
 		return SNull{}
 	}
-	return SPair{o.it[0], SVector{it: o.it[1:]}.ToList()}
+	return &List{o[0], NewVector(o[1:]).ToList()}
 }
 
 func (o SVector) GetType() int {
@@ -353,23 +426,31 @@ func (o SVector) Equal(a Any) bool {
 	return false // TODO
 }
 
-
 func (o SVector) Eval(env *Env) Any {
-	var ret = DmakeZKvector(list1(Sint64(len(o.it)))).(SVector)
-	for i := 0; i < len(o.it); i++ {
-		ret.it[i] = Deval(list2(o.it[i], env))
+	var ret = DmakeZKvector(list1(Sint64(len(o)))).(SVector)
+	for i := 0; i < len(o); i++ {
+		ret[i] = Deval(list2(o[i], env))
 	}
 	return ret
 }
 
+func (o SVector) Ref(k Any) Any {
+	return o[ToFixnum(k)]
+}
+
+func (o SVector) Set(k, v Any) Any {
+	o[ToFixnum(k)] = v
+	return Dvoid(list0())
+}
+
 func (o SVector) String() string {
-	if len(o.it) == 0 {
+	if len(o) == 0 {
 		return "#()"
 	}
 
 	var ret string = ""
-	for i := 0; i < len(o.it); i++ {
-		ret += fmt.Sprintf(" %s", o.it[i])
+	for i := 0; i < len(o); i++ {
+		ret += fmt.Sprintf(" %s", o[i])
 	}
 	return fmt.Sprintf("#(%s)", ret[1:])
 }
@@ -379,26 +460,28 @@ func IsEmpty(a Any) bool {
 	case SNull:
 		return true
 	case SBinary:
-		return len(a.(SBinary).bytes) == 0
+		return len(a.(SBinary)) == 0
 	case SString:
-		return len(a.(SString).text) == 0
+		return len(a.(SString)) == 0
 	case SSymbol:
 		return len(a.(SSymbol).name) == 0
 	case SVector:
-		return len(a.(SVector).it) == 0
+		return len(a.(SVector)) == 0
 	case SValues:
-		return len(a.(SValues).it) == 0
+		return len(a.(SValues)) == 0
 	}
 	return false
 }
 
 // values type
 
-type SValues struct {
-	it []Any
-}
+type SValues []Any
 
 // values methods
+
+func NewValues(a []Any) Any {
+	return SValues(a)
+}
 
 func (o SValues) GetType() int {
 	return TypeCodeValues
@@ -413,10 +496,36 @@ func (o SValues) Equal(a Any) bool {
 }
 
 func (o SValues) String() string {
-	if len(o.it) == 0 {
+	if len(o) == 0 {
 		return ""
 	}
-	return fmt.Sprintf("#<values:%s>", o.it)
+	return fmt.Sprintf("#<values:%s>", o)
+}
+
+// label type
+
+type SLabel struct {
+	it Any
+	label int
+}
+
+func NewLabel(l, d Any) Any {
+	return SLabel{it: d, label: int(l.(SLabel).it.(Sint64))}
+}
+
+func (o SLabel) GetType() int {
+	return TypeCodeLabel
+}
+
+func (o SLabel) Equal(a Any) bool {
+	return false
+}
+
+func (o SLabel) String() string {
+	if o.it == nil {
+		return fmt.Sprintf("#%d#", o.label)
+	}
+	return fmt.Sprintf("#%d=%s", o.label, o.it)
 }
 
 // hashtable type
@@ -501,11 +610,11 @@ func (env *Env) Define(symbol, body Any) Any {
 	//fmt.Printf("Env.Define(%s) %s\n", symbol, body)
 	var value Any
 	if IsSymbol(symbol) {
-		value = Kbegin(SSymbol{"begin"}, body, env)
+		value = NewBegin(body, env)
 	} else if IsPair(symbol) {
 		var formals Any
 		symbol, formals = unlist1R(symbol)
-		value = Klambda(SSymbol{"lambda"}, list1R(formals, body), env)
+		value = NewLambda(list1R(formals, body), env)
 	} else {
 		panic(newEvalError("define: expected variable or list"))
 	}
@@ -521,6 +630,21 @@ func (env *Env) Define(symbol, body Any) Any {
 
 func (env *Env) String() string {
 	return fmt.Sprintf("#<environment with %d local bindings>", len(env.bound))
+}
+
+func (env *Env) dump() {
+	if env.parent != nil {
+		env.parent.dump()
+		fmt.Printf("\t---\n")
+	}
+	keys := []string{}
+	for k, _ := range env.bound {
+		keys = append(keys, k)
+	}
+	sort.Sort(sort.StringSlice(keys))
+	for _, key := range keys {
+		fmt.Printf("\t%s=%s\n", key, env.bound[key])
+	}
 }
 
 func (env *Env) registerName(fn interface{}) string {
@@ -543,7 +667,7 @@ func (env *Env) registerSyntax(fn func(Any, Any, *Env) Any) {
 
 func (env *Env) register(fn func(Any) Any) {
 	n := env.registerName(fn)
-	env.bound[n] = SPrimProc{call: fn, name: n}
+	env.bound[n] = SPrim{call: fn, name: n}
 }
 
 func MangleName(name string) string {
@@ -693,12 +817,12 @@ func (o SRuleSyntax) String() string {
 
 // procedure types
 
-type SPrimProc struct {
+type SPrim struct {
 	call func(Any) Any
 	name string
 }
 
-type SLambdaProc struct {
+type SProc struct {
 	env  *Env
 	form Any
 	body Any
@@ -707,47 +831,56 @@ type SLambdaProc struct {
 
 // procedure methods
 
-func NewPrimProc(fn func(Any) Any) Any {
-	return SPrimProc{call: fn}
+func NewPrim(fn func(Any) Any) Any {
+	return SPrim{call: fn}
+}
+
+func NewBegin(body Any, env *Env) Any {
+	return Kbegin(NewSymbol("begin"), body, env)
+}
+
+func NewLambda(rest Any, env *Env) Any {
+	return Klambda(NewSymbol("lambda"), rest, env)
 }
 
 func IsProcedure(o Any) bool {
 	return IsType(o, TypeCodeProc)
 }
 
-func (o SPrimProc) GetType() int {
+func (o SPrim) GetType() int {
 	return TypeCodeProc
 }
 
-func (o SPrimProc) GetHash() uintptr {
+func (o SPrim) GetHash() uintptr {
 	return 0 // TODO
 }
 
-func (o SPrimProc) Equal(a Any) bool {
+func (o SPrim) Equal(a Any) bool {
 	return false
 }
 
-func (o SPrimProc) Apply(a Any) Any {
+func (o SPrim) Apply(a Any) Any {
 	return o.call(a)
 }
 
-func (o SPrimProc) String() string {
+func (o SPrim) String() string {
 	return fmt.Sprintf("#<procedure:%s>", o.name)
 }
 
-func (o SLambdaProc) GetType() int {
+func (o SProc) GetType() int {
 	return TypeCodeProc
 }
 
-func (o SLambdaProc) GetHash() uintptr {
-	return SString{o.String()}.GetHash()
+func (o SProc) GetHash() uintptr {
+	//return NewString([]rune(o.String())).GetHash()
+	return 0
 }
 
-func (o SLambdaProc) Equal(a Any) bool {
+func (o SProc) Equal(a Any) bool {
 	return false
 }
 
-func (o SLambdaProc) Apply(a Any) Any {
+func (o SProc) Apply(a Any) Any {
 	body := o.body
 	body = list1R(SSymbol{"begin"}, body)
 	cenv := o.env.Extend()
@@ -762,8 +895,8 @@ func (o SLambdaProc) Apply(a Any) Any {
 	// iterate over formal and actual arguments
 	var bvar, bval Any
 	for bvar, bval = o.form, a; IsPair(bvar) && IsPair(bval); 
-	    bvar, bval = bvar.(SPair).cdr, bval.(SPair).cdr {
-		cenv.bound[bvar.(SPair).car.(SSymbol).name] = bval.(SPair).car
+	    bvar, bval = bvar.(*List).cdr, bval.(*List).cdr {
+		cenv.bound[bvar.(*List).car.(SSymbol).name] = bval.(*List).car
 	}
 
 	// check for (a b c . rest) formal arguments
@@ -775,18 +908,21 @@ func (o SLambdaProc) Apply(a Any) Any {
 	// check for argument mismatch
 	switch {
 	case IsNull(bvar) && !IsNull(bval):
-		panic(newEvalError("lambda-apply expected less arguments"))
+		panic(newEvalError("lambda-apply expected less arguments"+body.(fmt.Stringer).String()))
 	case !IsNull(bvar) && IsNull(bval):
-		panic(newEvalError("lambda-apply expected more arguments"))
+		panic(newEvalError("lambda-apply expected more arguments"+body.(fmt.Stringer).String()))
 	}
 
 	return Deval(list2(body, cenv))
 }
 
-func (o SLambdaProc) String() string {
-	return list2R(SSymbol{"lambda"}, o.form, o.body).(fmt.Stringer).String()
+func (o SProc) String() string {
+	return o.ToList().(fmt.Stringer).String()
 }
 
+func (o SProc) ToList() Any {
+	return list2R(SSymbol{"lambda"}, o.form, o.body)
+}
 
 // type type
 
@@ -808,6 +944,30 @@ func (o SType) GetType() int {
 func (o SType) GetPortType() int {
 	//return o.portType
 	return 0 // TODO
+}
+
+func TypeCode(a Any) int {
+	switch a.(type) {
+	case SBool: return TypeCodeBool
+	case SChar:	return TypeCodeChar
+	case SNull: return TypeCodeNull  
+	case *List: return TypeCodePair
+	case SPrim: return TypeCodeProc
+	case SProc: return TypeCodeProc
+	//case SType: return TypeCodeType
+	case SVoid:	return TypeCodeVoid
+	case SBinary: return TypeCodeBinary
+	case SString: return TypeCodeString
+	case SSymbol: return TypeCodeSymbol
+	case SValues: return TypeCodeValues
+	case SVector: return TypeCodeVector
+	case STable: return TypeCodeTable
+	case *Env: return TypeCodeEnvSpec
+	case SPrimSyntax: return TypeCodeSyntax
+	case SCaseSyntax: return TypeCodeSyntax
+	case SRuleSyntax: return TypeCodeSyntax
+	}
+	return TypeCodeAny
 }
 
 // port types
@@ -836,6 +996,7 @@ type SStringPort SString
 
 type SBinaryPort SBinary
 
+
 func (o SFilePort) GetType() int {
 	return TypeCodePort
 }
@@ -861,8 +1022,6 @@ func (o SFilePort) ReadRune() (r rune, err error) {
 func (o SFilePort) WriteRune(r rune) error {
 	return nil
 }
-
-
 
 func newEvalError(s string) error {
 	return errors.New("EvalError: " + s)
@@ -892,42 +1051,41 @@ func list0() Any {
 }
 
 func list1(a Any) Any {
-	return SPair{a, SNull{}}
+	return list1R(a, list0())
 }
 
 func list2(a, b Any) Any {
-	return SPair{a, SPair{b, SNull{}}}
+	return list1R(a, list1R(b, list0()))
 }
 
 func list3(a, b, c Any) Any {
-	return SPair{a, SPair{b, SPair{c, SNull{}}}}
+	return list1R(a, list1R(b, list1R(c, list0())))
 }
 
 func list1R(a, rest Any) Any {
-	return SPair{a, rest}
+	return &List{a, rest}
 }
 
 func list2R(a, b, rest Any) Any {
-	return SPair{a, SPair{b, rest}}
+	return list1R(a, list1R(b, rest))
 }
 
 func list3R(a, b, c, rest Any) Any {
-	return SPair{a, SPair{b, SPair{c, rest}}}
+	return list1R(a, list1R(b, list1R(c, rest)))
 }
 
 func listR(most, last Any) Any {
 	//// this would have worked in the mutable model
 	//var lastpair Any
 	//for lastpair = most;
-	//IsPair(lastpair.(SPair).cdr);
-	//lastpair = lastpair.(SPair).cdr {}
-	//lastpair.(SPair).cdr = last
+	//IsPair(lastpair.(*List).cdr);
+	//lastpair = lastpair.(*List).cdr {}
+	//lastpair.(*List).cdr = last
 	//return most
 
 	// immutable model requires reconstruction
 	if IsPair(most) {
-		return SPair{most.(SPair).car,
-			listR(most.(SPair).cdr, last)}
+		return list1R(most.(*List).car, listR(most.(*List).cdr, last))
 	}
 
 	// assume IsNull
@@ -935,54 +1093,54 @@ func listR(most, last Any) Any {
 }
 
 func unlist1(o Any) Any {
-	return o.(SPair).car
+	return o.(*List).car
 }
 
 func unlist2(o Any) (a, b Any) {
-	a = o.(SPair).car
-	b = o.(SPair).cdr
-	b = b.(SPair).car
+	a = o.(*List).car
+	b = o.(*List).cdr
+	b = b.(*List).car
 	return
 }
 
 func unlist3(o Any) (a, b, c Any) {
-	a = o.(SPair).car
-	c = o.(SPair).cdr
-	b = c.(SPair).car
-	c = c.(SPair).cdr
-	c = c.(SPair).car
+	a = o.(*List).car
+	c = o.(*List).cdr
+	b = c.(*List).car
+	c = c.(*List).cdr
+	c = c.(*List).car
 	return
 }
 
 func unlist1R(o Any) (a Any, r Any) {
-	a = o.(SPair).car
-	r = o.(SPair).cdr
+	a = o.(*List).car
+	r = o.(*List).cdr
 	return
 }
 
 func unlist2R(o Any) (a Any, b Any, r Any) {
-	a = o.(SPair).car
-	r = o.(SPair).cdr
-	b = r.(SPair).car
-	r = r.(SPair).cdr
+	a = o.(*List).car
+	r = o.(*List).cdr
+	b = r.(*List).car
+	r = r.(*List).cdr
 	return
 }
 
 func unlist3R(o Any) (a Any, b Any, c Any, r Any) {
-	a = o.(SPair).car
-	r = o.(SPair).cdr
-	b = r.(SPair).car
-	r = r.(SPair).cdr
-	c = r.(SPair).car
-	r = r.(SPair).cdr
+	a = o.(*List).car
+	r = o.(*List).cdr
+	b = r.(*List).car
+	r = r.(*List).cdr
+	c = r.(*List).car
+	r = r.(*List).cdr
 	return
 }
 
 func unlist1O(o Any, d Any) (a Any, r Any) {
-	a = o.(SPair).car
-	r = o.(SPair).cdr
+	a = o.(*List).car
+	r = o.(*List).cdr
     if IsPair(r) {
-        r = r.(SPair).car
+        r = r.(*List).car
     } else {
         r = d
     }
@@ -990,12 +1148,12 @@ func unlist1O(o Any, d Any) (a Any, r Any) {
 }
 
 func unlist2O(o Any, d Any) (a Any, b Any, r Any) {
-	a = o.(SPair).car
-	r = o.(SPair).cdr
-	b = r.(SPair).car
-	r = r.(SPair).cdr
+	a = o.(*List).car
+	r = o.(*List).cdr
+	b = r.(*List).car
+	r = r.(*List).cdr
     if IsPair(r) {
-        r = r.(SPair).car
+        r = r.(*List).car
     } else {
         r = d
     }
@@ -1067,16 +1225,16 @@ func unproc3R(f func(Any) Any) func(Any, Any, Any, Any) Any {
 
 // represents no return values
 func values0() Any {
-	return SValues{it: []Any{}}
+	return NewValues([]Any{})
 }
 
 // represents 2 return values
 func values2(a, b Any) Any {
-	return SValues{it: []Any{a, b}}
+	return NewValues([]Any{a, b})
 }
 
 // represents multiple return values
 func valuesR(rest Any) Any {
 	vec := listToVector(rest)
-	return SValues{it: vec.it}
+	return SValues(vec)
 }
