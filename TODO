@@ -63,8 +63,6 @@
   [X] exact-integer?
   [] floor
   [] flush-output-port
-  [X] for-each
-  [X] map -- base (map f xs) and full (map f . rest) are done
   [] gcd
   [] get-output-bytevector
   [] get-output-string
@@ -116,13 +114,13 @@
   [X] string->utf8
   [X] string->vector
   [] string-append
-  [] string-copy
-  [] string-fill!
+  [X] string-copy
+  [X] string-fill!
   [X] string-for-each
   [X] string-length
   [X] string-map
-  [] string-ref
-  [] string-set!
+  [X] string-ref
+  [X] string-set!
   [] substring
   [] symbol->string
   [] syntax-error

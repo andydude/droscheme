@@ -126,6 +126,10 @@ func (o SChar) String() string {
 
 type SVoid struct{}
 
+func Void() Any {
+	return SVoid{}
+}
+
 func (o SVoid) GetType() int {
 	return TypeCodeVoid
 }
@@ -135,7 +139,7 @@ func (_ SVoid) Equal(a Any) bool {
 }
 
 func (_ SVoid) String() string {
-	return ""
+	return "#<unspecified>"
 }
 
 // null type
@@ -235,6 +239,14 @@ func listToVector(a Any) SVector {
 		return a.(*List).ToVector().(SVector)
 	}
 	panic(newTypeError("list->vector expected list"))
+}
+
+func listToValues(a Any) Any {
+	v := listToVector(a)
+	if len(v) == 1 {
+		return v[0]
+	}
+	return SValues(v)
 }
 
 func bindingsToPair(a Any) (ls, rs Any) {
@@ -497,9 +509,13 @@ func (o SValues) Equal(a Any) bool {
 
 func (o SValues) String() string {
 	if len(o) == 0 {
-		return ""
+		return "#<values>"
 	}
-	return fmt.Sprintf("#<values:%s>", o)
+	var ret string = ""
+	for i := 0; i < len(o); i++ {
+		ret += fmt.Sprintf("\n%s", o[i])
+	}
+	return fmt.Sprintf("#<values>%s", ret)
 }
 
 // label type
@@ -603,7 +619,7 @@ func (env *Env) Set(symbol, expr Any) Any {
 	// main logic
 	id := symbol.(SSymbol).name
 	env.bound[id] = value
-	return values0()
+	return Void()
 }
 
 func (env *Env) Define(symbol, body Any) Any {
@@ -625,7 +641,7 @@ func (env *Env) Define(symbol, body Any) Any {
 	// main logic
 	id := symbol.(SSymbol).name
 	env.bound[id] = value
-	return values0()
+	return Void()
 }
 
 func (env *Env) String() string {
@@ -1233,8 +1249,3 @@ func values2(a, b Any) Any {
 	return NewValues([]Any{a, b})
 }
 
-// represents multiple return values
-func valuesR(rest Any) Any {
-	vec := listToVector(rest)
-	return SValues(vec)
-}
