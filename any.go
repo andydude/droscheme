@@ -21,12 +21,12 @@ const (
 	TypeCodeChar    // go:SChar     s:char?
 	TypeCodeBool    // go:SBool     s:boolean?
 	TypeCodeProc    // go:SProc     s:procedure?  -- Applier interface
-	TypeCodeBinary  // go:SBinary   s:bytevector?
+	TypeCodeBinary  // go:SBinary   s:bytevector? -- Seq interface
 	TypeCodeNumber  // go:Num       s:number?     -- Num interface
 	TypeCodePort    // go:Port      s:port?       -- Port interface
-	TypeCodeString  // go:SString   s:string?
+	TypeCodeString  // go:SString   s:string?     -- Seq interface
 	TypeCodeSymbol  // go:SSymbol   s:symbol?     -- Evaler interface
-	TypeCodeVector  // go:SVector   s:vector?
+	TypeCodeVector  // go:SVector   s:vector?     -- Seq interface
 	TypeCodeTable   // go:STable    s:hashtable?
 	TypeCodeRecord  // go:Record                  -- interface
 	TypeCodeLibrary //
@@ -102,73 +102,6 @@ type Transformer interface {
 	Transform(Any, Any, *Env) Any
 }
 
-// testing
-
 // TODO: make a table of STypes with type names etc.
 //GetTypeName() string can come form table
 //GetTypeInfo() Any can come from table
-
-// s:port?
-
-type Port interface {
-	Any
-	GetPortType() int
-	Read() Any
-	Write(Any)
-}
-
-func IsPort(o Any) bool {
-	var _, ok = o.(Port)
-	return ok
-}
-
-func IsBinaryPort(o Any) bool {
-	var p, ok = o.(Port)
-	if !ok {
-		return false
-	}
-	var t = p.GetPortType()
-	if t > PortTypeCodeByteInOut {
-		return false
-	}
-	return true
-}
-
-func IsTextualPort(o Any) bool {
-	var p, ok = o.(Port)
-	if !ok {
-		return false
-	}
-	var t = p.GetPortType()
-	if t > PortTypeCodeCharInOut {
-		return false
-	}
-	if t < PortTypeCodeChar {
-		return false
-	}
-	return true
-}
-
-func IsInputPort(o Any) bool {
-	var p, ok = o.(Port)
-	if !ok {
-		return false
-	}
-	var t = p.GetPortType()
-	if t&PortTypeCodeByteIn == 0 {
-		return false
-	}
-	return true
-}
-
-func IsOutputPort(o Any) bool {
-	var p, ok = o.(Port)
-	if !ok {
-		return false
-	}
-	var t = p.GetPortType()
-	if t&PortTypeCodeByteOut == 0 {
-		return false
-	}
-	return true
-}

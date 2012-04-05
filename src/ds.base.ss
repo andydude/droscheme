@@ -221,7 +221,7 @@
 
 (define (append a . rest)
     (if (null? rest) a
-        (fold-right cons (append . rest) a)))
+        (fold-right cons (apply append rest) a)))
 
 ;(define (apply proc . rest)
 ;  ((lambda (args) (proc . args)) (cons* . rest)))
@@ -250,6 +250,8 @@
 ;(define (bytevector?))              ; core
 ;(define (call-with-port))
 ;(define (call-with-values))
+
+(define call/cc call-with-current-continuation)
 
 (define (caar x) (car (car x)))
 (define (cadr x) (car (cdr x)))
@@ -334,12 +336,18 @@
 ;(define (close-port))
 ;(define (complex?))
 
-(define (cons* . rest)
-  (append (most rest) (last rest)))
+;(define (cons* . rest)
+;  (append (most rest) (last rest)))
 
-;(define (current-error-port))  ; core
-;(define (current-input-port))  ; core
-;(define (current-output-port)) ; core
+;(define (current-error-port)) 
+;(define (current-input-port)) 
+;(define (current-output-port))
+
+(define (div a b)
+  (euclidean-quotient a b))
+
+(define (div0 a b)
+  (centered-quotient a b))
 
 ;(define (denominator))
 ;(define (dynamic-wind))
@@ -464,7 +472,11 @@
 (define (for-each . rest)
   (begin (map . rest) (void)))
 
-(define (gcd))
+(define (gcd a b)
+  (if (= b 0)
+      a
+      (gcd b (euclidean-remainder a b))))
+
 (define (get-output-bytevector))
 (define (get-output-string))
 (define (identity x) x)
@@ -472,7 +484,16 @@
 ;(define (input-port?)) ; core
 ;(define (integer->char)) ; core
 
-(define (lcm))
+(define (iota count . rest)
+  (define (iota-3 count start step)
+    (if (zero? count) '()
+        (cons start (iota-3 (- count 1) (+ start step) step))))
+  (let ((start (list-ref rest 0 0))
+        (step  (list-ref rest 1 1)))
+    (iota-3 count start step)))
+
+(define (lcm a b)
+  (/ (abs (* a b)) (gcd a b)))
 
 (define (last ls)
   (if (null? ls) ls
@@ -482,6 +503,7 @@
 ;(define (list->string))
 ;(define (list->vector))
 ;(define (list-copy))
+;(define (list-opt)) ; core
 ;(define (list-ref))
 ;(define (list-set!))
 ;(define (list-tail))
@@ -521,6 +543,13 @@
   (memp (lambda (x) (eqv? a x)) ls))
 
 (define (min))
+
+(define (mod a b)
+  (euclidean-remainder a b))
+
+(define (mod0 a b)
+  (centered-remainder a b))
+
 (define (modulo a b)
   (floor-remainder a b))
 
@@ -529,9 +558,13 @@
       (if (null? (cdr ls)) ()
           (cons (car ls) (most (cdr ls))))))
 
-;(define (negative?))
-(define (newline)
-  (display))
+(define (negative? x)
+  (if (real? x)
+      (num< x 0)
+      #f))
+
+(define (newline . opt)
+  (apply write-char #\newline opt))
 
 ;(define (not))
 ;(define (number->string))
@@ -547,7 +580,12 @@
 ;(define (peek-u8))
 ;(define (port-open?))
 ;(define (port?))
-;(define (positive?))
+
+(define (positive?)
+  (if (real? x)
+      (num< x 0)
+      #f))
+
 ;(define (procedure?))
 
 (define (quotient a b)
@@ -610,8 +648,8 @@
 (define (string-for-each proc s)
   (for-each proc (string->list s)))
 
-(define (string-length s)
-  (length (string->list s)))
+;(define (string-length s)
+;  (length (string->list s)))
 
 (define (string-map proc s)
   (list->string (map proc (string->list s))))
@@ -642,7 +680,7 @@
 ;(define (symbol->string))
 ;(define (textual-port?))
 
-(define (truncate x) ; not exported
+(define (truncate x)
   (floor (abs x)))
 
 (define (truncate/ a b)
@@ -673,6 +711,7 @@
 
 ;(define (vector-ref)) ; core
 ;(define (vector-set!)) ; core
+
 ;(define (with-exception-handler))
 ;(define (write-bytevector))
 ;(define (write-char))

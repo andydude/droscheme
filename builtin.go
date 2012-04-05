@@ -15,6 +15,14 @@ import (
 	"os"
 )
 
+var gParameterEnv map[Any]Any
+
+var (
+	gError  = DmakeZKparameter(list1(DstandardZKerrorZKport(list0())))
+	gInput  = DmakeZKparameter(list1(DstandardZKinputZKport(list0())))
+	gOutput = DmakeZKparameter(list1(DstandardZKoutputZKport(list0())))
+)
+
 /*
  * Procedures of the form K<mangled name> recieve arguments as
  *   kw = <keyword>
@@ -176,6 +184,7 @@ func Kquote(kw, st Any, env *Env) Any {
 // (set! var expr)
 func KsetZA(kw, st Any, env *Env) Any {
 	symbol, value := unlist2(st)
+	value = Deval(list2(value, env))
 	return env.Set(symbol, value)
 }
 
@@ -388,8 +397,19 @@ func DbytevectorZS(a Any) Any {
 	return SBool(IsBinary(unlist1(a)))
 }
 
-func DcallZKwithZKcurrentZKcontinuation(a Any) Any {
-	return list0()
+func DcallZKwithZKcurrentZKcontinuation(a Any) (value Any) {
+	f := unlist1(a)
+	c := SCont{code: Hash(f)}
+	defer func () {
+		x := recover()
+		if IsContinuation(x) && c.Equal(x.(SCont)) {
+			value = Dvalues(x.(SCont).it)
+		} else {
+			panic(x)
+		}
+	}()
+	Dapply(list2(f, list1(c)))
+	return Void()
 }
 
 func DcallZKwithZKport(a Any) Any {
@@ -410,10 +430,6 @@ func Dcar(a Any) Any {
 
 func Dcdr(a Any) Any {
 	return unlist1(a).(*List).cdr
-}
-
-func Dceiling(a Any) Any {
-	return list0()
 }
 
 func DcharZKZRinteger(a Any) Any {
@@ -450,15 +466,33 @@ func DcharZS(a Any) Any {
 }
 
 func DcloseZKinputZKport(a Any) Any {
-	return list0()
+	port := unlist1(a)
+	if !IsPort(port) {
+		panic(newTypeError("close-input-port expected port"))
+	}
+	if !IsInputPort(port) {
+		panic(newTypeError("close-input-port expected input-port"))
+	}
+	return DcloseZKport(a)
 }
 
 func DcloseZKoutputZKport(a Any) Any {
-	return list0()
+	port := unlist1(a)
+	if !IsPort(port) {
+		panic(newTypeError("close-output-port expected port"))
+	}
+	if !IsOutputPort(port) {
+		panic(newTypeError("close-output-port expected output-port"))
+	}
+	return DcloseZKport(a)
 }
 
 func DcloseZKport(a Any) Any {
-	return list0()
+	err := unlist1(a).(Port).Close()
+	if err != nil {
+		panic(err)
+	}
+	return Void()
 }
 
 func DcomplexZS(a Any) Any {
@@ -475,15 +509,15 @@ func Dcos(a Any) Any {
 }
 
 func DcurrentZKerrorZKport(a Any) Any {
-	return list0()
+	return gError.(SPrim).Apply(a)
 }
 
 func DcurrentZKinputZKport(a Any) Any {
-	return list0()
+	return gInput.(SPrim).Apply(a)
 }
 
 func DcurrentZKoutputZKport(a Any) Any {
-	return list0()
+	return gOutput.(SPrim).Apply(a)
 }
 
 func Ddenominator(a Any) Any {
@@ -493,6 +527,10 @@ func Ddenominator(a Any) Any {
 func Ddisplay(a Any) Any {
 	fmt.Printf("%s\n", unlist1(a).(SString))
 	return Void()
+}
+
+func DdroschemeZKrootZKpath(a Any) Any {
+	return ToString(GetRootPath())
 }
 
 func DdynamicZKwind(a Any) Any {
@@ -678,16 +716,48 @@ func DforZKeach(a Any) Any {
 	return list0()
 }
 
+// (get-output-bytevector port)
 func DgetZKoutputZKbytevector(a Any) Any {
-	return list0()
+	port := unlist1(a)
+	if !IsPort(port) {
+		panic(newTypeError("get-output-bytevector expected port"))
+	}
+	if !IsBinaryPort(port) {
+		panic(newTypeError("get-output-bytevector expected binary-port"))
+	}
+	if !IsOutputPort(port) {
+		panic(newTypeError("get-output-bytevector expected output-port"))
+	}
+	if _, ok := port.(SBytePort); ok {
+		panic(newError("get-output-bytevector expected port created by open-output-bytevector"))
+	}
+	return port.(SBytePort).it
 }
 
+// (get-output-string port)
 func DgetZKoutputZKstring(a Any) Any {
-	return list0()
+	port := unlist1(a)
+	if !IsPort(port) {
+		panic(newTypeError("get-output-string expected port"))
+	}
+	if !IsTextualPort(port) {
+		panic(newTypeError("get-output-string expected textual-port"))
+	}
+	if !IsOutputPort(port) {
+		panic(newTypeError("get-output-string expected output-port"))
+	}
+	if _, ok := port.(SCharPort); ok {
+		panic(newError("get-output-string expected port created by open-output-string"))
+	}
+	return port.(SCharPort).it
 }
 
 func Dhash(a Any) Any {
 	return Sint64(int64(Hash(unlist1(a))))
+}
+
+func Didentity(a Any) Any {
+	return unlist1(a)
 }
 
 func DimagZKpart(a Any) Any {
@@ -778,18 +848,24 @@ func DlistZHZKZRvector(a Any) Any {
 }
 
 func DlistZKcopy(a Any) Any {
-	// in mutable model we need to copy
-	// in immutable model we don't
-	return unlist1(a)
+	l := unlist1(a)
+	if IsNull(l) {
+		return list0()
+	}
+	car, cdr := unlist1R(l)
+	return list1R(car, DlistZKcopy(list1(cdr)))
 }
 
 func DlistZKref(a Any) Any {
-	list, ka := unlist2(a)
+	list, ka, rest := unlist2R(a)
 	k := ToFixnum(ka)
 	for cur := list; IsPair(cur); k, cur = k-1, cur.(*List).cdr {
 		if k == 0 {
 			return cur.(*List).car
 		}
+	}
+	if IsPair(rest) {
+		return Dcar(list1(rest))
 	}
 	panic(newTypeError("list-ref"))
 }
@@ -810,9 +886,12 @@ func DlistZS(a Any) Any {
 }
 
 func Dload(a Any) Any {
-	fs, opt := unlist1O(a, BuiltinEnv())
+	fs, opt := unlist1R(a)
 	filename := fs.(SString).GoString()
-	env := opt.(*Env)
+	env := EmptyEnv()
+	if IsPair(opt) {
+		env = unlist1(opt).(*Env)
+	}
 	value := Void()
 
 	// open
@@ -879,18 +958,39 @@ func DmakeZKlist(a Any) Any {
 	return DvectorZKZRlist(list1(DmakeZKvector(a)))
 }
 
+// (make-parameter init converter?) 
 func DmakeZKparameter(a Any) Any {
-	return list0()
+	init, conv := unlist1O(a, NewPrim(Didentity))
+	fmt.Printf("--1\n")
+	pc := Sint64(getPC(&conv))
+	if gParameterEnv == nil {
+		gParameterEnv = make(map[Any]Any, 2048)
+	}
+
+	// make lambda
+	var param = func(c Any) Any {
+		cell := gParameterEnv[pc]
+		if IsNull(c) {
+			return cell
+		}
+		car, cdr := unlist1R(c)
+		if IsNull(cdr) {
+			gParameterEnv[pc] = Dapply(list2(conv, list1(car)))
+			return Void()
+		}
+		return Dapply(list2(conv, list1(car)))
+	}
+
+	gParameterEnv[pc] = Dapply(list2(conv, list1(init)))
+	return SPrim{param, "(make-parameter closure)"}
 }
 
 func DmakeZKpolar(a Any) Any {
-	mag, ang := unlist2(a)
-	return NewComplexPolar(mag.(Num), ang.(Num))
+	return NewComplexPolar(unify2(a))
 }
 
 func DmakeZKrectangular(a Any) Any {
-	x, y := unlist2(a)
-	return NewComplex(x.(Num), y.(Num))
+	return NewComplex(unify2(a))
 }
 
 // (make-string k)
@@ -1073,20 +1173,44 @@ func Dnumerator(a Any) Any {
 	return list0()
 }
 
+// (open-binary-input-file filename)
+func DopenZKbinaryZKinputZKfile(a Any) Any {
+	return OpenBIFile(unlist1(a).(SString).GoString())
+}
+
+// (open-binary-output-file filename)
+func DopenZKbinaryZKoutputZKfile(a Any) Any {
+	return OpenBOFile(unlist1(a).(SString).GoString())
+}
+
+// (open-input-bytevector b)
 func DopenZKinputZKbytevector(a Any) Any {
-	return list0()
+	return SBytePort{it: unlist1(a).(SBinary), code: PortTypeCodeByteIn}	
 }
 
+// (open-input-file filename)
+func DopenZKinputZKfile(a Any) Any {
+	return OpenTIFile(unlist1(a).(SString).GoString())
+}
+
+// (open-input-string s)
 func DopenZKinputZKstring(a Any) Any {
-	return list0()
+	return SCharPort{it: unlist1(a).(SString), code: PortTypeCodeCharIn}
 }
 
+// (open-output-bytevector)
 func DopenZKoutputZKbytevector(a Any) Any {
-	return list0()
+	return SBytePort{it: NewBinary([]byte{}), code: PortTypeCodeByteOut}
 }
 
+// (open-output-file filename)
+func DopenZKoutputZKfile(a Any) Any {
+	return OpenTOFile(unlist1(a).(SString).GoString())
+}
+
+// (open-output-string)
 func DopenZKoutputZKstring(a Any) Any {
-	return list0()
+	return SCharPort{it: NewString([]rune{}), code: PortTypeCodeCharOut}
 }
 
 func DoutputZKportZS(a Any) Any {
@@ -1151,7 +1275,17 @@ func DreadZKbytevectorZA(a Any) Any {
 
 func DreadZKchar(a Any) Any {
 	port := unlist1(a)
-	return port.(Port).Read()
+	if !IsTextualPort(port) {
+		panic(newTypeError("read-char expected textual-port"))
+	}
+	if !IsInputPort(port) {
+		panic(newTypeError("read-char expected input-port"))
+	}
+	r, _, err := port.(TIPort).ReadRune()
+	if err != nil {
+		panic(err) // error interface
+	}
+	return SChar(r)
 }
 
 func DreadZKline(a Any) Any {
@@ -1159,7 +1293,18 @@ func DreadZKline(a Any) Any {
 }
 
 func DreadZKu8(a Any) Any {
-	return list0()
+	port := unlist1(a)
+	if !IsBinaryPort(port) {
+		panic(newTypeError("read-u8 expected binary-port"))
+	}
+	if !IsInputPort(port) {
+		panic(newTypeError("read-u8 expected input-port"))
+	}
+	b, err := port.(BIPort).ReadByte()
+	if err != nil {
+		panic(err) // error interface
+	}
+	return Sint64(b)
 }
 
 func DrealZKpart(a Any) Any {
@@ -1167,7 +1312,7 @@ func DrealZKpart(a Any) Any {
 }
 
 func DrealZS(a Any) Any {
-	return list0()
+	return SBool(IsReal(unlist1(a)))
 }
 
 func Dround(a Any) Any {
@@ -1191,6 +1336,7 @@ func DsetZKcdrZA(a Any) Any {
 // (scheme-primitive-environment version)
 func DschemeZKprimitiveZKenvironment(a Any) Any {
 	env := DnullZKenvironment(a).(*Env).Extend()
+
 	switch v := ToFixnum(unlist1(a)); {
 	case v == 0:
 		return env
@@ -1199,6 +1345,7 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 
 		env.register(DbytevectorZKZRu8ZKlist)
 		env.register(DbytevectorZKZRu8ZKvector)
+		env.register(DdroschemeZKrootZKpath)
 		env.register(DevalZKliteral)
 		env.register(DlistZH)
 		env.register(DlistZHZKZRvector)
@@ -1215,6 +1362,9 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		env.register(Du8ZKvectorZKZRbytevector)
 		env.register(DvectorZKZRlistZH)
 		env.register(Dvoid)
+		env.register(DstandardZKerrorZKport)
+		env.register(DstandardZKinputZKport)
+		env.register(DstandardZKoutputZKport)
 
 		fallthrough
 	case v == 7: // R7RS
@@ -1393,7 +1543,7 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		//env.register(Dcdar)   // derived
 		//env.register(Dcddr)   // derived
 		env.register(Dcdr)
-		env.register(Dceiling)
+		//env.register(Dceiling)
 		env.register(DcharZKZRinteger)
 		//env.register(DcharZKalphabeticZS)	  // R2RS, case
 		//env.register(DcharZKciZPZQZS)       // R2RS, case
@@ -1419,8 +1569,8 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		env.register(DcomplexZS)
 		env.register(Dcons)
 		env.register(Dcos)
-		//env.register(DcurrentZKinputZKport)     // R2RS, R4RS, R5RS
-		//env.register(DcurrentZKoutputZKport)    // R2RS, R4RS, R5RS
+		env.register(DcurrentZKinputZKport)     // R2RS, R4RS, R5RS
+		env.register(DcurrentZKoutputZKport)    // R2RS, R4RS, R5RS
 		env.register(Ddisplay)
 		env.register(DeofZKobjectZS)
 		env.register(DeqZS)
@@ -1517,7 +1667,7 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		env.register(Dtan)
 		//env.register(DtranscriptZKoff) // R2RS, R3RS, R4RS, R5RS // deprecated
 		//env.register(DtranscriptZKon)  // R2RS, R3RS, R4RS, R5RS // deprecated
-		env.register(Dtruncate)
+		//env.register(Dtruncate)
 		env.register(Dvector)
 		env.register(DvectorZKZRlist)
 		env.register(DvectorZKfillZA)
@@ -1583,14 +1733,27 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 
 // (scheme-report-environment version)
 func DschemeZKreportZKenvironment(a Any) Any {
+	var src string = GetRootPath() + "/src/"
+	//fmt.Printf("src=%s\n", src)
 	env := DschemeZKprimitiveZKenvironment(a).(*Env).Extend()
 	switch ToFixnum(unlist1(a)) {
+	case 0:
+		panic(src)
+		return env
 	case 7:
 		// load (scheme base)
+		Dload(list2(ToString(src + "scheme.base.7.ss"), env))
 	case 6:
 		// load (rnrs base)
+		Dload(list2(ToString(src + "scheme.base.6.ss"), env))
+	case 5:
+		// load (rnrs r5rs)
+		Dload(list2(ToString(src + "scheme.base.5.ss"), env))
+	case 'D':
+		fallthrough
 	default:
 		// load (ds base)
+		Dload(list2(ToString(src + "ds.base.ss"), env))
 	}
 	return env
 }
@@ -1603,6 +1766,18 @@ func Dsin(a Any) Any {
 func Dsqrt(a Any) Any {
 	x := unlist1(a)
 	return x.(TrigNum).Sqrt()
+}
+
+func DstandardZKerrorZKport(a Any) Any {
+	return SFilePort{os.Stderr, "/dev/stderr", PortTypeCodeCharOut}
+}
+
+func DstandardZKinputZKport(a Any) Any {
+	return SFilePort{os.Stdin, "/dev/stdin", PortTypeCodeCharIn}
+}
+
+func DstandardZKoutputZKport(a Any) Any {
+	return SFilePort{os.Stdout, "/dev/stdout", PortTypeCodeCharOut}
 }
 
 func Dstring(a Any) Any {
@@ -1733,10 +1908,6 @@ func Dtan(a Any) Any {
 
 func DtextualZKportZS(a Any) Any {
 	return SBool(IsTextualPort(unlist1(a)))
-}
-
-func Dtruncate(a Any) Any {
-	return list0()
 }
 
 func DtypeZQZS(a Any) Any {
@@ -1913,16 +2084,16 @@ func DwriteZKbytevector(a Any) Any {
 	if !IsBinary(bv) {
 		panic(newTypeError("write-bytevector expected bytevector"))
 	}
-	if !IsBinaryPort(port) {
-		panic(newTypeError("write-bytevector expected binary-port"))
-	}
+	//if !IsBinaryPort(port) {
+	//	panic(newTypeError("write-bytevector expected binary-port"))
+	//}
 	if !IsOutputPort(port) {
 		panic(newTypeError("write-bytevector expected output-port"))
 	}
-	//err := port.(ByteWriter).WriteByte(byte(bv))
-	//if err != nil {
-	//	panic(err)
-	//}
+	_, err := port.(BOPort).Write([]byte(bv.(SBinary)))
+	if err != nil {
+		panic(err)
+	}
 	return Void()
 }
 
@@ -1931,13 +2102,13 @@ func DwriteZKchar(a Any) Any {
 	if !IsChar(ch) {
 		panic(newTypeError("write-char expected char"))
 	}
-	if !IsTextualPort(port) {
-		panic(newTypeError("write-char expected textual-port"))
-	}
+	//if !IsTextualPort(port) {
+	//	panic(newTypeError("write-char expected textual-port"))
+	//}
 	if !IsOutputPort(port) {
 		panic(newTypeError("write-char expected output-port"))
 	}
-	err := port.(RuneWriter).WriteRune(rune(ch.(SChar)))
+	_, err := port.(TOPort).WriteRunes([]rune{rune(ch.(SChar))})
 	if err != nil {
 		panic(err)
 	}
@@ -1953,15 +2124,15 @@ func DwriteZKu8(a Any) Any {
 	if !IsByte(u8) {
 		panic(newTypeError("write-u8 expected byte"))
 	}
-	if !IsBinaryPort(port) {
-		panic(newTypeError("write-u8 expected binary-port"))
-	}
+	//if !IsBinaryPort(port) {
+	//	panic(newTypeError("write-u8 expected binary-port"))
+	//}
 	if !IsOutputPort(port) {
 		panic(newTypeError("write-u8 expected output-port"))
 	}
-	err := port.(ByteWriter).WriteByte(byte(ToFixnum(u8)))
+	_, err := port.(BOPort).Write([]byte{byte(ToFixnum(u8))})
 	if err != nil {
 		panic(err)
 	}
-	return list0()
+	return Void()
 }

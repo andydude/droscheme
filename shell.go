@@ -25,5 +25,5 @@ func Eval(expr Any, env *Env) (value Any, err error) {
 
 func Load(filename string, env *Env) (value Any, err error) {
 	defer PanicToError(values0())
-	return Dload(list2(NewString([]rune(filename)), env)), nil
+	return Dload(list2(ToString(filename), env)), nil
 }

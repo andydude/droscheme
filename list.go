@@ -19,6 +19,21 @@ import (
 	"strings"
 )
 
+func DumpFunc(pc uintptr) {
+	// intuit function name
+	name := runtime.FuncForPC(pc).Name()
+	fmt.Printf("\t[0x%08X] %s\n", pc, name)
+}
+
+func DumpStack() {
+	buffer := make([]uintptr, 1024)
+	size := runtime.Callers(0, buffer)
+	fmt.Printf("number = %d\n", size)
+	for i := 0; i < size; i++ {
+		DumpFunc(buffer[i])
+	}
+}
+
 // structures and methods in this file
 //
 // SBool bool
@@ -340,7 +355,11 @@ func IsString(a Any) bool {
 	return IsType(a, TypeCodeString)
 }
 
-func NewString(s []rune) Any {
+func ToString(s string) Any {
+	return NewString([]rune(s))
+}
+
+func NewString(s []rune) SString {
 	return SString(s)
 }
 
@@ -603,23 +622,30 @@ func (env *Env) Ref(symbol Any) Any {
 	if env.bound[id] != nil {
 		return env.bound[id]
 	}
-	if env.parent == nil {
-		return nil
+	if env.parent != nil {
+		return env.parent.Ref(symbol)
 	}
-	return env.parent.Ref(symbol)
+	panic("unbound variable")
+	return nil
 }
 
-func (env *Env) Set(symbol, expr Any) Any {
-	//fmt.Printf("Env.Set(%s) %s\n", symbol, expr)
-	if !env.Has(symbol) {
-		panic(newEvalError("set! variable must be prebound"))
-	}
-	value := Deval(list2(expr, env))
+func (env *Env) Set(symbol, value Any) Any {
+	fmt.Printf("Env.Set(%s) %s\n", symbol, value)
+	//if !env.Has(symbol) {
+	//	panic(newEvalError("set! variable must be prebound"))
+	//}
 
 	// main logic
 	id := symbol.(SSymbol).name
-	env.bound[id] = value
-	return Void()
+	if env.bound[id] != nil {
+		env.bound[id] = value
+		return Void()
+	}
+	if env.parent != nil {
+		return env.parent.Set(symbol, value)
+	}
+
+	panic(newEvalError("set! variable must be prebound"))
 }
 
 func (env *Env) Define(symbol, body Any) Any {
@@ -661,6 +687,10 @@ func (env *Env) dump() {
 	for _, key := range keys {
 		fmt.Printf("\t%s=%s\n", key, env.bound[key])
 	}
+}
+
+func getPC(fn interface{}) uintptr {
+	return reflect.ValueOf(fn).Pointer()
 }
 
 func (env *Env) registerName(fn interface{}) string {
@@ -717,6 +747,11 @@ func UnmangleName(mangled string) string {
 		}
 	}
 	return string(out)
+}
+
+	
+func GetRootPath() string {
+    return os.Getenv("DROSCHEME_ROOT")
 }
 
 // exception type
@@ -880,8 +915,10 @@ func (o SPrim) Apply(a Any) Any {
 }
 
 func (o SPrim) String() string {
-	return fmt.Sprintf("#<procedure:%s>", o.name)
+	return fmt.Sprintf("#<primitive-procedure:%s>", o.name)
 }
+
+// lambda procedure type
 
 func (o SProc) GetType() int {
 	return TypeCodeProc
@@ -940,6 +977,41 @@ func (o SProc) ToList() Any {
 	return list2R(SSymbol{"lambda"}, o.form, o.body)
 }
 
+// continuation type
+
+type SCont struct {
+	it Any
+	code uintptr
+}
+
+func IsContinuation(a interface{}) bool {
+	_, ok := a.(SCont)
+	return ok
+}
+
+func (o SCont) GetType() int {
+	return TypeCodeProc
+}
+
+func (o SCont) GetHash() uintptr {
+	return 0
+}
+
+func (o SCont) Equal(a Any) bool {
+	if !IsContinuation(a) { return false }
+	return a.(SCont).code == o.code
+}
+
+func (o SCont) Apply(a Any) Any {
+	o.it = a
+	panic(o)
+	return Void()
+}
+
+func (o SCont) String() string {
+	return "#<continuation-procedure>"
+}
+
 // type type
 
 type SType struct {
@@ -986,57 +1058,8 @@ func TypeCode(a Any) int {
 	return TypeCodeAny
 }
 
-// port types
-
-type ByteReader interface {
-	ReadByte() (c byte, err error)
-}
-
-type ByteWriter interface {
-	WriteByte(c byte) error
-}
-
-type RuneReader interface {
-	ReadRune() (r rune, err error)
-}
-
-type RuneWriter interface {
-	WriteRune(r rune) error
-}
-
-type SFilePort struct {
-	it *os.File
-}
-
-type SStringPort SString
-
-type SBinaryPort SBinary
-
-
-func (o SFilePort) GetType() int {
-	return TypeCodePort
-}
-
-func (o SFilePort) Equal(a Any) bool {
-	return false // TODO
-}
-
-func (o SFilePort) ReadByte() (c byte, err error) {
-	c = 0
-	return
-}
-
-func (o SFilePort) WriteByte(c byte) error {
-	return nil
-}
-
-func (o SFilePort) ReadRune() (r rune, err error) {
-	r = 0
-	return
-}
-
-func (o SFilePort) WriteRune(r rune) error {
-	return nil
+func newError(s string) error {
+	return errors.New(s)
 }
 
 func newEvalError(s string) error {

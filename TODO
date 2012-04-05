@@ -41,14 +41,14 @@
   [] call-with-values
   [] case
   [] char-ready?
-  [] close-input-port
-  [] close-output-port
-  [] close-port
+  [X] close-input-port
+  [X] close-output-port
+  [X] close-port
   [] cond
   [] cond-expand
-  [] current-error-port
-  [] current-input-port
-  [] current-output-port
+  [X] current-error-port
+  [X] current-input-port
+  [X] current-output-port
   [] define-record-type
   [] define-syntax
   [] define-values
@@ -63,13 +63,27 @@
   [X] exact-integer?
   [] floor
   [] flush-output-port
-  [] gcd
-  [] get-output-bytevector
-  [] get-output-string
+  [X] gcd
+  [X] get-output-bytevector
+  [X] get-output-string
   [] guard
+  [] hashtable-clear!
+  [] hashtable-contains?
+  [] hashtable-copy
+  [] hashtable-delete!
+  [] hashtable-entries
+  [] hashtable-equivalence-function
+  [] hashtable-hash-function
+  [] hashtable-keys
+  [] hashtable-mutable?
+  [] hashtable-ref
+  [] hashtable-set!
+  [] hashtable-size
+  [] hashtable-update!
+  [] hashtable?
   [] import
   [X] lambda
-  [] lcm
+  [X] lcm
   [X] let
   [] let loop
   [X] let*
@@ -81,17 +95,21 @@
   [] letrec-syntax
   [X] make-bytevector
   [X] make-list
-  [] make-parameter
+  [X] make-parameter
   [X] make-string
   [X] make-vector
   [] max
   [] min
-  [] newline
+  [X] newline
   [] number->string
-  [] open-input-bytevector
-  [] open-input-string
-  [] open-output-bytevector
-  [] open-output-string
+  [X] open-binary-input-file
+  [X] open-binary-output-file
+  [X] open-input-file
+  [X] open-input-bytevector
+  [X] open-input-string
+  [X] open-output-file
+  [X] open-output-bytevector
+  [X] open-output-string
   [] or
   [] parameterize
   [] peek-char
@@ -100,9 +118,9 @@
   [] rationalize
   [] read-bytevector
   [] read-bytevector!
-  [] read-char
+  [X] read-char
   [] read-line
-  [] read-u8
+  [X] read-u8
   [X] reverse
   [] round
   [X] set!
@@ -141,9 +159,9 @@
   [] when
   [] with-exception-handler
   [] write-bytevector
-  [] write-char
+  [X] write-char
   [] write-partial-bytevector
-  [] write-u8
+  [X] write-u8
   [] zero?
   [X] integer->char
 
