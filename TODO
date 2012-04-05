@@ -13,7 +13,6 @@
 
 - Project
   [] move shell.go to eval.go
-  [] move list.go to types.go
 
 - (define-syntax)
 - (syntax-rules)
