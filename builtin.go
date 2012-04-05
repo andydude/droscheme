@@ -961,7 +961,6 @@ func DmakeZKlist(a Any) Any {
 // (make-parameter init converter?) 
 func DmakeZKparameter(a Any) Any {
 	init, conv := unlist1O(a, NewPrim(Didentity))
-	fmt.Printf("--1\n")
 	pc := Sint64(getPC(&conv))
 	if gParameterEnv == nil {
 		gParameterEnv = make(map[Any]Any, 2048)
