@@ -109,7 +109,6 @@ func (lex *Lexer) accept(valid string) bool {
 }
 
 func (lex *Lexer) backup() {
-	//fmt.Printf("\n-- backup() --\n")
 	lex.pos -= lex.width
 }
 
@@ -145,15 +144,12 @@ func (lex *Lexer) getSpan() string {
 }
 
 func (lex *Lexer) nextToken() *yySymType {
-	//fmt.Printf("\n-- nextyySymType() --\n")
 	for {
 		select {
 		case tok := <-lex.tokens:
-			//fmt.Printf("\n-- nextToken() %s --\n", tok.String())
 			return tok
 		default:
 			if lex.state == nil {
-
 				return newEOF()
 			}
 			lex.state = lex.state(lex)
@@ -179,7 +175,6 @@ func (lex *Lexer) peek() rune {
 }
 
 func (lex *Lexer) skip() {
-	//fmt.Printf("\n-- skip() --\n")
 	lex.next()
 }
 
@@ -251,7 +246,29 @@ func (lex *Lexer) lexString() State {
 
 	lex.next()
 	for lex.isStringElement() {
-		//fmt.Printf("lex.ch == %c\n", lex.ch)
+		if lex.ch == '\\' {
+			lex.next()
+			switch lex.ch {
+			case 'a': lex.ch = 0x07
+			case 'b': lex.ch = 0x08
+			case 't': lex.ch = 0x09
+			case 'n': lex.ch = 0x0A
+			case 'v': lex.ch = 0x0B
+			case 'f': lex.ch = 0x0C
+			case 'r': lex.ch = 0x0D
+			case 'x':
+				lex.peek()
+				lex.consume()
+				for lex.isDigit16() {
+					lex.next()
+				}
+				lex.backup()
+				base = 16
+				ret := lex.getInt().(Sint64)
+				lex.match1(';')
+				lex.ch = rune(ret)
+			}
+		}
 		contents = append(contents, lex.ch)
 		lex.next()
 	}
@@ -263,7 +280,7 @@ func (lex *Lexer) lexString() State {
 }
 
 func (lex *Lexer) lexChar() State {
-	// assume we've consumed #\ already
+	// assume we've consumed '#' '\\' already
 	ch := lex.next()
 	if ch == 'x' {
 		lex.peek()
@@ -823,15 +840,6 @@ func (lex *Lexer) isWhitespace() bool {
 // ⟨string element⟩ -> ⟨any character other than " or \⟩ | \" | \\
 func (lex *Lexer) isStringElement() bool {
 	if lex.ch == '"' {
-		return false
-	}
-	if lex.ch == '\\' {
-		lex.next()
-		if lex.ch == '\\' || lex.ch == '"' {
-			return true
-		}
-		// not a \\ or \"--put it back
-		lex.backup()
 		return false
 	}
 	return true

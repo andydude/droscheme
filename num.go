@@ -20,7 +20,7 @@ import (
 
 const (
 	// machine fixnums
-	NumberTypeCodeS8 = iota
+	NumberTypeCodeS8 = iota*2
 	NumberTypeCodeS16
 	NumberTypeCodeS32
 	NumberTypeCodeS64
@@ -30,18 +30,16 @@ const (
 	NumberTypeCodeExactF64
 
 	// abstract numbers
-	NumberTypeCodeInteger
 	NumberTypeCodeRational
-	NumberTypeCodeBaseMax
+	NumberTypeCodeInteger
 
 	// derived numbers bit field
-	NumberTypeCodeBaseMask     = 0x7
-	NumberTypeCodeUnsigned     = 0x10
-	NumberTypeCodeComplex      = 0x20
-	NumberTypeCodeComplexPolar = 0x30
-	NumberTypeCodeInexact      = 0x40
-	NumberTypeCodeReserved     = 0x80
-	NumberTypeCodeDerivedMask  = 0x70
+	NumberTypeCodeBaseMask     = 0x0E
+	NumberTypeCodeUnsigned     = 0x01
+	NumberTypeCodeInexact      = 0x01
+	NumberTypeCodePolar        = 0x01
+	NumberTypeCodeComplex      = 0x10
+	NumberTypeCodeDerivedMask  = 0x11
 
 	NumberTypeCodeU8         = NumberTypeCodeUnsigned | NumberTypeCodeS8
 	NumberTypeCodeU16        = NumberTypeCodeUnsigned | NumberTypeCodeS16
@@ -50,6 +48,7 @@ const (
 	NumberTypeCodeNatural    = NumberTypeCodeUnsigned | NumberTypeCodeInteger
 	NumberTypeCodeExactC64   = NumberTypeCodeComplex | NumberTypeCodeExactF32
 	NumberTypeCodeExactC128  = NumberTypeCodeComplex | NumberTypeCodeExactF64
+/*
 	NumberTypeCodeInexactS8  = NumberTypeCodeInexact | NumberTypeCodeS8
 	NumberTypeCodeInexactS16 = NumberTypeCodeInexact | NumberTypeCodeS16
 	NumberTypeCodeInexactS32 = NumberTypeCodeInexact | NumberTypeCodeS32
@@ -58,13 +57,64 @@ const (
 	NumberTypeCodeInexactU16 = NumberTypeCodeInexact | NumberTypeCodeU16
 	NumberTypeCodeInexactU32 = NumberTypeCodeInexact | NumberTypeCodeU32
 	NumberTypeCodeInexactU64 = NumberTypeCodeInexact | NumberTypeCodeU64
+*/
 	NumberTypeCodeF32        = NumberTypeCodeInexact | NumberTypeCodeExactF32
 	NumberTypeCodeF64        = NumberTypeCodeInexact | NumberTypeCodeExactF64
 	NumberTypeCodeC64        = NumberTypeCodeInexact | NumberTypeCodeExactC64
 	NumberTypeCodeC128       = NumberTypeCodeInexact | NumberTypeCodeExactC128
+	NumberTypeCodeComplexPolar = NumberTypeCodeComplex | NumberTypeCodePolar
+	NumberTypeCodeComplexRational = NumberTypeCodeComplex | NumberTypeCodeRational
+	NumberTypeCodeComplexPolarRational = NumberTypeCodeComplexPolar | NumberTypeCodeRational
 
-	NumberTypeCodeMax = 0x100
+	NumberTypeCodeMax = 0x20
 )
+
+func numberTypeToString(tc int) string {
+	var table = []string{
+
+// real
+		"s8",  // NumberTypeCodeS8
+		"u8",  // NumberTypeCodeU8
+		"s16", // NumberTypeCodeS16
+		"u16", // NumberTypeCodeU16
+		"s32", // NumberTypeCodeS32
+		"u32", // NumberTypeCodeU32
+		"s64", // NumberTypeCodeS64
+		"u64", // NumberTypeCodeU64
+		"exact-float32",
+		"float32",  // NumberTypeCodeF32
+		"exact-float64",
+		"float64",  // NumberTypeCodeF64
+		"rational", // NumberTypeCodeRational
+		"uintptr",  // NumberTypeCodeUintptr
+		"integer",  // NumberTypeCodeInteger
+		"natural",  // NumberTypeCodeNatural
+
+// complex
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"",
+		"exact-complex64",
+		"complex64",  // NumberTypeCodeC64
+		"exact-complex128",
+		"complex128", // NumberTypeCodeC128
+		"complex-rational",
+		"complex-polar-rational",
+		"",
+		"",
+	}
+
+	sym := table[tc]
+	if sym == "" {
+		return "#<not-a-type>"
+	}
+	return sym
+}
 
 type BaseNum interface {
 	Any
@@ -77,6 +127,20 @@ type Num interface {
 	Sub(Num) Num
 	Mul(Num) Num
 	Div(Num) Num
+}
+
+type ArithNum interface {
+	Abs(x Num) Num
+	Add(x, y Num) Num
+	Copy() Num
+	Mul(x, y Num) Num
+	Neg(x Num) Num
+	One() Num
+	Quo(x, y Num) Num
+	Set(x Num) Num
+	Sign() int
+	Sub(x, y Num) Num
+	Zero() Num
 }
 
 type TrigNum interface {
@@ -96,7 +160,8 @@ type TrigNum interface {
 
 type IntNum interface {
 	Num
-	ModEUC(Num) Num
+	//DivEUC(Num) Num
+	//ModEUC(Num) Num
 	//ModRTZ(Num) Num
 	//ModRTN(Num) Num
 	//DivModEUC(IntNum) (IntNum, IntNum)
@@ -111,10 +176,8 @@ type RealNum interface {
 	Cmp(Num) int // -1, 0, 1
 	MakeRect(RealNum) ComplexNum
 	MakePolar(RealNum) ComplexNum
-	//RoundRTZ() IntNum // truncate
-	//RoundRTP() IntNum // ceiling
-	//RoundRTN() IntNum // floor
-	//RoundRTE() IntNum
+	RTN() IntNum // floor
+	RTE() IntNum // round
 }
 
 type ComplexNum interface {
@@ -234,6 +297,26 @@ func IsReal(a Any) bool {
 	return true
 }
 
+func IsExact(a Any) bool {
+	if !IsNumber(a) {
+		return false
+	}
+	if a.(Num).GetNumberType()&NumberTypeCodeInexact == 0 {
+		return true
+	}
+	return false
+}
+
+func IsInexact(a Any) bool {
+	if !IsNumber(a) {
+		return false
+	}
+	if a.(Num).GetNumberType()&NumberTypeCodeInexact != 0 {
+		return true
+	}
+	return false
+}
+
 func IsComplex(a Any) bool {
 	if !IsNumber(a) {
 		return false
@@ -317,8 +400,9 @@ func NewComplexI() SComplex {
 }
 
 func NewComplex(x, y Num) ComplexNum {
-	t := unifyType(x.GetNumberType(), y.GetNumberType())
+	t := unifyComplexType(x.GetNumberType(), y.GetNumberType())
 	if isComplexType(t) {
+		fmt.Printf("%v, %v\n", t, NumberTypeCodeComplexPolar)
 		panic(newTypeError("expected real number"))
 	}
 	if isInexactType(t) {
@@ -328,8 +412,9 @@ func NewComplex(x, y Num) ComplexNum {
 }
 
 func NewComplexPolar(s, a Num) ComplexNum {
-	t := unifyType(s.GetNumberType(), a.GetNumberType())
+	t := unifyComplexType(s.GetNumberType(), a.GetNumberType())
 	if isComplexType(t) {
+		fmt.Printf("cp=%v\n", t)
 		panic(newTypeError("expected real number"))
 	}
 	if isInexactType(t) {
@@ -414,25 +499,15 @@ func isMachineType(t int) bool {
 
 /* unifyComplexType()
  *
- * The 4 complex number types are as follows:
- *   - exact real (Sint64, SInteger, SRational)
- *   - exact complex (SComplex, SComplexPolar)
- *   - inexact real (Sfloat64, SInteger)
- *   - inexact complex (Scomplex128)
- *
- * This function returns one of:
- *    (code)                (t >> 4)
- *   - 0x00 real                  0
- *   - 0x10 unsigned              0
- *   - 0x20 complex               2
- *   - 0x30 complex-polar         2
- *   - 0x40 inexact real          4
- *   - 0x50 inexact unsigned      4
- *   - 0x60 inexact complex       6
- *   - 0x70 inexact complex-polar 6
+ * The 4 complex number types are, and this function returns one of:
+ *    (code)
+ *   - 0x00   exact real (Sint64, SInteger, SRational)
+ *   - 0x01 inexact real (Sfloat64)
+ *   - 0x10   exact complex (SComplex, SComplexPolar)
+ *   - 0x11 inexact complex (Scomplex128)
  */
 func unifyComplexType(r, s int) (t int) {
-	return (r | s) &^ NumberTypeCodeBaseMask &^ NumberTypeCodeUnsigned
+	return (r | s) & NumberTypeCodeDerivedMask
 }
 
 func unifyType(r, s int) (t int) {
@@ -465,13 +540,39 @@ func unifyType(r, s int) (t int) {
 	return
 }
 
-func unify2(args Any) (x, y Num) {
+func unlist2float64(args Any) (x, y float64) {
+	a, b := unlist2(args)
+	x = ToFlonum(a)
+	y = ToFlonum(b)
+	return
+}
+
+func unlist2Flonum(args Any) (x, y Num) {
+	a, b := unlist2(args)
+	x = Sfloat64(ToFlonum(a))
+	y = Sfloat64(ToFlonum(b))
+	return
+}
+
+func unlist2Number(args Any) (x, y Num) {
 	a, b := unlist2(args)
 	x = a.(Num)
 	y = b.(Num)
 	if x.GetNumberType() != y.GetNumberType() {
 		x, y = unify(x, y)
 	}
+	return
+}
+
+func unifyRealNum(args Any) (x, y RealNum) {
+	a, b := unlist2(args)
+	xn := a.(Num)
+	yn := b.(Num)
+	if xn.GetNumberType() != yn.GetNumberType() {
+		xn, yn = unify(xn, yn)
+	}
+	x = xn.(RealNum)
+	y = yn.(RealNum)
 	return
 }
 
@@ -538,11 +639,57 @@ func (o SInteger) GetNumberType() int      { return NumberTypeCodeInteger }
 func (o SRational) GetType() int           { return TypeCodeNumber }
 func (o SRational) GetNumberType() int     { return NumberTypeCodeRational }
 func (o SComplex) GetType() int            { return TypeCodeNumber }
-func (o SComplex) GetNumberType() int      { return NumberTypeCodeComplex }
+func (o SComplex) GetNumberType() int      { return NumberTypeCodeComplexRational }
 func (o SComplexPolar) GetType() int       { return TypeCodeNumber }
-func (o SComplexPolar) GetNumberType() int { return NumberTypeCodeComplexPolar }
+func (o SComplexPolar) GetNumberType() int { return NumberTypeCodeComplexPolarRational }
+
+func (o Sint8) GetHash() uintptr             { return uintptr(o) }
+func (o Sint16) GetHash() uintptr            { return uintptr(o) }
+func (o Sint32) GetHash() uintptr            { return uintptr(o) }
+func (o Sint64) GetHash() uintptr            { return uintptr(o) }
+func (o Suint8) GetHash() uintptr            { return uintptr(o) }
+func (o Suint16) GetHash() uintptr           { return uintptr(o) }
+func (o Suint32) GetHash() uintptr           { return uintptr(o) }
+func (o Suint64) GetHash() uintptr           { return uintptr(o) }
+func (o Sfloat32) GetHash() uintptr          { return uintptr(ToFixnum(o.RTE())) }
+func (o Sfloat64) GetHash() uintptr          { return uintptr(ToFixnum(o.RTE())) }
+func (o Scomplex64) GetHash() uintptr        { return uintptr(ToFixnum(o.Real().RTE())) }
+func (o Scomplex128) GetHash() uintptr       { return uintptr(ToFixnum(o.Real().RTE())) }
+func (o SFixnum) GetHash() uintptr           { return 0 }
+func (o SFlonum) GetHash() uintptr           { return 0 }
+func (o SInteger) GetHash() uintptr          { return 0 }
+func (o SRational) GetHash() uintptr         { return 0 }
+func (o SComplex) GetHash() uintptr          { return 0 }
+func (o SComplexPolar) GetHash() uintptr     { return 0 }
+
+func (o Sint8) Equal(a Any) bool             { return false }
+func (o Sint16) Equal(a Any) bool            { return false }
+//func (o Sint32) Equal(a Any) bool            { return false }
+//func (o Sint64) Equal(a Any) bool            { return false }
+func (o Suint8) Equal(a Any) bool            { return false }
+func (o Suint16) Equal(a Any) bool           { return false }
+func (o Suint32) Equal(a Any) bool           { return false }
+func (o Suint64) Equal(a Any) bool           { return false }
+//func (o Sfloat32) Equal(a Any) bool          { return false }
+//func (o Sfloat64) Equal(a Any) bool          { return false }
+//func (o Scomplex64) Equal(a Any) bool        { return false }
+//func (o Scomplex128) Equal(a Any) bool       { return false }
+func (o SFixnum) Equal(a Any) bool           { return false }
+func (o SFlonum) Equal(a Any) bool           { return false }
+//func (o SInteger) Equal(a Any) bool          { return false }
+//func (o SRational) Equal(a Any) bool         { return false }
+//func (o SComplex) Equal(a Any) bool          { return false }
+//func (o SComplexPolar) Equal(a Any) bool     { return false }
 
 // S32
+
+func (o Sint32) RTE() IntNum {
+	return o
+}
+
+func (o Sint32) RTN() IntNum {
+	return o
+}
 
 func (o Sint32) String() string {
 	return fmt.Sprintf("%d", o)
@@ -566,6 +713,14 @@ func (o Sint32) Shl(n Num) Num { return Sint32(o << uint(n.(Sint32))) }
 func (o Sint32) Shr(n Num) Num { return Sint32(o >> uint(n.(Sint32))) }
 
 // S64
+
+func (o Sint64) RTE() IntNum {
+	return o
+}
+
+func (o Sint64) RTN() IntNum {
+	return o
+}
 
 func (o Sint64) MakeRect(n RealNum) ComplexNum {
 	var x, y int64 = int64(o), int64(n.(Sint64))
@@ -616,8 +771,15 @@ func (o Sint64) Shr(n Num) Num { return Sint64(o >> uint(n.(Sint64))) }
 
 // F32
 
+func (o Sfloat32) MakeRect(n RealNum) ComplexNum {
+	return NewComplex(o, Sfloat32(ToFlonum(n)))
+}
+func (o Sfloat32) MakePolar(n RealNum) ComplexNum {
+	return NewComplexPolar(o, Sfloat32(ToFlonum(n)))
+}
 func (o Sfloat32) String() string {
-	return strings.Trim(fmt.Sprintf("%f", o), "0") + "s0"
+	//return strings.Trim(fmt.Sprintf("%f", o), "0") + "s0"
+	return fmt.Sprintf("%f", o) + "s0"
 }
 func (o Sfloat32) Equal(n Any) bool { return o == n.(Sfloat32) }
 func (o Sfloat32) Cmp(n Num) int {
@@ -636,6 +798,9 @@ func (o Sfloat32) Div(n Num) Num { return Sfloat32(o / n.(Sfloat32)) }
 func (o Sfloat32) Mod(n Num) Num { return Sfloat32(0) } // wrong
 func (o Sfloat32) Shl(n Num) Num { return Sfloat32(0) } // wrong
 func (o Sfloat32) Shr(n Num) Num { return Sfloat32(0) } // wrong
+func (o Sfloat32) RTE() IntNum { return Sint64(int64(math.Floor(float64(o)))) }
+func (o Sfloat32) RTN() IntNum { return Sint64(int64(math.Floor(float64(o)))) }
+
 
 // F64
 
@@ -690,7 +855,12 @@ func (o Sfloat64) MakePolar(n RealNum) ComplexNum {
 	return NewComplexPolar(o, Sfloat64(ToFlonum(n)))
 }
 func (o Sfloat64) String() string {
-	return strings.Trim(fmt.Sprintf("%f", o), "0")
+	//return strings.Trim(fmt.Sprintf("%f", o), "0")
+	s := strings.TrimRight(fmt.Sprintf("%f", o), "0")
+	if s[len(s) - 1] == '.' {
+		return string(append([]byte(s), '0'))
+	}
+	return s
 }
 func (o Sfloat64) Equal(n Any) bool {
 	return o == n.(Sfloat64)
@@ -711,6 +881,25 @@ func (o Sfloat64) Div(n Num) Num { return Sfloat64(o / n.(Sfloat64)) }
 func (o Sfloat64) Mod(n Num) Num { return Sfloat64(0) } // wrong
 func (o Sfloat64) Shl(n Num) Num { return Sfloat64(0) } // wrong
 func (o Sfloat64) Shr(n Num) Num { return Sfloat64(0) } // wrong
+func (o Sfloat64) RNN() IntNum {
+	h := Sfloat64(float64(o) + 0.5)
+	return h.RTN()
+}
+func (o Sfloat64) RTE() IntNum {
+	rnn := o.RNN().(Sint64)
+	h := Sfloat64(float64(o) + 0.5)
+	// is integer
+	if Sfloat64(h.RTN().(Sint64)) == Sfloat64(h) {
+		if rnn % 2 != 0 {
+			return Sint64(rnn - 1)
+		}
+		return rnn
+	}
+	return rnn
+}
+func (o Sfloat64) RTN() IntNum {
+	return Sint64(int64(math.Floor(float64(o)))) 
+}
 
 //func (o Scomplex64) Add(n Num) Num { return Scomplex64(o + n.(Scomplex64)) }
 //func (o Scomplex64) Sub(n Num) Num { return Scomplex64(o - n.(Scomplex64)) }
@@ -765,6 +954,8 @@ func (o SInteger) Shl(n Num) Num {
 func (o SInteger) Shr(n Num) Num {
 	return SInteger{it: big.NewInt(0).Lsh(o.it, uint(ToFixnum(n)))}
 }
+func (o SInteger) RTE() IntNum { return o; }
+func (o SInteger) RTN() IntNum { return o; }
 
 // Rational
 
@@ -809,6 +1000,28 @@ func (o SRational) Dmtr() Num {
 
 func (o SRational) Nmtr() Num {
 	return SInteger{it: o.it.Num()}
+}
+func (o SRational) RTE() IntNum { return o.Nmtr(); }
+func (o SRational) RTN() IntNum { return o.Nmtr(); }
+
+// C64
+func (o Scomplex64) String() string {
+	return fmt.Sprintf("%v+%vi", o.Real(), o.Imag())
+}
+func (o Scomplex64) Equal(n Any) bool {
+	return o == n.(Scomplex64)
+}
+func (o Scomplex64) Real() RealNum {
+	return Sfloat32(real(o))
+}
+func (o Scomplex64) Imag() RealNum {
+	return Sfloat32(imag(o))
+}
+func (o Scomplex64) Scale() RealNum {
+	return Sfloat32(cmplx.Abs(complex128(o)))
+}
+func (o Scomplex64) Angle() RealNum {
+	return Sfloat32(cmplx.Phase(complex128(o)))
 }
 
 // C128

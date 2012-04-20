@@ -37,8 +37,8 @@ import (
 	"strings"
 )
 
-var ret Any // returned value from yyParse
-var err error // return value for parsing errors
+var parseValue Any // returned value from yyParse
+var parseErr error // return value for parsing errors
 
 %}
 
@@ -83,12 +83,12 @@ datum:
 	simpledatum
 	{
 		$$ = $1
-		ret = $$
+		parseValue = $$
 	}
 |	compounddatum
 	{
 		$$ = $1
-		ret = $$
+		parseValue = $$
 	}
 |	LABEL '=' datum
 	{
@@ -147,7 +147,15 @@ list:
 	{
         $$ = $2
 	}
+|	'[' datums0 ']'
+	{
+        $$ = $2
+	}
 |	'(' datums1 '.' datum ')'
+	{
+        $$ = listR($2, $4)
+	}
+|	'[' datums1 '.' datum ']'
 	{
         $$ = listR($2, $4)
 	}
@@ -234,7 +242,7 @@ func (lex *Lexer) Lex(lval *yySymType) int {
 }
 
 func (lex *Lexer) Error(e string) {
-	err = fmt.Errorf("Syntax error at position %d in line %s: %s", lex.pos, lex.input, e)
+	parseErr = fmt.Errorf("Syntax error at position %d in line %s: %s", lex.pos, lex.input, e)
 }
 
 func Read(input string) (Any, error) {
@@ -244,9 +252,9 @@ func Read(input string) (Any, error) {
 	}
 	lex := newLexer(input)
 	yyParse(lex)
-	err2 := err
-	err = nil
-	return ret, err2
+	err := parseErr
+	parseErr = nil
+	return parseValue, err
 }
 
 // END functions

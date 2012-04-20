@@ -7,34 +7,36 @@ import (
 	"strings"
 )
 
-var ret Any // returned value from yyParse
-var err error // return value for parsing errors
+var parseValue Any // returned value from yyParse
+var parseErr error // return value for parsing errors
 
 
 //line parse.y:46
-type	yySymType	struct {
-	yys	int;
+type yySymType struct {
+	yys int
     datum Any;
 	token int; // this is for token identifiers
 }
-const	ID	= 57346
-const	BOOL	= 57347
-const	NUMBER	= 57348
-const	CHAR	= 57349
-const	STRING	= 57350
-const	LABEL	= 57351
-const	VECTORPAREN	= 57352
-const	U8VECTORPAREN	= 57353
-const	QUOTE	= 57354
-const	QQUOTE	= 57355
-const	UNQUOTE	= 57356
-const	UNQUOTES	= 57357
-const	SYNTAX	= 57358
-const	QSYNTAX	= 57359
-const	UNSYNTAX	= 57360
-const	UNSYNTAXS	= 57361
-const	ELLIPSIS	= 57362
-var	yyToknames	 =[]string {
+
+const ID = 57346
+const BOOL = 57347
+const NUMBER = 57348
+const CHAR = 57349
+const STRING = 57350
+const LABEL = 57351
+const VECTORPAREN = 57352
+const U8VECTORPAREN = 57353
+const QUOTE = 57354
+const QQUOTE = 57355
+const UNQUOTE = 57356
+const UNQUOTES = 57357
+const SYNTAX = 57358
+const QSYNTAX = 57359
+const UNSYNTAX = 57360
+const UNSYNTAXS = 57361
+const ELLIPSIS = 57362
+
+var yyToknames = []string{
 	"ID",
 	"BOOL",
 	"NUMBER",
@@ -53,13 +55,13 @@ var	yyToknames	 =[]string {
 	"UNSYNTAXS",
 	"ELLIPSIS",
 }
-var	yyStatenames	 =[]string {
-}
-																																						const	yyEofCode	= 1
-const	yyErrCode	= 2
-const	yyMaxDepth	= 200
+var yyStatenames = []string{}
 
-//line parse.y:226
+const yyEofCode = 1
+const yyErrCode = 2
+const yyMaxDepth = 200
+
+//line parse.y:234
 
 // BEGIN functions
 
@@ -71,7 +73,7 @@ func (lex *Lexer) Lex(lval *yySymType) int {
 }
 
 func (lex *Lexer) Error(e string) {
-	err = fmt.Errorf("Syntax error at position %d in line %s: %s", lex.pos, lex.input, e)
+	parseErr = fmt.Errorf("Syntax error at position %d in line %s: %s", lex.pos, lex.input, e)
 }
 
 func Read(input string) (Any, error) {
@@ -81,96 +83,106 @@ func Read(input string) (Any, error) {
 	}
 	lex := newLexer(input)
 	yyParse(lex)
-	err2 := err
-	err = nil
-	return ret, err2
+	err := parseErr
+	parseErr = nil
+	return parseValue, err
 }
 
 // END functions
 
 //line yacctab:1
-var	yyExca = []int {
--1, 1,
+var yyExca = []int{
+	-1, 1,
 	1, -1,
 	-2, 0,
 }
-const	yyNprod	= 31
-const	yyPrivate	= 57344
-var	yyTokenNames []string
-var	yyStates []string
-const	yyLast	= 77
-var	yyAct	= []int {
 
-  30,   1,  46,  49,  47,  45,  43,  26,  27,  16,
-  10,  12,  11,   9,   3,   2,   0,   0,   0,  34,
-  35,  36,  37,  38,  39,  40,  41,  42,   0,  13,
-   5,   6,   7,   8,   4,  17,  14,  18,  19,  20,
-  21,  22,  23,  24,  25,  29,  28,  48,  15,   0,
-   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-   0,  32,  31,   0,  33,   0,   0,   0,   0,   0,
-   0,   0,   0,   0,   0,   0,  44,
-};
-var	yyPact	= []int {
+const yyNprod = 33
+const yyPrivate = 57344
 
-  25,-1000,-1000,-1000, -14,-1000,-1000,-1000,-1000,-1000,
--1000,-1000,-1000,-1000,  25,  25,-1000,  25,  25,  25,
-  25,  25,  25,  25,  25,  25,  25,-1000, -18,-1000,
-  25, -19, -23, -20,-1000,-1000,-1000,-1000,-1000,-1000,
--1000,-1000,-1000,-1000,-1000,-1000,  25,-1000, -21,-1000,
-};
-var	yyPgo	= []int {
+var yyTokenNames []string
+var yyStates []string
 
-   0,   0,  45,  46,  15,  14,  13,  12,  11,  10,
-   9,
-};
-var	yyR1	= []int {
+const yyLast = 79
 
-   0,   1,   1,   1,   1,   4,   4,   4,   4,   4,
-   4,   6,   5,   5,   7,   7,   7,   2,   2,   3,
-   3,  10,  10,  10,  10,  10,  10,  10,  10,   8,
-   9,
-};
-var	yyR2	= []int {
+var yyAct = []int{
 
-   0,   1,   1,   3,   2,   1,   1,   1,   1,   1,
-   1,   1,   1,   1,   3,   5,   1,   1,   2,   1,
-   0,   2,   2,   2,   2,   2,   2,   2,   2,   3,
-   3,
-};
-var	yyChk	= []int {
+	31, 1, 51, 49, 56, 50, 55, 52, 48, 46,
+	27, 28, 17, 10, 12, 11, 9, 3, 2, 0,
+	37, 38, 39, 40, 41, 42, 43, 44, 45, 0,
+	13, 5, 6, 7, 8, 4, 18, 14, 19, 20,
+	21, 22, 23, 24, 25, 26, 30, 0, 29, 15,
+	53, 16, 54, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 33, 35, 32, 34, 0, 36, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 47,
+}
+var yyPact = []int{
 
--1000,  -1,  -4,  -5,   9,   5,   6,   7,   8,  -6,
-  -9,  -7,  -8,   4,  11,  23, -10,  10,  12,  13,
-  14,  15,  16,  17,  18,  19,  21,  22,  -3,  -2,
-  -1,  -3,  -2,  -3,  -1,  -1,  -1,  -1,  -1,  -1,
-  -1,  -1,  -1,  24,  -2,  24,  25,  24,  -1,  24,
-};
-var	yyDef	= []int {
+	26, -1000, -1000, -1000, -11, -1000, -1000, -1000, -1000, -1000,
+	-1000, -1000, -1000, -1000, 26, 26, 26, -1000, 26, 26,
+	26, 26, 26, 26, 26, 26, 26, 26, -1000, -15,
+	-1000, 26, -16, -24, -21, -25, -17, -1000, -1000, -1000,
+	-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 26,
+	-1000, 26, -1000, -18, -22, -1000, -1000,
+}
+var yyPgo = []int{
 
-   0,  -2,   1,   2,   0,   5,   6,   7,   8,   9,
-  10,  12,  13,  11,  20,  20,  16,  20,   0,   0,
-   0,   0,   0,   0,   0,   0,   0,   4,   0,  19,
-  17,   0,  19,   0,  21,  22,  23,  24,  25,  26,
-  27,  28,   3,  30,  18,  14,   0,  29,   0,  15,
-};
-var	yyTok1	= []int {
+	0, 0, 46, 48, 18, 17, 16, 15, 14, 13,
+	12,
+}
+var yyR1 = []int{
 
-   1,   3,   3,   3,   3,   3,   3,   3,   3,   3,
-   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,
-   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,
-   3,   3,   3,   3,   3,  22,   3,   3,   3,   3,
-  23,  24,   3,   3,   3,   3,  25,   3,   3,   3,
-   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,
-   3,  21,
-};
-var	yyTok2	= []int {
+	0, 1, 1, 1, 1, 4, 4, 4, 4, 4,
+	4, 6, 5, 5, 7, 7, 7, 7, 7, 2,
+	2, 3, 3, 10, 10, 10, 10, 10, 10, 10,
+	10, 8, 9,
+}
+var yyR2 = []int{
 
-   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,
-  12,  13,  14,  15,  16,  17,  18,  19,  20,
-};
-var	yyTok3	= []int {
-   0,
- };
+	0, 1, 1, 3, 2, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 3, 3, 5, 5, 1, 1,
+	2, 1, 0, 2, 2, 2, 2, 2, 2, 2,
+	2, 3, 3,
+}
+var yyChk = []int{
+
+	-1000, -1, -4, -5, 9, 5, 6, 7, 8, -6,
+	-9, -7, -8, 4, 11, 23, 25, -10, 10, 12,
+	13, 14, 15, 16, 17, 18, 19, 21, 22, -3,
+	-2, -1, -3, -2, -3, -2, -3, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, 24, -2, 24, 27,
+	26, 27, 24, -1, -1, 24, 26,
+}
+var yyDef = []int{
+
+	0, -2, 1, 2, 0, 5, 6, 7, 8, 9,
+	10, 12, 13, 11, 22, 22, 22, 18, 22, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 4, 0,
+	21, 19, 0, 21, 0, 21, 0, 23, 24, 25,
+	26, 27, 28, 29, 30, 3, 32, 20, 14, 0,
+	15, 0, 31, 0, 0, 16, 17,
+}
+var yyTok1 = []int{
+
+	1, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 22, 3, 3, 3, 3,
+	23, 24, 3, 3, 3, 3, 27, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 21, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 25, 3, 26,
+}
+var yyTok2 = []int{
+
+	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+	12, 13, 14, 15, 16, 17, 18, 19, 20,
+}
+var yyTok3 = []int{
+	0,
+}
 
 //line yaccpar:1
 
@@ -185,58 +197,55 @@ type yyLexer interface {
 
 const yyFlag = -1000
 
-func yyTokname(yyc int) string {
-	if yyc > 0 && yyc <= len(yyToknames) {
-		if yyToknames[yyc-1] != "" {
-			return yyToknames[yyc-1]
+func yyTokname(c int) string {
+	if c > 0 && c <= len(yyToknames) {
+		if yyToknames[c-1] != "" {
+			return yyToknames[c-1]
 		}
 	}
-	return fmt.Sprintf("tok-%v", yyc)
+	return fmt.Sprintf("tok-%v", c)
 }
 
-func yyStatname(yys int) string {
-	if yys >= 0 && yys < len(yyStatenames) {
-		if yyStatenames[yys] != "" {
-			return yyStatenames[yys]
+func yyStatname(s int) string {
+	if s >= 0 && s < len(yyStatenames) {
+		if yyStatenames[s] != "" {
+			return yyStatenames[s]
 		}
 	}
-	return fmt.Sprintf("state-%v", yys)
+	return fmt.Sprintf("state-%v", s)
 }
 
-func yylex1(yylex yyLexer, lval *yySymType) int {
-	var yychar int
-	var c int
-
-	yychar = yylex.Lex(lval)
-	if yychar <= 0 {
+func yylex1(lex yyLexer, lval *yySymType) int {
+	c := 0
+	char := lex.Lex(lval)
+	if char <= 0 {
 		c = yyTok1[0]
 		goto out
 	}
-	if yychar < len(yyTok1) {
-		c = yyTok1[yychar]
+	if char < len(yyTok1) {
+		c = yyTok1[char]
 		goto out
 	}
-	if yychar >= yyPrivate {
-		if yychar < yyPrivate+len(yyTok2) {
-			c = yyTok2[yychar-yyPrivate]
+	if char >= yyPrivate {
+		if char < yyPrivate+len(yyTok2) {
+			c = yyTok2[char-yyPrivate]
 			goto out
 		}
 	}
 	for i := 0; i < len(yyTok3); i += 2 {
 		c = yyTok3[i+0]
-		if c == yychar {
+		if c == char {
 			c = yyTok3[i+1]
 			goto out
 		}
 	}
-	c = 0
 
 out:
 	if c == 0 {
 		c = yyTok2[1] /* unknown char */
 	}
 	if yyDebug >= 3 {
-		fmt.Printf("lex %.4x %s\n", uint(yychar), yyTokname(c))
+		fmt.Printf("lex %U %s\n", uint(char), yyTokname(c))
 	}
 	return c
 }
@@ -244,8 +253,8 @@ out:
 func yyParse(yylex yyLexer) int {
 	var yyn int
 	var yylval yySymType
-	var YYVAL yySymType
-	YYS := make([]yySymType, yyMaxDepth)
+	var yyVAL yySymType
+	yyS := make([]yySymType, yyMaxDepth)
 
 	Nerrs := 0   /* number of errors */
 	Errflag := 0 /* error recovery flag */
@@ -267,13 +276,13 @@ yystack:
 	}
 
 	yyp++
-	if yyp >= len(YYS) {
-		nyys := make([]yySymType, len(YYS)*2)
-		copy(nyys, YYS)
-		YYS = nyys
+	if yyp >= len(yyS) {
+		nyys := make([]yySymType, len(yyS)*2)
+		copy(nyys, yyS)
+		yyS = nyys
 	}
-	YYS[yyp] = YYVAL
-	YYS[yyp].yys = yystate
+	yyS[yyp] = yyVAL
+	yyS[yyp].yys = yystate
 
 yynewstate:
 	yyn = yyPact[yystate]
@@ -290,7 +299,7 @@ yynewstate:
 	yyn = yyAct[yyn]
 	if yyChk[yyn] == yychar { /* valid shift */
 		yychar = -1
-		YYVAL = yylval
+		yyVAL = yylval
 		yystate = yyn
 		if Errflag > 0 {
 			Errflag--
@@ -307,20 +316,20 @@ yydefault:
 		}
 
 		/* look through exception table */
-		yyxi := 0
+		xi := 0
 		for {
-			if yyExca[yyxi+0] == -1 && yyExca[yyxi+1] == yystate {
+			if yyExca[xi+0] == -1 && yyExca[xi+1] == yystate {
 				break
 			}
-			yyxi += 2
+			xi += 2
 		}
-		for yyxi += 2; ; yyxi += 2 {
-			yyn = yyExca[yyxi+0]
+		for xi += 2; ; xi += 2 {
+			yyn = yyExca[xi+0]
 			if yyn < 0 || yyn == yychar {
 				break
 			}
 		}
-		yyn = yyExca[yyxi+1]
+		yyn = yyExca[xi+1]
 		if yyn < 0 {
 			goto ret0
 		}
@@ -342,7 +351,7 @@ yydefault:
 
 			/* find a state where "error" is a legal shift action */
 			for yyp >= 0 {
-				yyn = yyPact[YYS[yyp].yys] + yyErrCode
+				yyn = yyPact[yyS[yyp].yys] + yyErrCode
 				if yyn >= 0 && yyn < yyLast {
 					yystate = yyAct[yyn] /* simulate a shift of "error" */
 					if yyChk[yystate] == yyErrCode {
@@ -350,10 +359,9 @@ yydefault:
 					}
 				}
 
-				/* the current yyp has no shift onn "error", pop stack */
+				/* the current p has no shift on "error", pop stack */
 				if yyDebug >= 2 {
-					fmt.Printf("error recovery pops state %d, uncovers %d\n",
-						YYS[yyp].yys, YYS[yyp-1].yys)
+					fmt.Printf("error recovery pops state %d\n", yyS[yyp].yys)
 				}
 				yyp--
 			}
@@ -379,15 +387,15 @@ yydefault:
 
 	yynt := yyn
 	yypt := yyp
-	_ = yypt		// guard against "declared and not used"
+	_ = yypt // guard against "declared and not used"
 
 	yyp -= yyR2[yyn]
-	YYVAL = YYS[yyp+1]
+	yyVAL = yyS[yyp+1]
 
 	/* consult goto table to find next state */
 	yyn = yyR1[yyn]
 	yyg := yyPgo[yyn]
-	yyj := yyg + YYS[yyp].yys + 1
+	yyj := yyg + yyS[yyp].yys + 1
 
 	if yyj >= yyLast {
 		yystate = yyAct[yyg]
@@ -400,158 +408,168 @@ yydefault:
 	// dummy call; replaced with literal code
 	switch yynt {
 
-case 1:
-//line parse.y:84
-{
-		YYVAL.datum = YYS[yypt-0].datum
-		ret = YYVAL.datum
-	}
-case 2:
-//line parse.y:89
-{
-		YYVAL.datum = YYS[yypt-0].datum
-		ret = YYVAL.datum
-	}
-case 3:
-//line parse.y:94
-{
-        YYVAL.datum = NewLabel(YYS[yypt-2].datum, YYS[yypt-0].datum)
-	}
-case 4:
-//line parse.y:98
-{
-		YYVAL.datum = YYS[yypt-1].datum
-	}
-case 5:
-//line parse.y:104
-{
-        YYVAL.datum = YYS[yypt-0].datum
-	}
-case 6:
-//line parse.y:108
-{
-        YYVAL.datum = YYS[yypt-0].datum
-    }
-case 7:
-//line parse.y:112
-{
-        YYVAL.datum = YYS[yypt-0].datum
-	}
-case 8:
-//line parse.y:116
-{
-        YYVAL.datum = YYS[yypt-0].datum
-	}
-case 9:
-//line parse.y:120
-{
-        YYVAL.datum = YYS[yypt-0].datum
-	}
-case 10:
-//line parse.y:125
-{
-        YYVAL.datum = YYS[yypt-0].datum
-	}
-case 11:
-//line parse.y:131
-{
-        YYVAL.datum = YYS[yypt-0].datum
-	}
-case 12:
-//line parse.y:137
-{
-        YYVAL.datum = YYS[yypt-0].datum
-	}
-case 13:
-//line parse.y:141
-{
-        YYVAL.datum = YYS[yypt-0].datum
-	}
-case 14:
-//line parse.y:147
-{
-        YYVAL.datum = YYS[yypt-1].datum
-	}
-case 15:
-//line parse.y:151
-{
-        YYVAL.datum = listR(YYS[yypt-3].datum, YYS[yypt-1].datum)
-	}
-case 16:
-//line parse.y:155
-{
-        YYVAL.datum = YYS[yypt-0].datum
-    }
-case 17:
-//line parse.y:161
-{
-        YYVAL.datum = list1(YYS[yypt-0].datum)
-	}
-case 18:
-//line parse.y:165
-{
-        YYVAL.datum = list1R(YYS[yypt-1].datum, YYS[yypt-0].datum)
-	}
-case 19:
-//line parse.y:171
-{
-        YYVAL.datum = YYS[yypt-0].datum
-	}
-case 20:
-//line parse.y:175
-{
-        YYVAL.datum = list0()
-	}
-case 21:
-//line parse.y:181
-{
-        YYVAL.datum = list2(SSymbol{"quote"}, YYS[yypt-0].datum)
-	}
-case 22:
-//line parse.y:185
-{
-        YYVAL.datum = list2(SSymbol{"quasiquote"}, YYS[yypt-0].datum)
-	}
-case 23:
-//line parse.y:189
-{
-        YYVAL.datum = list2(SSymbol{"unquote"}, YYS[yypt-0].datum)
-	}
-case 24:
-//line parse.y:193
-{
-        YYVAL.datum = list2(SSymbol{"unquote-splicing"}, YYS[yypt-0].datum)
-	}
-case 25:
-//line parse.y:197
-{
-        YYVAL.datum = list2(SSymbol{"syntax"}, YYS[yypt-0].datum)
-	}
-case 26:
-//line parse.y:201
-{
-        YYVAL.datum = list2(SSymbol{"quasisyntax"}, YYS[yypt-0].datum)
-	}
-case 27:
-//line parse.y:205
-{
-        YYVAL.datum = list2(SSymbol{"unsyntax"}, YYS[yypt-0].datum)
-	}
-case 28:
-//line parse.y:209
-{
-        YYVAL.datum = list2(SSymbol{"unsyntax-splicing"}, YYS[yypt-0].datum)
-	}
-case 29:
-//line parse.y:215
-{
-        YYVAL.datum = DlistZKZRvector(list1(YYS[yypt-1].datum))
-	}
-case 30:
-//line parse.y:221
-{
-        YYVAL.datum = Du8ZKlistZKZRbytevector(list1(YYS[yypt-1].datum))
-	}
+	case 1:
+		//line parse.y:84
+		{
+			yyVAL.datum = yyS[yypt-0].datum
+			parseValue = yyVAL.datum
+		}
+	case 2:
+		//line parse.y:89
+		{
+			yyVAL.datum = yyS[yypt-0].datum
+			parseValue = yyVAL.datum
+		}
+	case 3:
+		//line parse.y:94
+		{
+	        yyVAL.datum = NewLabel(yyS[yypt-2].datum, yyS[yypt-0].datum)
+		}
+	case 4:
+		//line parse.y:98
+		{
+			yyVAL.datum = yyS[yypt-1].datum
+		}
+	case 5:
+		//line parse.y:104
+		{
+	        yyVAL.datum = yyS[yypt-0].datum
+		}
+	case 6:
+		//line parse.y:108
+		{
+	        yyVAL.datum = yyS[yypt-0].datum
+	    }
+	case 7:
+		//line parse.y:112
+		{
+	        yyVAL.datum = yyS[yypt-0].datum
+		}
+	case 8:
+		//line parse.y:116
+		{
+	        yyVAL.datum = yyS[yypt-0].datum
+		}
+	case 9:
+		//line parse.y:120
+		{
+	        yyVAL.datum = yyS[yypt-0].datum
+		}
+	case 10:
+		//line parse.y:125
+		{
+	        yyVAL.datum = yyS[yypt-0].datum
+		}
+	case 11:
+		//line parse.y:131
+		{
+	        yyVAL.datum = yyS[yypt-0].datum
+		}
+	case 12:
+		//line parse.y:137
+		{
+	        yyVAL.datum = yyS[yypt-0].datum
+		}
+	case 13:
+		//line parse.y:141
+		{
+	        yyVAL.datum = yyS[yypt-0].datum
+		}
+	case 14:
+		//line parse.y:147
+		{
+	        yyVAL.datum = yyS[yypt-1].datum
+		}
+	case 15:
+		//line parse.y:151
+		{
+	        yyVAL.datum = yyS[yypt-1].datum
+		}
+	case 16:
+		//line parse.y:155
+		{
+	        yyVAL.datum = listR(yyS[yypt-3].datum, yyS[yypt-1].datum)
+		}
+	case 17:
+		//line parse.y:159
+		{
+	        yyVAL.datum = listR(yyS[yypt-3].datum, yyS[yypt-1].datum)
+		}
+	case 18:
+		//line parse.y:163
+		{
+	        yyVAL.datum = yyS[yypt-0].datum
+	    }
+	case 19:
+		//line parse.y:169
+		{
+	        yyVAL.datum = list1(yyS[yypt-0].datum)
+		}
+	case 20:
+		//line parse.y:173
+		{
+	        yyVAL.datum = list1R(yyS[yypt-1].datum, yyS[yypt-0].datum)
+		}
+	case 21:
+		//line parse.y:179
+		{
+	        yyVAL.datum = yyS[yypt-0].datum
+		}
+	case 22:
+		//line parse.y:183
+		{
+	        yyVAL.datum = list0()
+		}
+	case 23:
+		//line parse.y:189
+		{
+	        yyVAL.datum = list2(SSymbol{"quote"}, yyS[yypt-0].datum)
+		}
+	case 24:
+		//line parse.y:193
+		{
+	        yyVAL.datum = list2(SSymbol{"quasiquote"}, yyS[yypt-0].datum)
+		}
+	case 25:
+		//line parse.y:197
+		{
+	        yyVAL.datum = list2(SSymbol{"unquote"}, yyS[yypt-0].datum)
+		}
+	case 26:
+		//line parse.y:201
+		{
+	        yyVAL.datum = list2(SSymbol{"unquote-splicing"}, yyS[yypt-0].datum)
+		}
+	case 27:
+		//line parse.y:205
+		{
+	        yyVAL.datum = list2(SSymbol{"syntax"}, yyS[yypt-0].datum)
+		}
+	case 28:
+		//line parse.y:209
+		{
+	        yyVAL.datum = list2(SSymbol{"quasisyntax"}, yyS[yypt-0].datum)
+		}
+	case 29:
+		//line parse.y:213
+		{
+	        yyVAL.datum = list2(SSymbol{"unsyntax"}, yyS[yypt-0].datum)
+		}
+	case 30:
+		//line parse.y:217
+		{
+	        yyVAL.datum = list2(SSymbol{"unsyntax-splicing"}, yyS[yypt-0].datum)
+		}
+	case 31:
+		//line parse.y:223
+		{
+	        yyVAL.datum = DlistZKZRvector(list1(yyS[yypt-1].datum))
+		}
+	case 32:
+		//line parse.y:229
+		{
+	        yyVAL.datum = Du8ZKlistZKZRbytevector(list1(yyS[yypt-1].datum))
+		}
 	}
 	goto yystack /* stack new state and value */
 }

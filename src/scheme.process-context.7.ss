@@ -5,4 +5,4 @@
     get-environment-variable
     get-environment-variables)
   (import
-   (builtin)))
+   (ds base)))

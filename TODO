@@ -1,106 +1,132 @@
 - Ledgend:
   []      -- means TODO
-  [X]     -- means done!
-
-- Ports
-  [] byte ports
-  [] char ports
+  [?]     -- means partial implementation
+  [X]     -- means done! (please remove from this file)
+  [C]     -- means control flow related, see below
+  [S]     -- means syntax-rules related
+  [D]     -- means syntax-rules dependant
+  [L]     -- means define-library related
+  [R]     -- means research
 
 - Numbers
   [X] arithmetic functions
-  [] trigonometric functions [AJR]
-  [] type promotion [AJR]
+  [?] trigonometric functions, TODO: must accept integers
+  [?] type promotion [AJR]
+  [?] number->string, TODO: optional parameters
+  [] inexact->exact
+  [] exact->inexact
+  ---
+  [] test suite [AJR]
 
-- Project
-  [] move shell.go to eval.go
+- Syntax
+  [?] (define-syntax)
+  [] (let-syntax)
+  [] (letrec-syntax)
+  [?] syntax-error, TODO: differentiate from (error)
+  [] (syntax-rules)
+  [] (syntax-case) -- low priority
+  ---
+  [X] Label these as [S] for syntax or [D] for dependant on syntax-rules
+  [] research
+  [] see if (define-record-type) can be derived syntax
+  [] see if (parameterize) can be derived syntax
 
-- (define-syntax)
-- (syntax-rules)
+- Control flow
+  [] (call/cc)
+  [] (dynamic-wind)
+  [] (guard)
+  [] (with-exception-handler)
+  ---
+  [X] Label these as [C] for control
   [] research
 
-- (dynamic-wind)
-  [] research
+- Library support
+  [] cond-expand
+  [] define-library (R7RS)
+  [] library (R6RS)
+  [] import -- for programs
+  ---
+  [X] Label these as [L] for library
+  [] research snow
+  [] parameterize
 
-- (call/cc)
-  [] research
+- Record support
+  [] define-record-type
+  ---
+  [] test suite
+
+- Hash Tables (from R6RS, and perhaps R7RS-large)
+  [X] hashtable-clear!
+  [X] hashtable-contains?
+  [?] hashtable-copy, TODO: immutability
+  [X] hashtable-delete!
+  [X] hashtable-entries
+  [X] hashtable-equivalence-function
+  [X] hashtable-hash-function
+  [X] hashtable-keys
+  [?] hashtable-mutable?, TODO: immutability
+  [X] hashtable-ref
+  [X] hashtable-set!
+  [X] hashtable-size
+  [X] hashtable-update!
+  [X] hashtable?
+  [X] hashtable->list
+  [X] hashtable->vector
+  [] list->hashtable -- equal? based
+  [] vector->hashtable -- equal? based
+  [] test suite [AJR]
 
 - (scheme base) R7RS
   If you don't see the function here, then it means 
   that it's been implemented completely
-  [] and
-  [] bytevector-copy
-  [] bytevector-copy!
-  [] bytevector-copy-partial
-  [] bytevector-copy-partial!
-  [X] bytevector-length
-  [X] bytevector-ref
-  [X] bytevector-set!
-  [] call/cc
-  [] call-with-port
-  [] call-with-values
-  [] case
-  [] char-ready?
-  [X] close-input-port
-  [X] close-output-port
-  [X] close-port
-  [] cond
-  [] cond-expand
-  [X] current-error-port
-  [X] current-input-port
-  [X] current-output-port
-  [] define-record-type
-  [] define-syntax
-  [] define-values
-  [] do
-  [] dynamic-wind
-  [] eof-object?
-  [] error
-  [] error-object-irritants
-  [] error-object-message
-  [] error-object?
-  [] exact-integer-sqrt
+  [D] and -- requires syntax-rules
+  [C] call/cc
+  [X] call/ec
+  [D] case -- requires syntax-rules
+  [D] case-lambda -- requires syntax-rules
+  [D] cond -- requires syntax-rules
+  [L] cond-expand
+  [R] define-record-type
+  [S] define-syntax
+  [L] define-library/library
+  [X] define-values
+  [D] do
+  [C] dynamic-wind
+  [X] eof-object
+  [X] eof-object?
+  [X] error
+  [X] error-object-irritants
+  [X] error-object-message
+  [X] error-object?
+  [X] exact-integer-sqrt -- depends on rationalize
   [X] exact-integer?
-  [] floor
-  [] flush-output-port
+  [X] floor
+  [X] flush-output-port
   [X] gcd
   [X] get-output-bytevector
   [X] get-output-string
-  [] guard
-  [] hashtable-clear!
-  [] hashtable-contains?
-  [] hashtable-copy
-  [] hashtable-delete!
-  [] hashtable-entries
-  [] hashtable-equivalence-function
-  [] hashtable-hash-function
-  [] hashtable-keys
-  [] hashtable-mutable?
-  [] hashtable-ref
-  [] hashtable-set!
-  [] hashtable-size
-  [] hashtable-update!
-  [] hashtable?
-  [] import
+  [C] guard
+  [X] integer->char
+  [L] import -- for programs
   [X] lambda
   [X] lcm
   [X] let
-  [] let loop
+  [D] let loop -- requires syntax-rules
   [X] let*
-  [] let*-values
-  [] let-syntax
-  [] let-values
-  [] letrec
-  [] letrec*
-  [] letrec-syntax
+  [D] let*-values -- requires syntax-rules
+  [S] let-syntax
+  [D] let-values -- requires syntax-rules
+  [D] letrec -- requires syntax-rules
+  [D] letrec* -- requires syntax-rules
+  [S] letrec-syntax
   [X] make-bytevector
   [X] make-list
   [X] make-parameter
   [X] make-string
   [X] make-vector
-  [] max
-  [] min
+  [X] max
+  [X] min
   [X] newline
-  [] number->string
   [X] open-binary-input-file
   [X] open-binary-output-file
   [X] open-input-file
@@ -109,63 +135,75 @@
   [X] open-output-file
   [X] open-output-bytevector
   [X] open-output-string
-  [] or
-  [] parameterize
-  [] peek-char
-  [] peek-u8
-  [] port-open?
+  [D] or -- requires syntax-rules
+  [R] parameterize
+  [X] peek-char
+  [X] peek-u8
+  [X] port-open?
+  [X] raise
+  [?] raise-continuable -- may be revisited
   [] rationalize
-  [] read-bytevector
-  [] read-bytevector!
+  [X] read-bytevector
+  [X] read-bytevector!
   [X] read-char
-  [] read-line
+  [X] read-line
   [X] read-u8
   [X] reverse
-  [] round
+  [X] round
   [X] set!
   [X] set-car!
   [X] set-cdr!
   [X] string->list
-  [] string->number
-  [] string->symbol
-  [X] string->utf8
-  [X] string->vector
-  [] string-append
-  [X] string-copy
-  [X] string-fill!
-  [X] string-for-each
-  [X] string-length
-  [X] string-map
-  [X] string-ref
-  [X] string-set!
-  [] substring
-  [] symbol->string
-  [] syntax-error
-  [] syntax-rules
-  [] u8-ready?
-  [] unless
-  [X] utf8->string
-  [X] values
-  [X] vector->list
-  [X] vector->string
-  [X] vector-copy
-  [X] vector-fill!
-  [X] vector-for-each
-  [X] vector-length
-  [X] vector-map
-  [X] vector-ref
-  [X] vector-set!
-  [] when
-  [] with-exception-handler
-  [] write-bytevector
+  [X] string->number
+  [X] string->symbol
+  [X] substring
+  [X] symbol->string
+  [S] syntax-rules -- URGENT
+  [D] unless -- requires syntax-rules
+  [D] when -- requires syntax-rules
+  [C] with-exception-handler
+  [X] write-bytevector
   [X] write-char
-  [] write-partial-bytevector
+  [X] write-partial-bytevector
   [X] write-u8
-  [] zero?
-  [X] integer->char
+  [D] zero? -- requires case
 
 - Other
   [] make Seq interface
   [] remove Equal() method
   [] remove GetType() method
+
+- List of dependancies
+
+zero? : cond
+eq? : eqv?
+eqv? : cond
+cond : syntax-rules
+fold-left : case-lambda
+fold-right : case-lambda
+case-lambda : syntax-rules
+case : syntax-rules
+and : syntax-rules
+or : syntax-rules
+when : syntax-rules
+unless : syntax-rules
+
+- Macros
+
+(and #t (begin (display "hello") #t))
+(and #t (begin (display "hello") #f))
+(and #f (begin (display "hello") #t))
+(and #f (begin (display "hello") #f))
+
+(define-macro (and . rest)
+  `(if (null? (list ,@rest)) #t
+       (if (car (list ,@rest))
+           (and ,@(cdr (list ,@rest)))
+           #f)))
+
+(define-macro (or . rest)
+  `(if (null? (list ,@rest)) #f
+       (if (car (list ,@rest))
+           #t
+           (or ,@(cdr (list ,@rest))))))
 

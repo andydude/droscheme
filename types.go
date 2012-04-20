@@ -12,6 +12,7 @@ package droscheme
 import (
 	"errors"
 	"fmt"
+	"hash/crc32"
 	"os"
 	"reflect"
 	"runtime"
@@ -19,48 +20,42 @@ import (
 	"strings"
 )
 
-func DumpFunc(pc uintptr) {
-	// intuit function name
-	name := runtime.FuncForPC(pc).Name()
-	fmt.Printf("\t[0x%08X] %s\n", pc, name)
-}
-
-func DumpStack() {
-	buffer := make([]uintptr, 1024)
-	size := runtime.Callers(0, buffer)
-	fmt.Printf("number = %d\n", size)
-	for i := 0; i < size; i++ {
-		DumpFunc(buffer[i])
-	}
-}
-
 // structures and methods in this file
 //
 // SBool bool
 // SChar rune
+// SVoid   struct
 // SNull   struct
 // SPair   struct
-// SBinary struct
-// SString struct
+// SBinary []byte
+// SString []rune
 // SSymbol struct
 // SVector struct
 // SValues struct
+// SLabel  struct
 // STable  struct
+// SError  struct
 // *Env
 // SPrimSyntax
 // SCaseSyntax
 // SRuleSyntax
 // SPrim struct
 // SProc struct
+// SCont struct
 // SType struct
-// SBytePort
-// SCharPort
+// *FilePort
+// *BinaryPort
+// *StringPort
 
 // each type defined in this file should have the following declarations
 //
+// type S<type> struct {...}
+//
 // func Is<type>(a Any) bool
+// func To<type>(...) S<type>
 // func New<type>(...) Any
 // func (a S<type>) GetType() int
+// func (a S<type>) GetHash() uintptr
 // func (a S<type>) Equal(b Any) bool
 
 // ----------------------------------------------------------------------
@@ -131,6 +126,9 @@ func (o SChar) Equal(a Any) bool {
 }
 
 func (o SChar) String() string {
+	if o == -1 {
+		return "#<eof>"
+	}
 	if 0x20 < o && o < 0x7F {
 		return fmt.Sprintf("#\\%s", string([]byte{byte(o)}))
 	}
@@ -145,6 +143,10 @@ func Void() Any {
 	return SVoid{}
 }
 
+func (o SVoid) GetHash() uintptr {
+	return 0
+}
+
 func (o SVoid) GetType() int {
 	return TypeCodeVoid
 }
@@ -154,7 +156,8 @@ func (_ SVoid) Equal(a Any) bool {
 }
 
 func (_ SVoid) String() string {
-	return "#<unspecified>"
+	//return "#<unspecified>"
+	return ""
 }
 
 // null type
@@ -246,6 +249,14 @@ func (o *List) ToVector() Any {
 	return NewVector(ret)
 }
 
+func (o *List) First() Any {
+	return o.car
+}
+
+func (o *List) Rest() Any {
+	return o.cdr
+}
+
 func listToVector(a Any) SVector {
 	switch a.(type) {
 	case SNull:
@@ -262,6 +273,13 @@ func listToValues(a Any) Any {
 		return v[0]
 	}
 	return SValues(v)
+}
+
+func valuesToList(a Any) Any {
+	if _, ok := a.(SValues); !ok {
+		return list1(a)
+	}
+	return SVector(a.(SValues)).ToList()
 }
 
 func bindingsToPair(a Any) (ls, rs Any) {
@@ -322,7 +340,7 @@ func (o SBinary) GetType() int {
 }
 
 func (o SBinary) GetHash() uintptr {
-	return 0 // TODO
+	return seqHash([]Any(DbytevectorZKZRu8ZKvector(list1(o)).(SVector)))
 }
 
 func (o SBinary) Equal(a Any) bool {
@@ -338,12 +356,12 @@ func (o SBinary) String() string {
 }
 
 func (o SBinary) Ref(k Any) Any {
-	return Sint64(o[ToFixnum(k)])
+	return Suint8(o[ToFixnum(k)])
 }
 
 func (o SBinary) Set(k, v Any) Any {
 	o[ToFixnum(k)] = byte(ToFixnum(v))
-	return Dvoid(list0())
+	return Void()
 }
 
 
@@ -372,11 +390,14 @@ func (o SString) GetType() int {
 }
 
 func (o SString) GetHash() uintptr {
-	return 0 // TODO
+	return seqHash([]Any(DstringZKZRvector(list1(o)).(SVector)))
 }
 
 func (o SString) Equal(a Any) bool {
-	return false // TODO
+	if !IsType(a, TypeCodeString) {
+		return false
+	}
+	return Equal(o, a.(SString))
 }
 
 func (o SString) String() string {
@@ -408,6 +429,10 @@ func NewSymbol(s string) SSymbol {
 
 func (o SSymbol) GetType() int {
 	return TypeCodeSymbol
+}
+
+func (o SSymbol) GetHash() uintptr {
+	return DsymbolZKZRstring(list1(o)).GetHash()
 }
 
 func (o SSymbol) Equal(a Any) bool {
@@ -450,7 +475,7 @@ func (o SVector) GetType() int {
 }
 
 func (o SVector) GetHash() uintptr {
-	return 0 // TODO
+	return seqHash([]Any(o))
 }
 
 func (o SVector) Equal(a Any) bool {
@@ -510,6 +535,10 @@ type SValues []Any
 
 // values methods
 
+func IsValues(a Any) bool {
+	return IsType(a, TypeCodeValues)
+}
+
 func NewValues(a []Any) Any {
 	return SValues(a)
 }
@@ -537,6 +566,14 @@ func (o SValues) String() string {
 	return fmt.Sprintf("#<values>%s", ret)
 }
 
+func (o SValues) First() Any {
+	return o[0]
+}
+
+func (o SValues) Rest() SValues {
+	return SValues(o[1:])
+}
+
 // label type
 
 type SLabel struct {
@@ -546,6 +583,10 @@ type SLabel struct {
 
 func NewLabel(l, d Any) Any {
 	return SLabel{it: d, label: int(l.(SLabel).it.(Sint64))}
+}
+
+func (o SLabel) GetHash() uintptr {
+	return 0
 }
 
 func (o SLabel) GetType() int {
@@ -566,7 +607,26 @@ func (o SLabel) String() string {
 // hashtable type
 
 type STable struct {
-	it map[Any]Any
+	/*
+	 * The Go specification states that map types can have
+	 * any key types for which == and != are defined, which
+	 * includes any type except for function, map, or slice.
+	 * Droscheme uses ALOT of slice types, and so about 4 of the
+	 * types that implement Any are slice types, so instead of
+	 * map[Any]Any we have a map from uintptr (the hash type)
+	 * to a bucket slice, which we iterate through for equality.
+	 */
+	it map[uintptr][]Any
+	hashFn Any
+	equivFn Any
+}
+
+func IsTable(a Any) bool {
+	return IsType(a, TypeCodeTable)
+}
+
+func MakeTable(hash, equiv, k Any) STable {
+	return STable{make(map[uintptr][]Any, ToFixnum(k)), hash, equiv}
 }
 
 func (o STable) GetType() int {
@@ -577,12 +637,158 @@ func (o STable) GetHash() uintptr {
 	return 0 // TODO
 }
 
+func (o STable) hash(a Any) uintptr {
+	return uintptr(ToFixnum(o.hashFn.(Applier).Apply(list1(a))))
+}
+
+func (o STable) equiv(a, b Any) bool {
+	return bool(o.equivFn.(Applier).Apply(list2(a, b)).(SBool))
+}
+
+func (o STable) dump() string {
+	return fmt.Sprintf("%v", o.it)
+}
+
 func (o STable) Equal(a Any) bool {
 	return Equal(o, a)
 }
 
 func (o STable) String() string {
-	return fmt.Sprintf("#<hashtable>")
+	return fmt.Sprintf("#<hashtable:%s>", o.dump())
+}
+
+func (o STable) Ref(k Any) Any {
+	hash := o.hash(k)
+	bucket := o.it[hash]
+	fmt.Printf("hashtable-ref: found bucket %v\n", bucket)
+	if bucket == nil {
+		return nil
+	}
+	for i := 0; i < len(bucket); i++ {
+		pair := bucket[i].(*List)
+		car, cdr := pair.car, pair.cdr
+		if o.equiv(car, k) {
+			fmt.Printf("hashtable-ref: found pair %v\n", pair)
+			return cdr
+		}
+	}
+	return nil
+}
+
+func (o STable) Set(k, v Any) {
+	hash := o.hash(k)
+	bucket := o.it[hash]
+	fmt.Printf("hashtable-set!: found bucket %v\n", bucket)
+	if bucket == nil {
+		o.it[hash] = []Any{list1R(k, v)}
+		return
+	}
+	for i := 0; i < len(bucket); i++ {
+		pair := bucket[i].(*List)
+		if o.equiv(pair.car, k) {
+			fmt.Printf("hashtable-set!: found pair %v\n", pair)
+			bucket[i] = list1R(k, v)
+		}
+	}
+	bucket = append(bucket, list1R(k, v))
+	return
+}
+
+func (o STable) Delete(k Any) {
+	hash := o.hash(k)
+	bucket := o.it[hash]
+	fmt.Printf("hashtable-delete!: found bucket %v\n", bucket)
+	if bucket == nil {
+		return
+	}
+	buf := []Any{}
+	for i := 0; i < len(bucket); i++ {
+		pair := bucket[i].(*List)
+		if o.equiv(pair.car, k) {
+			fmt.Printf("hashtable-delete!: found pair %v\n", pair)
+		} else {
+			buf = append(buf, pair)
+		}
+	}
+	bucket = buf
+	return
+	
+}
+
+func (o STable) Items() []Any {
+	pairs := []Any{}
+	for _, bucket := range o.it {
+		for _, pair := range bucket {
+			pairs = append(pairs, pair)
+		}
+	}
+	//sort.Sort(sort.StringSlice(keys))
+	return pairs
+}
+
+func (o STable) Entries() (keys []Any, values []Any) {
+	keys = []Any{}
+	values = []Any{}
+	for _, bucket := range o.it {
+		for _, pair := range bucket {
+			keys = append(keys, pair.(*List).car)
+			values = append(values, pair.(*List).cdr)
+		}
+	}
+	return
+}
+
+func (o STable) Keys() []Any {
+	keys, _ := o.Entries()
+	return keys
+}
+
+func (o STable) Values() []Any {
+	_, values := o.Entries()
+	return values
+}
+
+type SError struct {
+	err error
+	it Any
+	code int
+}
+
+func IsError(a Any) bool {
+	return IsType(a, TypeCodeError)
+}
+
+func MakeError(err error) SError {
+	return SError{err: err}
+}
+
+func NewError(msg, irr Any) SError {
+	err := errors.New(msg.(SString).GoString())
+	return SError{err: err, it: irr}
+}
+
+func (o SError) Equal(a Any) bool {
+	return Equal(o, a)
+}
+
+func (o SError) GetType() int {
+	return TypeCodeError
+}
+
+func (o SError) GetHash() uintptr {
+	return SString(o.Error()).GetHash()
+}
+
+func (o SError) GetErrorType() int {
+	return o.code
+}
+
+func (o SError) Irritants() Any {
+	return o.it
+}
+
+func (o SError) Error() string {
+	return o.err.Error()
 }
 
 // environment type
@@ -598,6 +804,10 @@ func EmptyEnv() *Env {
 
 func (env *Env) GetType() int {
 	return TypeCodeEnvSpec
+}
+
+func (env *Env) GetHash() uintptr {
+	return 0 // TODO
 }
 
 func (env *Env) Equal(a Any) bool {
@@ -625,7 +835,7 @@ func (env *Env) Ref(symbol Any) Any {
 	if env.parent != nil {
 		return env.parent.Ref(symbol)
 	}
-	panic("unbound variable")
+	panic(fmt.Sprintf("unbound variable '%s'", id))
 	return nil
 }
 
@@ -648,9 +858,7 @@ func (env *Env) Set(symbol, value Any) Any {
 	panic(newEvalError("set! variable must be prebound"))
 }
 
-func (env *Env) Define(symbol, body Any) Any {
-	//fmt.Printf("Env.Define(%s) %s\n", symbol, body)
-	var value Any
+func (env *Env) DefValue(symbol, body Any) (id string, value Any) {
 	if IsSymbol(symbol) {
 		value = NewBegin(body, env)
 	} else if IsPair(symbol) {
@@ -663,10 +871,27 @@ func (env *Env) Define(symbol, body Any) Any {
 	if !IsSymbol(symbol) {
 		panic(newEvalError("define: expected variable"))
 	}
+	id = symbol.(SSymbol).name
+	return
+}
 
-	// main logic
-	id := symbol.(SSymbol).name
+func (env *Env) Define(symbol, body Any) Any {
+	//fmt.Printf("define(%s, %s)\n", symbol, body)
+	id, value := env.DefValue(symbol, body)
 	env.bound[id] = value
+	return Void()
+}
+
+func (env *Env) DefMacro(symbol, body Any) Any {
+	id, value := env.DefValue(symbol, body)
+	env.bound[id] = SProcSyntax{value.(SProc), id}
+	return Void()
+}
+
+func (env *Env) DefSyntax(symbol, rules Any) Any {
+	id := symbol.(SSymbol).name
+	o := rules.(SRuleSyntax)
+	env.bound[id] = SRuleSyntax{o.env, o.lits, o.body, id}
 	return Void()
 }
 
@@ -801,6 +1026,11 @@ type SPrimSyntax struct {
 	name string
 }
 
+type SProcSyntax struct {
+	form SProc
+	name string
+}
+
 type SCaseSyntax struct {
 	env *Env
 	expr Any
@@ -818,12 +1048,16 @@ type SRuleSyntax struct {
 
 // syntax methods
 
-func (o SPrimSyntax) GetType() int {
-	return TypeCodeSyntax
-}
-
 func (o SPrimSyntax) Equal(a Any) bool {
 	return false
+}
+
+func (o SPrimSyntax) GetHash() uintptr {
+	return 0
+}
+
+func (o SPrimSyntax) GetType() int {
+	return TypeCodeSyntax
 }
 
 func (o SPrimSyntax) Transform(kw, st Any, env *Env) Any {
@@ -834,8 +1068,35 @@ func (o SPrimSyntax) String() string {
 	return fmt.Sprintf("#<syntax:%s>", o.name)
 }
 
+func (o SProcSyntax) GetType() int {
+	return TypeCodeSyntax
+}
+
+func (o SProcSyntax) GetHash() uintptr {
+	return 0 // TODO
+}
+
+func (o SProcSyntax) Equal(a Any) bool {
+	return false
+}
+
+func (o SProcSyntax) Transform(kw, st Any, env *Env) Any {
+	//fmt.Printf("SProcSyntax.Transform\n")
+	expr := o.form.Apply(st)
+	//fmt.Println(expr)
+    return Deval(list2(expr, env))
+}
+
+func (o SProcSyntax) String() string {
+	return fmt.Sprintf("#<syntax:%s:>", o.name, o.form)
+}
+
 func (o SCaseSyntax) GetType() int {
 	return TypeCodeSyntax
+}
+
+func (o SCaseSyntax) GetHash() uintptr {
+	return 0 // TODO
 }
 
 func (o SCaseSyntax) Equal(a Any) bool {
@@ -843,7 +1104,8 @@ func (o SCaseSyntax) Equal(a Any) bool {
 }
 
 func (o SCaseSyntax) Transform(kw, st Any, env *Env) Any {
-    return values0()
+	// TODO
+    return Void()
 }
 
 func (o SCaseSyntax) String() string {
@@ -854,12 +1116,32 @@ func (o SRuleSyntax) GetType() int {
 	return TypeCodeSyntax
 }
 
+func (o SRuleSyntax) GetHash() uintptr {
+	return 0 // TODO
+}
+
 func (o SRuleSyntax) Equal(a Any) bool {
 	return false
 }
 
+func (o SRuleSyntax) MatchRule(rule, st Any, env *Env) (value Any, err error) {
+	return nil, nil
+}
+
 func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
-    return values0()
+    //env *Env
+    //lits Any
+    //body Any
+    //name string
+
+	// for each in body
+	for cur := o.body; IsPair(cur); cur = cur.(*List).cdr {
+		// one syntax rule
+		rule := cur.(*List).car
+		o.MatchRule(rule, st, env)
+	}
+
+    return Void()
 }
 
 func (o SRuleSyntax) String() string {
@@ -884,6 +1166,15 @@ type SProc struct {
 
 func NewPrim(fn func(Any) Any) Any {
 	return SPrim{call: fn}
+}
+
+func NewEval(body Any, env *Env) Any {
+	if _, ok := body.(SProc); !ok {
+		panic("define-macro: expected lambda")
+	}
+	a := list3(NewSymbol("apply"), body, NewSymbol("R"))
+	e := list3(NewSymbol("eval"), a, env)
+	return NewLambda(list2(NewSymbol("R"), e), env)
 }
 
 func NewBegin(body Any, env *Env) Any {
@@ -1023,6 +1314,10 @@ type SType struct {
 
 // type functions
 
+func (o SType) Equal(t Any) bool {
+	return o.GetType() == t.GetType()
+}
+
 func (o SType) GetType() int {
 	return TypeCodeType
 }
@@ -1034,7 +1329,7 @@ func (o SType) GetPortType() int {
 	return 0 // TODO
 }
 
-func TypeCode(a Any) int {
+func typeOf(a Any) int {
 	switch a.(type) {
 	case SBool: return TypeCodeBool
 	case SChar:	return TypeCodeChar
@@ -1056,6 +1351,55 @@ func TypeCode(a Any) int {
 	case SRuleSyntax: return TypeCodeSyntax
 	}
 	return TypeCodeAny
+}
+
+func typeToString(tc int) string {
+	switch tc {
+	case TypeCodeBool:
+		return "boolean"
+	case TypeCodeChar:
+		return "char"
+	case TypeCodeNull:
+		return "null"
+	case TypeCodePair:
+		return "pair"
+	case TypeCodeProc:
+		return "procedure"
+	case TypeCodeVoid:
+		return "void"
+	case TypeCodeBinary:
+		return "bytevector"
+	case TypeCodeString:
+		return "string"
+	case TypeCodeSymbol:
+		return "symbol"
+	case TypeCodeValues:
+		return "values"
+	case TypeCodeVector:
+		return "vector"
+	case TypeCodeTable:
+		return "hashtable"
+	case TypeCodeNumber:
+		return "number"
+	case TypeCodePort:
+		return "port"
+	case TypeCodeEnvSpec:
+		return "environment"
+	case TypeCodeSyntax:
+		return "syntax"
+	}
+	return "typeToString - WHAT!?!"
+}
+
+func seqHash(v []Any) uintptr {
+	hash32 := crc32.NewIEEE()
+	for i := 0; i < len(v); i++ {
+		_, err := hash32.Write([]byte(fmt.Sprintf("%s ", v[i])))
+		if err != nil {
+			panic(err)
+		}
+	}
+	return uintptr(hash32.Sum32())
 }
 
 func newError(s string) error {
@@ -1085,6 +1429,7 @@ func newWriteError(s string) error {
 // returns multiple values for argument handling
 // so I don't think we need to export any of these
 
+// equivalent to '()
 func list0() Any {
 	return SNull{}
 }
@@ -1101,6 +1446,7 @@ func list3(a, b, c Any) Any {
 	return list1R(a, list1R(b, list1R(c, list0())))
 }
 
+// equivalent to cons
 func list1R(a, rest Any) Any {
 	return &List{a, rest}
 }
@@ -1175,14 +1521,17 @@ func unlist3R(o Any) (a Any, b Any, c Any, r Any) {
 	return
 }
 
+func unlist0O(o Any, d Any) Any {
+    if IsPair(o) {
+        return o.(*List).car
+    }
+	return d
+}
+
 func unlist1O(o Any, d Any) (a Any, r Any) {
 	a = o.(*List).car
 	r = o.(*List).cdr
-    if IsPair(r) {
-        r = r.(*List).car
-    } else {
-        r = d
-    }
+	r = unlist0O(r, d)
 	return
 }
 
@@ -1191,11 +1540,18 @@ func unlist2O(o Any, d Any) (a Any, b Any, r Any) {
 	r = o.(*List).cdr
 	b = r.(*List).car
 	r = r.(*List).cdr
-    if IsPair(r) {
-        r = r.(*List).car
-    } else {
-        r = d
-    }
+	r = unlist0O(r, d)
+	return
+}
+
+func unlist3O(o Any, d Any) (a Any, b Any, c Any, r Any) {
+	a = o.(*List).car
+	r = o.(*List).cdr
+	b = r.(*List).car
+	r = r.(*List).cdr
+	c = r.(*List).car
+	r = r.(*List).cdr
+	r = unlist0O(r, d)
 	return
 }
 

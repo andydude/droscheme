@@ -33,6 +33,7 @@ const (
 	TypeCodeValues  // multiple return values
 	TypeCodeSyntax  //                            -- Transformer interface
 	TypeCodeEnvSpec
+	TypeCodeError
 	TypeCodeLabel
 	TypeCodeVoid
 
@@ -72,6 +73,7 @@ const (
 
 type Any interface {
 	GetType() int
+	GetHash() uintptr
 	Equal(Any) bool
 }
 
@@ -84,7 +86,13 @@ func Equal(x, y Any) bool {
 }
 
 func Hash(o Any) uintptr {
-	return reflect.ValueOf(&o).Pointer()
+	//return reflect.ValueOf(&o).Pointer()
+	return o.GetHash()
+}
+
+type Error interface {
+	error
+	Irritants() Any
 }
 
 type Evaler interface {
@@ -105,3 +113,4 @@ type Transformer interface {
 // TODO: make a table of STypes with type names etc.
 //GetTypeName() string can come form table
 //GetTypeInfo() Any can come from table
+

@@ -5,7 +5,7 @@
     write-simple)
   (import
    (only
-    (builtin)
+    (ds base)
     display
     write
     write-simple)))

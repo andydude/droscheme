@@ -3,5 +3,5 @@
     load)
   (import
    (only
-    (builtin)
+    (ds base)
     load)))

@@ -3,5 +3,5 @@
     read)
   (import
    (only
-    (builtin)
+    (ds base)
     read)))
