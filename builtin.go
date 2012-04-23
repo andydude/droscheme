@@ -1072,9 +1072,9 @@ func Dlength(a Any) Any {
 	case IsNull(o):
 		return Sint64(0)
 	case IsPair(o):
-		return Sint64(1 + ToFixnum(Dlength(o.(*List).cdr)))
+		return Sint64(1 + ToFixnum(Dlength(list1(o.(*List).cdr))))
 	}
-	return Sint64(1)
+	return Sint64(-10000)
 }
 
 // (list ...)

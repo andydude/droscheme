@@ -19,17 +19,19 @@
   [] test suite [AJR]
 
 - Syntax
-  [?] (define-syntax)
+  [X] (define-syntax)
   [] (let-syntax)
   [] (letrec-syntax)
   [?] syntax-error, TODO: differentiate from (error)
-  [] (syntax-rules)
+  [X] (syntax-rules)
   [] (syntax-case) -- low priority
   ---
   [X] Label these as [S] for syntax or [D] for dependant on syntax-rules
   [] research
   [] see if (define-record-type) can be derived syntax
   [] see if (parameterize) can be derived syntax
+  [] (a ...) works, but ((a b) ...) doesn't
+  [] let loop -- this should be builtin
 
 - Control flow
   [] (call/cc)
@@ -38,7 +40,9 @@
   [] (with-exception-handler)
   ---
   [X] Label these as [C] for control
+  [?] raise-continuable -- may be revisited
   [] research
+
 
 - Library support
   [] cond-expand
@@ -64,12 +68,9 @@
 - (scheme base) R7RS
   If you don't see the function here, then it means 
   that it's been implemented completely
-  [D] and -- requires syntax-rules
   [C] call/cc
   [X] call/ec
-  [D] case -- requires syntax-rules
   [D] case-lambda -- requires syntax-rules
-  [D] cond -- requires syntax-rules
   [L] cond-expand
   [R] define-record-type
   [S] define-syntax
@@ -77,28 +78,15 @@
   [X] define-values
   [D] do
   [C] dynamic-wind
-  [X] exact-integer-sqrt -- depends on rationalize
-  [X] exact-integer?
   [C] guard
   [X] integer->char
   [L] import -- for programs
   [X] let
-  [D] let loop -- requires syntax-rules
   [X] let*
-  [D] let*-values -- requires syntax-rules
   [S] let-syntax
-  [D] let-values -- requires syntax-rules
-  [D] letrec -- requires syntax-rules
-  [D] letrec* -- requires syntax-rules
   [S] letrec-syntax
-  [D] or -- requires syntax-rules
   [R] parameterize
-  [X] raise
-  [?] raise-continuable -- may be revisited
-  [X] rationalize
-  [S] syntax-rules -- URGENT
-  [D] unless -- requires syntax-rules
-  [D] when -- requires syntax-rules
+  [X] syntax-rules
   [C] with-exception-handler
   [D] zero? -- requires case
 

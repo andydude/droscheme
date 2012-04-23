@@ -850,6 +850,9 @@
 ;(define (read-u8))
 ;(define (real?))
 
+(define (real-zero? x)
+  (equal? x 0))
+
 (define (remp proc ls)
   (if (null? ls) ()
       (if (proc (car ls))
@@ -1001,14 +1004,12 @@
 
 ;(define (write-u8))
 
-;(define (zero? z)
-;  (cond
-;   ((complex-polar? z)
-;    (real-zero? (magnitude z)))
-;   ((complex-rect? z)
-;    (and (real-zero? (real-part z))
-;         (real-zero? (imag-part z))))
-;   ((real? z) (real-zero? z))))
+(define (zero? z)
+  (if (real? z)
+      (real-zero? z)
+      (if (complex? z)
+          (and (real-zero? (real-part z))
+               (real-zero? (imag-part z))))))
 
 ;);begin
 ;);define-library
