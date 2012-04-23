@@ -811,7 +811,11 @@
 ;(define (number->string))
 ;(define (number?))
 ;(define (numerator))
-;(define (odd?))
+
+(define (odd? n)
+  (and (integer? n)
+       (not (zero? (modulo n 2)))))
+
 ;(define (open-input-bytevector))
 ;(define (open-input-string))
 ;(define (open-output-bytevector))
@@ -822,9 +826,9 @@
 ;(define (port-open?))
 ;(define (port?))
 
-(define (positive?)
+(define (positive? x)
   (if (real? x)
-      (num< x 0)
+      (num> x 0)
       #f))
 
 ;(define (procedure?))

@@ -1242,7 +1242,7 @@ func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
 		if pat.(Matcher).Match(st, cenv) {
 			expr := tmp.(Replacer).Replace(cenv)
 			//fmt.Printf("RuleSyntax.Transform() = %s\n", expr)
-			return Deval(list2(expr, o.env))
+			return Deval(list2(expr, env))
 			//return expr
 		}
 	}
