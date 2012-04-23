@@ -77,6 +77,14 @@ type Any interface {
 	Equal(Any) bool
 }
 
+type Matcher interface {
+	Match(syntax Any, env *Env) bool
+}
+
+type Replacer interface {
+	Replace(env *Env) Any
+}
+
 func IsType(o Any, tag int) bool {
 	return o.GetType() == tag
 }
@@ -109,6 +117,7 @@ type Transformer interface {
 	// (syntax).Transform(keyword, expression, environment)
 	Transform(Any, Any, *Env) Any
 }
+
 
 // TODO: make a table of STypes with type names etc.
 //GetTypeName() string can come form table

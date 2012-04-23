@@ -190,7 +190,7 @@ func OpenBIFile(filename string) Any {
 	if err != nil {
 		panic(err)
 	}
-	return SFilePort{f, filename, PortTypeCodeByteIn}
+	return SFilePort{f, filename, PortTypeCodeByteIn, false}
 }
 
 // (open-binary-output-file f)
@@ -199,7 +199,7 @@ func OpenBOFile(filename string) Any {
 	if err != nil {
 		panic(err)
 	}
-	return SFilePort{f, filename, PortTypeCodeByteOut}
+	return SFilePort{f, filename, PortTypeCodeByteOut, false}
 }
 
 // (open-input-file f)
@@ -208,7 +208,7 @@ func OpenTIFile(filename string) Any {
 	if err != nil {
 		panic(err)
 	}
-	return SFilePort{f, filename, PortTypeCodeCharIn}
+	return SFilePort{f, filename, PortTypeCodeCharIn, false}
 }
 
 // (open-output-file f)
@@ -217,7 +217,7 @@ func OpenTOFile(filename string) Any {
 	if err != nil {
 		panic(err)
 	}
-	return SFilePort{f, filename, PortTypeCodeCharOut}
+	return SFilePort{f, filename, PortTypeCodeCharOut, false}
 }
 
 // file port
@@ -226,6 +226,7 @@ type SFilePort struct {
 	*os.File
 	name string
 	code int
+	closed bool
 }
 
 func (o SFilePort) Equal(a Any) bool {
@@ -287,6 +288,10 @@ func (o SFilePort) ReadRune() (r rune, size int, err error) {
 
 func (o SFilePort) WriteRunes(r []rune) (n int, err error) {
 	return o.Write([]byte(string(r)))
+}
+
+func (o SFilePort) Closed() bool {
+	return o.closed
 }
 
 //func (o SFilePort) ReadByte() (c byte, err error) {

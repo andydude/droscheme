@@ -61,7 +61,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyMaxDepth = 200
 
-//line parse.y:234
+//line parse.y:242
 
 // BEGIN functions
 
@@ -496,77 +496,77 @@ yydefault:
 	        yyVAL.datum = listR(yyS[yypt-3].datum, yyS[yypt-1].datum)
 		}
 	case 18:
-		//line parse.y:163
+		//line parse.y:171
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 	    }
 	case 19:
-		//line parse.y:169
+		//line parse.y:177
 		{
 	        yyVAL.datum = list1(yyS[yypt-0].datum)
 		}
 	case 20:
-		//line parse.y:173
+		//line parse.y:181
 		{
 	        yyVAL.datum = list1R(yyS[yypt-1].datum, yyS[yypt-0].datum)
 		}
 	case 21:
-		//line parse.y:179
+		//line parse.y:187
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 		}
 	case 22:
-		//line parse.y:183
+		//line parse.y:191
 		{
 	        yyVAL.datum = list0()
 		}
 	case 23:
-		//line parse.y:189
+		//line parse.y:197
 		{
 	        yyVAL.datum = list2(SSymbol{"quote"}, yyS[yypt-0].datum)
 		}
 	case 24:
-		//line parse.y:193
+		//line parse.y:201
 		{
 	        yyVAL.datum = list2(SSymbol{"quasiquote"}, yyS[yypt-0].datum)
 		}
 	case 25:
-		//line parse.y:197
+		//line parse.y:205
 		{
 	        yyVAL.datum = list2(SSymbol{"unquote"}, yyS[yypt-0].datum)
 		}
 	case 26:
-		//line parse.y:201
+		//line parse.y:209
 		{
 	        yyVAL.datum = list2(SSymbol{"unquote-splicing"}, yyS[yypt-0].datum)
 		}
 	case 27:
-		//line parse.y:205
+		//line parse.y:213
 		{
 	        yyVAL.datum = list2(SSymbol{"syntax"}, yyS[yypt-0].datum)
 		}
 	case 28:
-		//line parse.y:209
+		//line parse.y:217
 		{
 	        yyVAL.datum = list2(SSymbol{"quasisyntax"}, yyS[yypt-0].datum)
 		}
 	case 29:
-		//line parse.y:213
+		//line parse.y:221
 		{
 	        yyVAL.datum = list2(SSymbol{"unsyntax"}, yyS[yypt-0].datum)
 		}
 	case 30:
-		//line parse.y:217
+		//line parse.y:225
 		{
 	        yyVAL.datum = list2(SSymbol{"unsyntax-splicing"}, yyS[yypt-0].datum)
 		}
 	case 31:
-		//line parse.y:223
+		//line parse.y:231
 		{
 	        yyVAL.datum = DlistZKZRvector(list1(yyS[yypt-1].datum))
 		}
 	case 32:
-		//line parse.y:229
+		//line parse.y:237
 		{
 	        yyVAL.datum = Du8ZKlistZKZRbytevector(list1(yyS[yypt-1].datum))
 		}

@@ -838,7 +838,7 @@ func DfoldZKright(a Any) Any {
 	if IsNull(rest) {
 		return Dapply(list2(proc, list1(null)))
 	}
-	if Length(rest) > 1 {
+	if ToFixnum(Dlength(list1(rest))) > 1 {
 		panic("expected binary procedure")
 	}
 	ls := unlist1(rest)
@@ -1065,7 +1065,16 @@ func DlastZKpair(a Any) Any {
 }
 
 func Dlength(a Any) Any {
-	return Sint64(Length(unlist1(a)))
+	o := unlist1(a)
+
+	// cycle detection (only needed in mutable model)
+	switch {
+	case IsNull(o):
+		return Sint64(0)
+	case IsPair(o):
+		return Sint64(1 + ToFixnum(Dlength(o.(*List).cdr)))
+	}
+	return Sint64(1)
 }
 
 // (list ...)
@@ -1141,7 +1150,20 @@ func DlistZKtail(a Any) Any {
 }
 
 func DlistZS(a Any) Any {
-	return SBool(IsList(unlist1(a)))
+	ls := unlist1(a)
+
+	// By definition, all lists are chains of pairs that have
+	// finite length and are terminated by the empty list. [R6RS]
+
+	// cycle detection (only needed in mutable model)
+	switch {
+	case IsNull(ls):
+		return SBool(true)
+	case IsPair(ls):
+		return DlistZS(list1(ls.(*List).cdr))
+	}
+
+	return SBool(false)
 }
 
 func Dload(a Any) Any {
@@ -2097,6 +2119,33 @@ func DschemeZKreportZKenvironment(a Any) Any {
 	return env
 }
 
+func DshowZKlist(a Any) Any {
+	if DlistZS(a).(SBool) {
+		v := DlistZKZRvector(a)
+		s := fmt.Sprintf("%s", v)
+		return ToString(s[1:])
+	}
+
+	o := unlist1(a).(*List)
+
+	return ToString(fmt.Sprintf("(%s . %s)", o.car, o.cdr))
+}
+
+func DshowZKvector(a Any) Any {
+	o := unlist1(a).(SVector)
+
+	if len(o) == 0 {
+		return ToString("#()")
+	}
+
+	var ret string = ""
+	for i := 0; i < len(o); i++ {
+		ret += fmt.Sprintf(" %s", o[i])
+	}
+
+	return ToString(fmt.Sprintf("#(%s)", ret[1:]))
+}
+
 func DsimplestZKrationalZKZRexact(a Any) Any {
 	// see also <http://trac.sacrideo.us/wg/wiki/RationalizeDefinition>
 	lo, hi := unlist2float64(a)
@@ -2136,15 +2185,15 @@ func Dsqrt(a Any) Any {
 }
 
 func DstandardZKerrorZKport(a Any) Any {
-	return SFilePort{os.Stderr, "/dev/stderr", PortTypeCodeCharOut}
+	return SFilePort{os.Stderr, "/dev/stderr", PortTypeCodeCharOut, false}
 }
 
 func DstandardZKinputZKport(a Any) Any {
-	return SFilePort{os.Stdin, "/dev/stdin", PortTypeCodeCharIn}
+	return SFilePort{os.Stdin, "/dev/stdin", PortTypeCodeCharIn, false}
 }
 
 func DstandardZKoutputZKport(a Any) Any {
-	return SFilePort{os.Stdout, "/dev/stdout", PortTypeCodeCharOut}
+	return SFilePort{os.Stdout, "/dev/stdout", PortTypeCodeCharOut, false}
 }
 
 func Dstring(a Any) Any {

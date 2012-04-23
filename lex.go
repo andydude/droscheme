@@ -282,7 +282,30 @@ func (lex *Lexer) lexString() State {
 func (lex *Lexer) lexChar() State {
 	// assume we've consumed '#' '\\' already
 	ch := lex.next()
-	if ch == 'x' {
+	pk := lex.peek()
+	switch {
+	case ch == 'a' && pk == 'l': // alarm		
+	case ch == 'b' && pk == 'a': // backspace
+	case ch == 'd' && pk == 'e': // delete
+	case ch == 'e' && pk == 's': // esc
+	case ch == 'l' && pk == 'i': // linefeed
+		lex.match("inefeed")
+		lex.emitDatum(CHAR, SChar('\n'))
+	case ch == 'n' && pk == 'e': // newline
+		lex.match("ewline")
+		lex.emitDatum(CHAR, SChar('\n'))
+	case ch == 'v' && pk == 't': // vtab
+	case ch == 'p' && pk == 'a': // page
+	case ch == 'r' && pk == 'e': // return
+		lex.match("eturn")
+		lex.emitDatum(CHAR, SChar('\r'))
+	case ch == 's' && pk == 'p': // space
+		lex.match("pace")
+		lex.emitDatum(CHAR, SChar(' '))
+	case ch == 't' && pk == 'a': // tab
+		lex.match("ab")
+		lex.emitDatum(CHAR, SChar('\t'))
+	case ch == 'x' && lex.isDigit16():
 		lex.peek()
 		lex.consume()
 		for lex.isDigit16() {
@@ -292,7 +315,7 @@ func (lex *Lexer) lexChar() State {
 		base = 16
 		ret := lex.getInt().(Sint64)
 		lex.emitDatum(CHAR, SChar(ret))
-	} else {
+	default:
 		lex.emitDatum(CHAR, SChar(ch))
 	}
 	return (*Lexer).lexToken
@@ -314,6 +337,7 @@ func (lex *Lexer) lexDot() State {
 	if lex.next() == '.' {
 		if lex.next() == '.' {
 			lex.emitId("...")
+			//lex.emit(ELLIPSIS)
 			return (*Lexer).lexToken
 		} else {
 			panic("expected ...")

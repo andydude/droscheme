@@ -56,22 +56,7 @@
   [] test suite
 
 - Hash Tables (from R6RS, and perhaps R7RS-large)
-  [X] hashtable-clear!
-  [X] hashtable-contains?
-  [?] hashtable-copy, TODO: immutability
-  [X] hashtable-delete!
-  [X] hashtable-entries
-  [X] hashtable-equivalence-function
-  [X] hashtable-hash-function
-  [X] hashtable-keys
   [?] hashtable-mutable?, TODO: immutability
-  [X] hashtable-ref
-  [X] hashtable-set!
-  [X] hashtable-size
-  [X] hashtable-update!
-  [X] hashtable?
-  [X] hashtable->list
-  [X] hashtable->vector
   [] list->hashtable -- equal? based
   [] vector->hashtable -- equal? based
   [] test suite [AJR]
@@ -92,24 +77,11 @@
   [X] define-values
   [D] do
   [C] dynamic-wind
-  [X] eof-object
-  [X] eof-object?
-  [X] error
-  [X] error-object-irritants
-  [X] error-object-message
-  [X] error-object?
   [X] exact-integer-sqrt -- depends on rationalize
   [X] exact-integer?
-  [X] floor
-  [X] flush-output-port
-  [X] gcd
-  [X] get-output-bytevector
-  [X] get-output-string
   [C] guard
   [X] integer->char
   [L] import -- for programs
-  [X] lambda
-  [X] lcm
   [X] let
   [D] let loop -- requires syntax-rules
   [X] let*
@@ -119,53 +91,15 @@
   [D] letrec -- requires syntax-rules
   [D] letrec* -- requires syntax-rules
   [S] letrec-syntax
-  [X] make-bytevector
-  [X] make-list
-  [X] make-parameter
-  [X] make-string
-  [X] make-vector
-  [X] max
-  [X] min
-  [X] newline
-  [X] open-binary-input-file
-  [X] open-binary-output-file
-  [X] open-input-file
-  [X] open-input-bytevector
-  [X] open-input-string
-  [X] open-output-file
-  [X] open-output-bytevector
-  [X] open-output-string
   [D] or -- requires syntax-rules
   [R] parameterize
-  [X] peek-char
-  [X] peek-u8
-  [X] port-open?
   [X] raise
   [?] raise-continuable -- may be revisited
-  [] rationalize
-  [X] read-bytevector
-  [X] read-bytevector!
-  [X] read-char
-  [X] read-line
-  [X] read-u8
-  [X] reverse
-  [X] round
-  [X] set!
-  [X] set-car!
-  [X] set-cdr!
-  [X] string->list
-  [X] string->number
-  [X] string->symbol
-  [X] substring
-  [X] symbol->string
+  [X] rationalize
   [S] syntax-rules -- URGENT
   [D] unless -- requires syntax-rules
   [D] when -- requires syntax-rules
   [C] with-exception-handler
-  [X] write-bytevector
-  [X] write-char
-  [X] write-partial-bytevector
-  [X] write-u8
   [D] zero? -- requires case
 
 - Other

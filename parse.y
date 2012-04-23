@@ -159,6 +159,14 @@ list:
 	{
         $$ = listR($2, $4)
 	}
+//|	'(' datums1 ELLIPSIS ')'
+//	{
+//        $$ = DlistZH($2)
+//	}
+//|	'[' datums1 ELLIPSIS ']'
+//	{
+//        $$ = DlistZH($2)
+//	}
 |	abbreviation
     {
         $$ = $1

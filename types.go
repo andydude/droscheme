@@ -92,6 +92,14 @@ func (o SBool) Equal(a Any) bool {
 	return o == a.(SBool)
 }
 
+func (o SBool) Match(syntax Any, env *Env) bool {
+	return o.Equal(syntax)
+}
+
+func (o SBool) Replace(env *Env) Any {
+	return o
+}
+
 func (o SBool) String() string {
 	if o {
 		return "#t"
@@ -116,6 +124,14 @@ func (o SChar) GetType() int {
 
 func (o SChar) GetHash() uintptr {
 	return uintptr(int(o))
+}
+
+func (o SChar) Match(syntax Any, env *Env) bool {
+	return o.Equal(syntax)
+}
+
+func (o SChar) Replace(env *Env) Any {
+	return o
 }
 
 func (o SChar) Equal(a Any) bool {
@@ -156,8 +172,9 @@ func (_ SVoid) Equal(a Any) bool {
 }
 
 func (_ SVoid) String() string {
-	//return "#<unspecified>"
-	return ""
+	// for debug
+	return "#<unspecified>"
+	//return ""
 }
 
 // null type
@@ -186,16 +203,24 @@ func (_ SNull) Equal(a Any) bool {
 	return true
 }
 
+func (o SNull) Eval(env *Env) Any {
+	return o
+}
+
+func (o SNull) Match(syntax Any, env *Env) bool {
+	return o.Equal(syntax)
+}
+
+func (o SNull) Replace(env *Env) Any {
+	return o
+}
+
 func (_ SNull) String() string {
 	return "()"
 }
 
 func (o SNull) ToVector() Any {
 	return SVector([]Any{})
-}
-
-func (o SNull) Eval(env *Env) Any {
-	return o
 }
 
 // s:pair type
@@ -213,7 +238,7 @@ func IsPair(o Any) bool {
 }
 
 func (o *List) GetHash() uintptr {
-	return 0 // TODO
+	return seqHash([]Any(DlistZHZKZRvector(list1(o)).(SVector)))
 }
 
 func (o *List) GetType() int {
@@ -231,13 +256,56 @@ func (o *List) Eval(env *Env) Any {
 	return list1R(car, cdr)
 }
 
-func (o *List) String() string {
-	if IsList(o) {
-		v := listToVector(o)
-		s := fmt.Sprintf("%s", v)
-		return s[1:]
+func (p *List) Match(syntax Any, env *Env) bool {
+	pas, pds := unlist1R(p) // pattern
+
+	//fmt.Printf("List.Match(%s, %s)\n", p, syntax)
+
+	if IsPair(pds) {
+		pads := pds.(*List).car
+		if IsSymbol(pads) && pads.(SSymbol).String() == "..." {
+			//fmt.Printf("got to ellipsis")
+			if IsSymbol(pas) {
+				if env.Has(pas) {
+					panic(newSyntaxError("list-match expected unbound symbol"))
+				}
+				env.DefMatch(pas, syntax)
+				return true
+			}
+
+			// TODO
+			panic(newSyntaxError("ellipsis is only implemented for symbols"))
+		}
 	}
-	return fmt.Sprintf("(%s . %s)", o.car, o.cdr)
+
+	cas, cds := unlist1R(syntax)
+
+	if !pas.(Matcher).Match(cas, env) {
+		return false
+	}
+	if !pds.(Matcher).Match(cds, env) {
+		return false
+	}
+	return true
+}
+
+func (t *List) Replace(env *Env) Any {
+	tas, tds := unlist1R(t)
+
+	if IsPair(tds) {
+		tads := tds.(*List).car
+		if IsSymbol(tads) && tads.(SSymbol).String() == "..." {
+			return env.Ref(tas)
+		}
+	}
+
+	car := tas.(Replacer).Replace(env)
+	cdr := tds.(Replacer).Replace(env)
+	return list1R(car, cdr)
+}
+
+func (o *List) String() string {
+	return DshowZKlist(list1(o)).(SString).GoString()
 }
 
 func (o *List) ToVector() Any {
@@ -258,10 +326,10 @@ func (o *List) Rest() Any {
 }
 
 func listToVector(a Any) SVector {
-	switch a.(type) {
-	case SNull:
+	switch {
+	case IsNull(a):
 		return a.(SNull).ToVector().(SVector)
-	case *List:
+	case IsPair(a):
 		return a.(*List).ToVector().(SVector)
 	}
 	panic(newTypeError("list->vector expected list"))
@@ -296,31 +364,6 @@ func bindingsToPair(a Any) (ls, rs Any) {
 	ls = NewVector(lhs).ToList()
 	rs = NewVector(rhs).ToList()
 	return
-}
-
-func IsList(o Any) bool {
-	// By definition, all lists are chains of pairs that have
-	// finite length and are terminated by the empty list. [R6RS]
-
-	// cycle detection (only needed in mutable model)
-	switch o.GetType() {
-	case TypeCodeNull:
-		return true
-	case TypeCodePair:
-		return IsList(o.(*List).cdr)
-	}
-	return false
-}
-
-func Length(o Any) int {
-	// cycle detection (only needed in mutable model)
-	switch o.GetType() {
-	case TypeCodePair:
-		return 1 + Length(o.(*List).cdr)
-	case TypeCodeNull:
-		return 0
-	}
-	return 1
 }
 
 // s:bytevector type
@@ -436,6 +479,9 @@ func (o SSymbol) GetHash() uintptr {
 }
 
 func (o SSymbol) Equal(a Any) bool {
+	if !IsSymbol(a) {
+		return false
+	}
 	return o.name == a.(SSymbol).name
 }
 
@@ -443,6 +489,28 @@ func (o SSymbol) Eval(env *Env) Any {
 	value := env.Ref(o)
 	if value == nil {
 		panic(newEvalError("variable not bound in environment: " + o.name))
+	}
+	return value
+}
+
+func (o SSymbol) Match(syntax Any, env *Env) bool {
+	// TODO: if o isin literals, then return true
+	if o.name == "_" { return true }
+	if o.name == "..." {
+		panic("we were supposed to catch ... earlier")
+		return false
+	}
+	if value := env.Ref(o); value != nil && o.Equal(value) {
+		return o.Equal(syntax)
+	}
+	env.DefMatch(o, syntax)
+	return true
+}
+
+func (o SSymbol) Replace(env *Env) Any {
+	value := env.Ref(o)
+	if value == nil {
+		return o
 	}
 	return value
 }
@@ -500,15 +568,7 @@ func (o SVector) Set(k, v Any) Any {
 }
 
 func (o SVector) String() string {
-	if len(o) == 0 {
-		return "#()"
-	}
-
-	var ret string = ""
-	for i := 0; i < len(o); i++ {
-		ret += fmt.Sprintf(" %s", o[i])
-	}
-	return fmt.Sprintf("#(%s)", ret[1:])
+	return DshowZKvector(list1(o)).(SString).GoString()
 }
 
 func IsEmpty(a Any) bool {
@@ -818,6 +878,12 @@ func (env *Env) Extend() *Env {
 	return &Env{bound: make(map[string]Any, 1024), parent: env}
 }
 
+func (env *Env) Update(child *Env) *Env {
+	// child environment must have no parent,
+	// but if it does, then it will be ignored
+	return &Env{bound: child.bound, parent: env}
+}
+
 func (env *Env) Has(symbol Any) bool {
 	//fmt.Printf("Env.Has(%s)\n", symbol)
 	if env.Ref(symbol) == nil {
@@ -835,7 +901,8 @@ func (env *Env) Ref(symbol Any) Any {
 	if env.parent != nil {
 		return env.parent.Ref(symbol)
 	}
-	panic(fmt.Sprintf("unbound variable '%s'", id))
+	// this can't happen because .Has uses this code
+	//panic(fmt.Sprintf("unbound variable '%s'", id))
 	return nil
 }
 
@@ -882,6 +949,11 @@ func (env *Env) Define(symbol, body Any) Any {
 	return Void()
 }
 
+func (env *Env) DefMatch(symbol, value Any) Any {
+	id := symbol.(SSymbol).name
+	env.bound[id] = value
+	return Void()
+}
 func (env *Env) DefMacro(symbol, body Any) Any {
 	id, value := env.DefValue(symbol, body)
 	env.bound[id] = SProcSyntax{value.(SProc), id}
@@ -1124,21 +1196,44 @@ func (o SRuleSyntax) Equal(a Any) bool {
 	return false
 }
 
-func (o SRuleSyntax) MatchRule(rule, st Any, env *Env) (value Any, err error) {
-	return nil, nil
-}
-
 func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
-    //env *Env
-    //lits Any
-    //body Any
-    //name string
+	/* (syntax-rules (literals ...)
+	 *   (patterns templates) ...)
+	 */
+	// the input syntax 'st' is evaluated with env
+	// the match(st, pat) produces a new env renv
+	// the template syntax 'tmp' is evaluated with o.env.Update(renv)
+
+	cenv := EmptyEnv() // child env for pattern variables
+
+	for cur := o.lits; IsPair(cur); cur = cur.(*List).cdr {
+		// this environment is also used as a set
+		symbol := cur.(*List).car
+		if !IsSymbol(symbol) {
+			panic(newTypeError("syntax-rules expected symbol literal"))
+		}
+		cenv.DefMatch(symbol, symbol)
+	}
 
 	// for each in body
 	for cur := o.body; IsPair(cur); cur = cur.(*List).cdr {
 		// one syntax rule
 		rule := cur.(*List).car
-		o.MatchRule(rule, st, env)
+		pat := Dcdr(list1(Dcar(list1(rule))))
+		tmp := DlistZKref(list2(rule, Sint64(1)))
+
+		//fmt.Printf("MatchRule(")
+		//fmt.Printf("syntax=%s, ", st)
+		//fmt.Printf("pattern=%s, ", pat)
+		//fmt.Printf("template=%s", tmp)
+		//fmt.Printf(")\n")
+
+		if pat.(Matcher).Match(st, cenv) {
+			expr := tmp.(Replacer).Replace(cenv)
+			//fmt.Printf("RuleSyntax.Transform() = %s\n", expr)
+			return Deval(list2(expr, o.env))
+			//return expr
+		}
 	}
 
     return Void()
