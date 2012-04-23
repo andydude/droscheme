@@ -259,18 +259,26 @@ func (o *List) Eval(env *Env) Any {
 func (p *List) Match(syntax Any, env *Env) bool {
 	pas, pds := unlist1R(p) // pattern
 
-	//fmt.Printf("List.Match(%s, %s)\n", p, syntax)
+	//fmt.Printf("List.Match[ %s, %s ]\n", p, syntax)
 
 	if IsPair(pds) {
 		pads := pds.(*List).car
 		if IsSymbol(pads) && pads.(SSymbol).String() == "..." {
-			//fmt.Printf("got to ellipsis")
+			//fmt.Printf("= ellipsis = %s\n", syntax)
 			if IsSymbol(pas) {
 				if env.Has(pas) {
+					KdumpZKenvironment(pas, pds, env)
+					//fmt.Printf("= %s = %s\n", pas, env.Ref(pas))
+					//fmt.Printf("= %s | %s\n", p, syntax)
 					panic(newSyntaxError("list-match expected unbound symbol"))
 				}
-				env.DefMatch(pas, syntax)
-				return true
+				if IsNull(syntax) || IsPair(syntax) {
+					env.DefMatch(pas, syntax)
+					//fmt.Printf("= #t 0\n")
+					return true
+				}
+				//fmt.Printf("= #f 4\n")
+				return false 
 			}
 
 			// TODO
@@ -281,11 +289,14 @@ func (p *List) Match(syntax Any, env *Env) bool {
 	cas, cds := unlist1R(syntax)
 
 	if !pas.(Matcher).Match(cas, env) {
+		//fmt.Printf("= #f 1\n")
 		return false
 	}
 	if !pds.(Matcher).Match(cds, env) {
+		//fmt.Printf("= #f 2\n")
 		return false
 	}
+	//fmt.Printf("= #t 3\n")
 	return true
 }
 
@@ -1204,15 +1215,14 @@ func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
 	// the match(st, pat) produces a new env renv
 	// the template syntax 'tmp' is evaluated with o.env.Update(renv)
 
-	cenv := EmptyEnv() // child env for pattern variables
-
+	lenv := EmptyEnv() // literal environment
 	for cur := o.lits; IsPair(cur); cur = cur.(*List).cdr {
 		// this environment is also used as a set
 		symbol := cur.(*List).car
 		if !IsSymbol(symbol) {
 			panic(newTypeError("syntax-rules expected symbol literal"))
 		}
-		cenv.DefMatch(symbol, symbol)
+		lenv.DefMatch(symbol, symbol)
 	}
 
 	// for each in body
@@ -1228,6 +1238,7 @@ func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
 		//fmt.Printf("template=%s", tmp)
 		//fmt.Printf(")\n")
 
+		cenv := lenv.Extend()
 		if pat.(Matcher).Match(st, cenv) {
 			expr := tmp.(Replacer).Replace(cenv)
 			//fmt.Printf("RuleSyntax.Transform() = %s\n", expr)

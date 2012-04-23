@@ -176,38 +176,38 @@
 
 ;; we don't have full libraries yet, so we're (load)ing this file instead
 
-;(define-syntax case
-;  (syntax-rules (else =>)
-;    ((case (key ...)
-;       clauses ...)
-;     (let ((atom-key (key ...)))
-;       (case atom-key clauses ...)))
-;    ((case key
-;       (else => result))
-;     (result key))
-;    ((case key
-;       (else result1 result2 ...))
-;     (begin result1 result2 ...))
-;    ((case key
-;       ((atoms ...) result1 result2 ...))
-;     (if (memv key '(atoms ...))
-;         (begin result1 result2 ...)))
-;    ((case key
-;       ((atoms ...) => result))
-;     (if (memv key '(atoms ...))
-;         (result key)))
-;    ((case key
-;       ((atoms ...) => result)
-;       clause clauses ...)
-;     (if (memv key '(atoms ...))
-;         (result key)
-;         (case key clause clauses ...)))
-;    ((case key
-;       ((atoms ...) result1 result2 ...)
-;       clause clauses ...)
-;     (if (memv key '(atoms ...))
-;         (begin result1 result2 ...)
-;         (case key clause clauses ...)))))
+(define-syntax case
+  (syntax-rules (else =>)
+    ((case (key ...)
+       clauses ...)
+     (let ((atom-key (key ...)))
+       (case atom-key clauses ...)))
+    ((case key
+       (else => result))
+     (result key))
+    ((case key
+       (else result1 result2 ...))
+     (begin result1 result2 ...))
+    ((case key
+       ((atoms ...) result1 result2 ...))
+     (if (memv key '(atoms ...))
+         (begin result1 result2 ...)))
+    ((case key
+       ((atoms ...) => result))
+     (if (memv key '(atoms ...))
+         (result key)))
+    ((case key
+       ((atoms ...) => result)
+       clause clauses ...)
+     (if (memv key '(atoms ...))
+         (result key)
+         (case key clause clauses ...)))
+    ((case key
+       ((atoms ...) result1 result2 ...)
+       clause clauses ...)
+     (if (memv key '(atoms ...))
+         (begin result1 result2 ...)
+         (case key clause clauses ...)))))
 
 (define-syntax cond
   (syntax-rules (else =>)
@@ -283,84 +283,84 @@
 ;       (let* ((name2 val2) ...)
 ;         body1 body2 ...)))))
 
-;(define-syntax letrec
-;  (syntax-rules ()
-;    ((letrec ((var1 init1) ...) body ...)
-;     (letrec "generate temp names"
-;       (var1 ...)
-;       ()
-;       ((var1 init1) ...)
-;       body ...))
-;    ((letrec "generate temp names" ()
-;             (temp1 ...)
-;             ((var1 init1) ...)
-;             body ...)
-;     (let ((var1 <undefined>) ...)
-;       (let ((temp1 init1) ...)
-;         (set! var1 temp1)
-;         ...
-;         body ...)))
-;    ((letrec "generate temp names" (x y ...)
-;             (temp ...)
-;             ((var1 init1) ...)
-;             body ...)
-;     (letrec "generate temp names" (y ...)
-;             (newtemp temp ...)
-;             ((var1 init1) ...)
-;             body ...))))
-;
-;(define-syntax letrec*
-;  (syntax-rules ()
-;    ((letrec* ((var1 init1) ...) body1 body2 ...)
-;     (let ((var1 <undefined>) ...)
-;       (set! var1 init1) ...
-;       (let () body1 body2 ...)))))
-;
-;(define-syntax let-values
-;  (syntax-rules ()
-;    ((let-values (binding ...) body0 body1 ...)
-;     (let-values "bind" (binding ...) () (begin body0 body1 ...)))
-;    ((let-values "bind" () tmps body)
-;     (let tmps body))
-;    ((let-values "bind" ((b0 e0) binding ...) tmps body)
-;     (let-values "mktmp" b0 e0 () (binding ...) tmps body))
-;    ((let-values "mktmp" () e0 args bindings tmps body)
-;     (call-with-values (lambda () e0)
-;       (lambda args (let-values "bind" bindings tmps body))))
-;    ((let-values "mktmp" (a . b) e0 (arg ...) bindings (tmp ...) body)
-;     (let-values "mktmp" b e0 (arg ... x) bindings (tmp ... (a x)) body))
-;    ((let-values "mktmp" a e0 (arg ...) bindings (tmp ...) body)
-;     (call-with-values (lambda () e0)
-;       (lambda (arg ... . x)
-;         (let-values "bind" bindings (tmp ... (a x)) body))))))
-;
-;(define-syntax let*-values
-;  (syntax-rules ()
-;    ((let*-values () body0 body1 ...)
-;     (begin body0 body1 ...))
-;    ((let*-values (binding0 binding1 ...)
-;       body0 body1 ...)
-;     (let-values (binding0)
-;       (let*-values (binding1 ...)
-;         body0 body1 ...)))))
-;
-;(define-syntax do
-;  (syntax-rules ()
-;    ((do ((var init step ...) ...)
-;         (test expr ...)
-;       command ...)
-;     (letrec
-;         ((loop
-;           (lambda (var ...)
-;             (if test
-;                 (begin (if #f #f) expr ...)
-;                 (begin command ...
-;                   (loop (do "step" var step ...) ...))))))
-;       (loop init ...)))
-;    ((do "step" x)
-;     x)
-;    ((do "step" x y)
-;     y)))
+(define-syntax letrec
+  (syntax-rules ()
+    ((letrec ((var1 init1) ...) body ...)
+     (letrec "generate temp names"
+       (var1 ...)
+       ()
+       ((var1 init1) ...)
+       body ...))
+    ((letrec "generate temp names" ()
+             (temp1 ...)
+             ((var1 init1) ...)
+             body ...)
+     (let ((var1 <undefined>) ...)
+       (let ((temp1 init1) ...)
+         (set! var1 temp1)
+         ...
+         body ...)))
+    ((letrec "generate temp names" (x y ...)
+             (temp ...)
+             ((var1 init1) ...)
+             body ...)
+     (letrec "generate temp names" (y ...)
+             (newtemp temp ...)
+             ((var1 init1) ...)
+             body ...))))
+
+(define-syntax letrec*
+  (syntax-rules ()
+    ((letrec* ((var1 init1) ...) body1 body2 ...)
+     (let ((var1 <undefined>) ...)
+       (set! var1 init1) ...
+       (let () body1 body2 ...)))))
+
+(define-syntax let-values
+  (syntax-rules ()
+    ((let-values (binding ...) body0 body1 ...)
+     (let-values "bind" (binding ...) () (begin body0 body1 ...)))
+    ((let-values "bind" () tmps body)
+     (let tmps body))
+    ((let-values "bind" ((b0 e0) binding ...) tmps body)
+     (let-values "mktmp" b0 e0 () (binding ...) tmps body))
+    ((let-values "mktmp" () e0 args bindings tmps body)
+     (call-with-values (lambda () e0)
+       (lambda args (let-values "bind" bindings tmps body))))
+    ((let-values "mktmp" (a . b) e0 (arg ...) bindings (tmp ...) body)
+     (let-values "mktmp" b e0 (arg ... x) bindings (tmp ... (a x)) body))
+    ((let-values "mktmp" a e0 (arg ...) bindings (tmp ...) body)
+     (call-with-values (lambda () e0)
+       (lambda (arg ... . x)
+         (let-values "bind" bindings (tmp ... (a x)) body))))))
+
+(define-syntax let*-values
+  (syntax-rules ()
+    ((let*-values () body0 body1 ...)
+     (begin body0 body1 ...))
+    ((let*-values (binding0 binding1 ...)
+       body0 body1 ...)
+     (let-values (binding0)
+       (let*-values (binding1 ...)
+         body0 body1 ...)))))
+
+(define-syntax do
+  (syntax-rules ()
+    ((do ((var init step ...) ...)
+         (test expr ...)
+       command ...)
+     (letrec
+         ((loop
+           (lambda (var ...)
+             (if test
+                 (begin (if #f #f) expr ...)
+                 (begin command ...
+                   (loop (do "step" var step ...) ...))))))
+       (loop init ...)))
+    ((do "step" x)
+     x)
+    ((do "step" x y)
+     y)))
 
 (define-syntax lazy
   (syntax-rules ()
