@@ -20,8 +20,8 @@
 
 - Syntax
   [X] (define-syntax)
-  [] (let-syntax)
-  [] (letrec-syntax)
+  [X] (let-syntax)
+  [?] (letrec-syntax), TODO: make recursive
   [?] syntax-error, TODO: differentiate from (error)
   [X] (syntax-rules)
   [] (syntax-case) -- low priority
@@ -32,6 +32,9 @@
   [] see if (parameterize) can be derived syntax
   [] (a ...) works, but ((a b) ...) doesn't
   [] let loop -- this should be builtin
+
+(let-syntax ((foo (syntax-rules () ((_) (list "foo"))))) (foo))
+	=> '("foo")
 
 - Control flow
   [] (call/cc)
@@ -67,48 +70,78 @@
 
 - (scheme base) R7RS
   If you don't see the function here, then it means 
-  that it's been implemented completely
+  that it's been implemented (at least partially)
   [C] call/cc
   [X] call/ec
   [D] case-lambda -- requires syntax-rules
   [L] cond-expand
   [R] define-record-type
-  [S] define-syntax
   [L] define-library/library
-  [X] define-values
   [D] do
   [C] dynamic-wind
   [C] guard
-  [X] integer->char
   [L] import -- for programs
-  [X] let
-  [X] let*
-  [S] let-syntax
-  [S] letrec-syntax
   [R] parameterize
-  [X] syntax-rules
   [C] with-exception-handler
-  [D] zero? -- requires case
+
+(cons i list)			a bcd
+(list i i i i)			a b c d
+(list* i i i list)		a b cd
+(list+ list i i i)		ab c d
+(listr list i)              	abc d
+(append list list list)
+
+(define (most ls)
+  (if (null? ls) ()
+      (if (null? (cdr ls)) ()
+          (cons (car ls) (most (cdr ls))))))
+
+(define (append a . rest)
+    (if (null? rest) a
+        (fold-right cons (apply append rest) a)))
+
+
+(define (list* . rest)
+  (if (list? rest)
+      (apply apply list rest)))
+
+(define (list+ a . rest)
+  (if (list? a)
+      (append a rest)))
+
+(cons (car ls) (cdr ls)) == ls
+(car (cons x y)) == x
+(cdr (cons x y)) == y
+
+
+
+- Guile compatibility
+  [] 
+
+- MIT-Scheme compatibility
+  [X] rationalize->exact
+  [X] simplest-rational->exact
+  [X] simplest-rational
+
+- Racket compatibility
+  [X] andmap
+  [X] ormap
 
 - Other
+  [] char-ci=?
+  [X] empty?
+  [X] inexact=?
+  [X] pointer=?
+  [] string-ci=?
+  [X] symbol-ci=?
+  [X] symbol=?
   [] make Seq interface
-  [] remove Equal() method
-  [] remove GetType() method
 
 - List of dependancies
 
-zero? : cond
-eq? : eqv?
-eqv? : cond
-cond : syntax-rules
 fold-left : case-lambda
 fold-right : case-lambda
 case-lambda : syntax-rules
-case : syntax-rules
-and : syntax-rules
-or : syntax-rules
-when : syntax-rules
-unless : syntax-rules
 
 - Macros
 

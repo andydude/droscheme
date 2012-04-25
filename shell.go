@@ -23,7 +23,12 @@ func Eval(expr Any, env *Env) (value Any, err error) {
 	return Deval(list2(expr, env)), nil
 }
 
+func ReadPort(port Any) (value Any, err error) {
+	defer PanicToError(values0())
+	return Dread(list1(port)), nil
+}
+
 func Load(filename string, env *Env) (value Any, err error) {
 	defer PanicToError(values0())
-	return Dload(list2(ToString(filename), env)), nil
+	return Kload(Void(), list1(ToString(filename)), env), nil
 }

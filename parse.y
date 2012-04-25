@@ -70,6 +70,7 @@ var parseErr error // return value for parsing errors
 %token <token> UNSYNTAX  /* "#," */
 %token <token> UNSYNTAXS /* "#,@" */
 %token <token> ELLIPSIS  /* "..." */
+%token <token> DCOMMENT  /* "#;" */
 
 %start datum
 
@@ -90,6 +91,11 @@ datum:
 		$$ = $1
 		parseValue = $$
 	}
+|	comment datum
+	{
+		$$ = $2
+		parseValue = $$
+	}
 |	LABEL '=' datum
 	{
         $$ = NewLabel($1, $3)
@@ -97,6 +103,17 @@ datum:
 |	LABEL '#'
 	{
 		$$ = $1
+	}
+
+comment:
+	DCOMMENT datum
+	{
+	}
+
+symbol:
+	ID
+	{
+        $$ = $1
 	}
 
 simpledatum:
@@ -120,14 +137,7 @@ simpledatum:
 	{
         $$ = $1
 	}
-// This is our name for bytevector, in case we want to support all SRFI-4 vectors
 |	u8vector
-	{
-        $$ = $1
-	}
-
-symbol:
-	ID
 	{
         $$ = $1
 	}
@@ -159,21 +169,17 @@ list:
 	{
         $$ = listR($2, $4)
 	}
-//|	'(' datums1 ELLIPSIS ')'
-//	{
-//        $$ = DlistZH($2)
-//	}
-//|	'[' datums1 ELLIPSIS ']'
-//	{
-//        $$ = DlistZH($2)
-//	}
 |	abbreviation
     {
         $$ = $1
     }
 
 datums1:
-	datum
+	datum comment
+	{
+        $$ = list1($1)
+	}
+|	datum
 	{
         $$ = list1($1)
 	}
@@ -253,7 +259,7 @@ func (lex *Lexer) Error(e string) {
 	parseErr = fmt.Errorf("Syntax error at position %d in line %s: %s", lex.pos, lex.input, e)
 }
 
-func Read(input string) (Any, error) {
+func ReadString(input string) (Any, error) {
 	input = strings.TrimSpace(input)
 	if input == "" {
 		return nil, nil

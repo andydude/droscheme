@@ -391,6 +391,9 @@ func (lex *Lexer) lexHash() State {
 		return (*Lexer).lexToken
 	case '\\':
 		return (*Lexer).lexChar
+	case ';':
+		lex.emit(DCOMMENT)
+		return (*Lexer).lexToken
 	case 'f':
 		lex.emitDatum(BOOL, SBool(false))
 		return (*Lexer).lexToken

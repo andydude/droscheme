@@ -29,6 +29,9 @@ var (
 
     // (make-parameter (standard-output-port))
 	gOutput = DmakeZKparameter(list1(DstandardZKoutputZKport(list0())))
+
+    // (make-parameter (list))
+	gCmdLine = DmakeZKparameter(list1(list0()))
 )
 
 /*
@@ -136,6 +139,10 @@ func Kif(kw, st Any, env *Env) Any {
 		return Deval(list2(texpr, env))
 	}
 	if IsPair(rest) {
+		// arc:if
+		if IsPair(Dcdr(list1(rest))) {
+			return Kif(kw, rest, env)
+		}
 		fexpr := unlist1(rest)
 		return Deval(list2(fexpr, env))
 	}
@@ -207,6 +214,27 @@ func Kletrec(kw, st Any, env *Env) Any {
 	return Void()
 }
 
+// (let-syntax)
+func KletZKsyntax(kw, st Any, env *Env) Any {
+	binds, body := unlist1R(st)
+
+	// separate variables and values
+	bvars, bvals := bindingsToPair(binds)
+
+	// evaluate each item of the list
+	bvals = bvals.(Evaler).Eval(env)
+
+	// the invisible lambda
+	lam := NewLambda(list1R(bvars, body), env)
+	return Dapply(list2(lam, bvals))
+}
+
+// (letrec-syntax)
+func KletrecZKsyntax(kw, st Any, env *Env) Any {
+	// TODO
+	return KletZKsyntax(kw, st, env)
+}
+
 // (let-values)
 func KletZKvalues(kw, st Any, env *Env) Any {
 	// TODO
@@ -222,6 +250,44 @@ func KletrecZKvalues(kw, st Any, env *Env) Any {
 // (library (module name) ...) // R6RS
 func Klibrary(kw, st Any, env *Env) Any {
 	// TODO
+	return Void()
+}
+
+func Kload(kw, st Any, env *Env) Any {
+	filename := unlist1(st).(SString).GoString()
+	value := Void()
+
+	// open
+	file, err := os.Open(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	// slurp
+	port := bufio.NewReaderSize(file, 16777216)
+	input, err := port.ReadString(eof)
+	if err != nil {
+		if err != io.EOF {
+			panic(err)
+		}
+		err = nil
+	}
+
+	// read
+	value, err = ReadString("(begin "+input+"\n)") // hack
+	if err != nil {
+		if err != io.EOF {
+			panic(err)
+		}
+		err = nil
+	}
+
+	// eval
+	_, err = Eval(value, env)
+	if err != nil {
+		panic(err)
+	}
+
 	return Void()
 }
 
@@ -279,6 +345,11 @@ func KsyntaxZKcase(kw, st Any, env *Env) Any {
 	//expr, literals, body := unlist2R(st)
 	//return SCaseSyntax{expr: expr, lits: literals, body: body, env: env}
 	return Void()
+}
+
+func KsyntaxZKerror(kw, st Any, env *Env) Any {
+	// TODO: distinguish from error
+	return Derror(st)
 }
 
 func KsyntaxZKrules(kw, st Any, env *Env) Any {
@@ -593,6 +664,10 @@ func DcloseZKport(a Any) Any {
 	return Void()
 }
 
+func DcommandZKline(a Any) Any {
+	return gCmdLine.(SPrim).Apply(a)
+}
+
 func DcomplexZS(a Any) Any {
 	return SBool(IsComplex(unlist1(a)))
 }
@@ -635,7 +710,14 @@ func DcurrentZKsecond(a Any) Any {
 
 func Ddenominator(a Any) Any {
 	// TODO
-	return list0()
+	n := unlist1(a)
+	if !IsReal(n) {
+		panic(newTypeError("numerator: expected real number"))
+	}
+	if IsInexact(n) {
+		panic(newTypeError("numerator: expected exact number"))
+	}
+	return n.(SRational).Dmtr()
 }
 
 func Ddisplay(a Any) Any {
@@ -689,18 +771,9 @@ func DeofZKobjectZS(a Any) Any {
 	return SBool(false)
 }
 
-func DeqZS(a Any) Any {
-	return DeqvZS(a)
-}
-
 func DequalZS(a Any) Any {
 	var x, y = unlist2(a)
 	return SBool(x.Equal(y))
-}
-
-func DeqvZS(a Any) Any {
-	var x, y = unlist2(a)
-	return SBool(Equal(x, y))
 }
 
 func Derror(a Any) Any {
@@ -768,14 +841,18 @@ func Deval(a Any) Any {
 }
 
 func DexactZKZRinexact(a Any) Any {
-	return list0()
+	n := unlist1(a)
+	if IsComplex(n) {
+		return Scomplex64(ToFcmplx(n))
+	}
+	if IsExact(n) {
+		return Sfloat64(ToFlonum(n))
+	}
+	return n
 }
 
 func DexactZKintegerZKsqrt(a Any) Any {
-	return list0()
-}
-
-func DexactZKintegerZS(a Any) Any {
+	// TODO
 	return list0()
 }
 
@@ -928,7 +1005,7 @@ func DhashtableZKclearZA(a Any) Any {
 // (hashtable-contains? hashtable key)
 func DhashtableZKcontainsZS(a Any) Any {
 	v := DhashtableZKref(a)
-	return SBool(v != nil)
+	return SBool(IsVoid(v))
 }
 
 // (hashtable-copy hashtable) -- unimplemented
@@ -973,7 +1050,7 @@ func DhashtableZKmutableZS(a Any) Any {
 // (hashtable-ref hashtable key) -- droscheme extension
 // (hashtable-ref hashtable key default)
 func DhashtableZKref(a Any) Any {
-	t, k, d := unlist2O(a, nil)
+	t, k, d := unlist2O(a, Void())
 	v := t.(STable).Ref(k)
 	if v == nil {
 		return d
@@ -1024,12 +1101,22 @@ func DimagZKpart(a Any) Any {
 }
 
 func DinexactZKZRexact(a Any) Any {
-	return Void()
+	n := unlist1(a)
+	if IsComplex(n) {
+		c := n.(ComplexNum)
+		return NewComplex(c.Real(), c.Imag())
+	}
+	if IsInexact(n) {
+		return ToRational(n.(Num))
+	}
+	return n
 }
 
 func DinexactZQZS(a Any) Any {
-	b, c := unlist2(a)
-	return SBool(Equal(b, c))
+	ba, ca := unlist2Flonum(a)
+	b := ToFlonum(ba)
+	c := ToFlonum(ca)
+	return SBool(InexactEqual(b, c))
 }
 
 func DinexactZS(a Any) Any {
@@ -1054,6 +1141,7 @@ func DinteractionZKenvironment(a Any) Any {
 }
 
 func DlastZKpair(a Any) Any {
+	//// cycle detection (only needed in mutable model)
 	if IsNull(unlist1(a)) {
 		return list0()
 	}
@@ -1074,7 +1162,8 @@ func Dlength(a Any) Any {
 	case IsPair(o):
 		return Sint64(1 + ToFixnum(Dlength(list1(o.(*List).cdr))))
 	}
-	return Sint64(-10000)
+
+	panic(newTypeError("length expected list"))
 }
 
 // (list ...)
@@ -1083,11 +1172,36 @@ func Dlist(a Any) Any {
 	return a
 }
 
-// (list* ...)
+// (list* datum ... ls)
+// (list* a b c) = '(a b . c)
+// (list* a b '(c d)) = '(a b c d)
 func DlistZH(a Any) Any {
-	// so hard
-	v := DlistZKZRvector(list1(a))
-	return DvectorZKZRlistZH(list1(v))
+	car, cdr := unlist1R(a)
+
+	switch {
+	case IsNull(cdr):
+		return car
+	case IsPair(cdr):
+		return list1R(car, DlistZH(cdr))
+	}
+
+	panic(newTypeError("list* expected list"))
+}
+
+// (list+ ls datum ...)
+// (list+ '(a b) c d) = '(a b c d)
+func DlistZI(a Any) Any {
+	car, cdr := unlist1R(a)
+
+	switch {
+	case IsNull(car):
+		return cdr
+	case IsPair(car):
+		caar, cdar := unlist1R(car)
+		return list1R(caar, DlistZI(list1R(cdar, cdr)))
+	}
+
+	panic(newTypeError("list+ expected list as first argument"))
 }
 
 func DlistZKZRstring(a Any) Any {
@@ -1150,63 +1264,9 @@ func DlistZKtail(a Any) Any {
 }
 
 func DlistZS(a Any) Any {
-	ls := unlist1(a)
-
 	// By definition, all lists are chains of pairs that have
 	// finite length and are terminated by the empty list. [R6RS]
-
-	// cycle detection (only needed in mutable model)
-	switch {
-	case IsNull(ls):
-		return SBool(true)
-	case IsPair(ls):
-		return DlistZS(list1(ls.(*List).cdr))
-	}
-
-	return SBool(false)
-}
-
-func Dload(a Any) Any {
-	fs, opt := unlist1R(a)
-	filename := fs.(SString).GoString()
-	env := EmptyEnv()
-	if IsPair(opt) {
-		env = unlist1(opt).(*Env)
-	}
-	value := Void()
-
-	// open
-	file, err := os.Open(filename)
-	if err != nil {
-		panic(err)
-	}
-
-	// slurp
-	port := bufio.NewReaderSize(file, 16777216)
-	input, err := port.ReadString(eof)
-	if err != nil {
-		if err != io.EOF {
-			panic(err)
-		}
-		err = nil
-	}
-
-	// read
-	value, err = Read("(begin "+input+"\n)") // hack
-	if err != nil {
-		if err != io.EOF {
-			panic(err)
-		}
-		err = nil
-	}
-
-	// eval
-	_, err = Eval(value, env)
-	if err != nil {
-		panic(err)
-	}
-
-	return Void()
+	return DnullZS(list1(Dcdr(list1(DlastZKpair(a)))))
 }
 
 func Dlog(a Any) Any {
@@ -1235,14 +1295,9 @@ func DmakeZKbytevector(a Any) Any {
 	return Du8ZKvectorZKZRbytevector(list1(DmakeZKvector(a)))
 }
 
-func DmakeZKeqZKhashtable(a Any) Any {
+func DmakeZKequalZKhashtable(a Any) Any {
 	k := unlist0O(a, Sint64(32))
-	return MakeTable(NewPrim(Dhash), NewPrim(DeqZS), k)
-}
-
-func DmakeZKeqvZKhashtable(a Any) Any {
-	k := unlist0O(a, Sint64(32))
-	return MakeTable(NewPrim(Dhash), NewPrim(DeqvZS), k)
+	return MakeTable(NewPrim(Dhash), NewPrim(DequalZS), k)
 }
 
 func DmakeZKhashtable(a Any) Any {
@@ -1346,6 +1401,8 @@ func DnullZKenvironment(a Any) Any {
 		//env.registerSyntax(Kparameterize)
 		fallthrough
 	case v == 6:
+		//assert
+		//library
 		//env.registerSyntax(Kassert)
 		env.registerSyntax(KcaseZKlambda)
 		//env.registerSyntax(KidentifierZKsyntax)
@@ -1356,12 +1413,11 @@ func DnullZKenvironment(a Any) Any {
 		fallthrough
 	case v == 5:
 		env.registerSyntax(KdefineZKsyntax)
-		//env.registerSyntax(KletZKsyntax)
-		//env.registerSyntax(KletrecZKsyntax)
+		env.registerSyntax(KletZKsyntax)
+		env.registerSyntax(KletrecZKsyntax)
 		env.registerSyntax(KsyntaxZKrules)
 		fallthrough
 	case v <= 4:
-		//env.registerSyntax(Kand)
 		env.registerSyntax(Kbegin)
 		//env.registerSyntax(Kcase)
 		//env.registerSyntax(Kcond)
@@ -1372,7 +1428,7 @@ func DnullZKenvironment(a Any) Any {
 		env.registerSyntax(Klet)
 		env.registerSyntax(KletZH)
 		//env.registerSyntax(Kletrec)
-		//env.registerSyntax(Kor)
+		env.registerSyntax(Kload)
 		env.registerSyntax(Kquasiquote)
 		env.registerSyntax(Kquote)
 		env.registerSyntax(KsetZA)
@@ -1412,7 +1468,7 @@ func DnumZM(a Any) Any {
 }
 
 func DnumZQ(a Any) Any {
-	return SBool(RealNum.Cmp(unifyRealNum(a)) == 0)
+	return DequalZS(a)
 }
 
 func DnumZP(a Any) Any {
@@ -1446,7 +1502,14 @@ func DnumberZS(a Any) Any {
 
 func Dnumerator(a Any) Any {
 	// TODO
-	return list0()
+	n := unlist1(a)
+	if !IsReal(n) {
+		panic(newTypeError("numerator: expected real number"))
+	}
+	if IsInexact(n) {
+		panic(newTypeError("numerator: expected exact number"))
+	}
+	return n.(SRational).Nmtr()
 }
 
 // (open-binary-input-file filename)
@@ -1515,6 +1578,10 @@ func DpeekZKu8(a Any) Any {
 	return Sint64(b)
 }
 
+func DpointerZQZS(a Any) Any {
+	return SBool(PointerEqual(unlist2(a)))
+}
+
 func DportZKopenZS(a Any) Any {
 	return Dnot(list1(SBool(unlist1(a).(Closer).Closed())))
 }
@@ -1537,6 +1604,7 @@ func Draise(a Any) Any {
 }
 
 func DraiseZKcontinuable(a Any) Any {
+	// TODO: rethink this
 	panic(unlist1(a))
 	return Void()
 }
@@ -1545,28 +1613,44 @@ func DrationalZS(a Any) Any {
 	return SBool(IsRational(unlist1(a)))
 }
 
-func Drationalize(a Any) Any {
-	return Void()
-}
-
-func DrationalizeZKZRexact(a Any) Any {
-	return Void()
-}
-
 func Dread(a Any) Any {
-	//port := unlist0O(a, DcurrentZKinputZKport(list0()))
+	port := unlist0O(a, DcurrentZKinputZKport(list0()))
+	rd := port.(io.ByteReader)
+	ch, err := rd.ReadByte()
+	if err == io.EOF {
+		return DeofZKobject(list0())
+	}
+	lines := []byte{ch}
+	line := byte(0)
+	str := ""
 
-	//// slurp
-	//bufp := bufio.NewReaderSize(port.(io.Reader), 16777216)
-	//input, err := bufp.ReadString(eof)
-	//if err != nil {
-	//	if err != io.EOF {
-	//		panic(err)
-	//	}
-	//	err = nil
-	//}
+	for _, z := range []int{1, 0} {
+		for CountParens(str) != z {
+			line, err = rd.ReadByte()
+			if err != nil {
+				if err != io.EOF {
+					panic(err)
+				}
+				err = nil
+				return DeofZKobject(list0())
+			}
+			lines = append(lines, line)
+			str = string(lines)
 
-	return Void()
+			if CountParens(str) == 0 {
+				val, err := ReadString(str)
+				if val != nil && err == nil {
+					return val
+				}
+			}
+		}
+	}
+
+	val, err := ReadString(str)
+	if err != nil {
+		panic(err)
+	}
+	return val
 }
 
 func DreadZKbytevector(a Any) Any {
@@ -1678,19 +1762,22 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		env.register(DbytevectorZKZRu8ZKvector)
 		env.register(DbytevectorZKu8)
 		env.register(DcallZKwithZKescapeZKcontinuation)
-		env.register(DhashtableZKZRlist)
-		env.register(DhashtableZKZRvector)
-		env.register(DhashtableZKvalues)
-		env.register(DmakeZKeqZKhashtable)
-		env.register(DmakeZKeqvZKhashtable)
-		env.register(DmakeZKhashtable)
+		env.register(DcommandZKline)
 		env.register(DdroschemeZKbranch)
 		env.register(DdroschemeZKrootZKpath)
 		env.register(DdroschemeZKwait)
-		env.register(DeofZKobject)
+		env.register(DemptyZS)
 		env.register(DevalZKliteral)
+		env.register(Dhash)
+		env.register(DhashtableZKZRlist)
+		env.register(DhashtableZKZRvector)
+		env.register(DhashtableZKvalues)
+		env.register(DinexactZQZS)
 		env.register(DlistZH)
 		env.register(DlistZHZKZRvector)
+		env.register(DlistZI)
+		env.register(DmakeZKequalZKhashtable)
+		env.register(DmakeZM)
 		env.register(DnumZH)
 		env.register(DnumZI)
 		env.register(DnumZK)
@@ -1701,11 +1788,10 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		env.register(DnumZR)
 		env.register(DnumZRZQ)
 		env.register(DnumberZKtypeZKof)
+		env.register(DpointerZQZS)
 		env.register(Dsign)
-		env.register(DstandardZKerrorZKport)
-		env.register(DstandardZKinputZKport)
-		env.register(DstandardZKoutputZKport)
 		env.register(DtypeZKof)
+		env.register(DtypeZQZS)
 		env.register(Du8ZKlistZKZRbytevector)
 		env.register(Du8ZKvectorZKZRbytevector)
 		env.register(DvectorZKZRlistZH)
@@ -1713,6 +1799,39 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 
 		fallthrough
 	case v == 7: // R7RS
+
+		env.register(DcurrentZKjiffy)
+		env.register(DcurrentZKsecond)
+		env.register(DerrorZKobjectZKirritants)
+		env.register(DerrorZKobjectZKmessage)
+		env.register(DerrorZKobjectZS)
+		env.register(DfoldZKleft)
+		env.register(DfoldZKright)
+		env.register(DflushZKoutputZKport)
+		env.register(DgetZKoutputZKbytevector)
+		env.register(DgetZKoutputZKstring)
+		env.register(DmakeZKlist)
+		env.register(DmakeZKparameter)
+		env.register(DopenZKinputZKbytevector)
+		env.register(DopenZKinputZKstring)
+		env.register(DopenZKoutputZKbytevector)
+		env.register(DopenZKoutputZKstring)
+		env.register(DpeekZKu8)
+		env.register(DportZKopenZS)
+		env.register(DreadZKbytevector)
+		env.register(DreadZKbytevectorZA)
+		env.register(DreadZKline)
+		env.register(DreadZKu8)
+		//env.register(DstringZKmap)
+		env.register(Du8ZKreadyZS)
+		env.register(Dutf8ZKZRstring)
+		env.register(DwithZKexceptionZKhandler)
+		env.register(DwriteZKbytevector)
+		//env.register(DwriteZKpartialZKbytevector) // derived
+		env.register(DwriteZKu8)
+
+		fallthrough
+	case v == 60: // R6RS libraries
 
 		env.register(DbinaryZKportZS)
 		env.register(DbytevectorZKcopy)
@@ -1723,51 +1842,10 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		env.register(DbytevectorZKu8ZKref)
 		env.register(DbytevectorZKu8ZKsetZA)
 		env.register(DbytevectorZS)
-		env.register(DcallZKwithZKport)
 		env.register(DcloseZKport)
+		env.register(DcallZKwithZKport)
 		env.register(DcurrentZKerrorZKport)
-		env.register(DcurrentZKjiffy)
-		env.register(DcurrentZKsecond)
-		env.register(DemptyZS)
-		env.register(Derror)
-		env.register(DerrorZKobjectZKirritants)
-		env.register(DerrorZKobjectZKmessage)
-		env.register(DerrorZKobjectZS)
-		env.register(DfoldZKleft)
-		env.register(DfoldZKright)
-		env.register(DflushZKoutputZKport)
-		env.register(DgetZKoutputZKbytevector)
-		env.register(DgetZKoutputZKstring)
-		env.register(Dhash)
-		env.register(DmakeZM)
-		env.register(DmakeZKbytevector)
-		env.register(DmakeZKlist)
-		env.register(DmakeZKparameter)
-		env.register(DopenZKinputZKbytevector)
-		env.register(DopenZKinputZKstring)
-		env.register(DopenZKoutputZKbytevector)
-		env.register(DopenZKoutputZKstring)
-		env.register(DpeekZKu8)
-		env.register(DportZKopenZS)
-		env.register(Draise)
-		env.register(DraiseZKcontinuable)
-		env.register(DreadZKbytevector)
-		env.register(DreadZKbytevectorZA)
-		env.register(DreadZKline)
-		env.register(DreadZKu8)
-		//env.register(DstringZKmap)
-		env.register(DtextualZKportZS)
-		env.register(DtypeZQZS)
-		env.register(Du8ZKreadyZS)
-		env.register(Dutf8ZKZRstring)
-		env.register(DwithZKexceptionZKhandler)
-		env.register(DwriteZKbytevector)
-		env.register(DwriteZKpartialZKbytevector)
-		env.register(DwriteZKu8)
-
-		fallthrough
-	case v == 60: // R6RS libraries
-
+		env.register(DeofZKobject)
 		env.register(DhashtableZKclearZA)
 		env.register(DhashtableZKcontainsZS)
 		env.register(DhashtableZKcopy)
@@ -1781,11 +1859,26 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		env.register(DhashtableZKsetZA)
 		env.register(DhashtableZKsize)
 		env.register(DhashtableZKupdateZA)
+		//menv.register(DlistZKsort)
+		env.register(DmakeZKbytevector)
+		//env.register(DmakeZKcustomZKbinaryZKinputZKport)
+		//env.register(DmakeZKcustomZKbinaryZKinputZMoutputZKport)
+		//env.register(DmakeZKcustomZKbinaryZKoutputZKport)
+		//env.register(DmakeZKcustomZKtextualZKinputZKport)
+		//env.register(DmakeZKcustomZKtextualZKinputZMoutputZKport)
+		//env.register(DmakeZKcustomZKtextualZKoutputZKport)
+		env.register(DmakeZKhashtable)
+		//env.register(DmakeZKrecordZKconstructorZKdescriptor)
+		//env.register(DmakeZKrecordZKtypeZKdescriptor)
+		//env.register(DmakeZKtranscoder)
+		//env.register(DmakeZKvariableZKtransformer)
+		env.register(DstandardZKerrorZKport)
+		env.register(DstandardZKinputZKport)
+		env.register(DstandardZKoutputZKport)
+		env.register(DtextualZKportZS)
 
 		fallthrough
 	case v == 6: // R6RS core
-		//assert
-		//library
 		//env.register(DassertionZKviolation)
 		env.register(DbooleanZQZS)
 		//env.register(DconditionZS)
@@ -1793,31 +1886,30 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		//env.register(Ddiv0)
 		//env.register(DdivZKandZKmod)
 		//env.register(Ddiv0ZKandZKmod0)
-		//env.register(Derror)
+		env.register(Derror)
 		//env.register(Dexact) = inexact->exact
 		//env.register(DexactZKintegerZKsqrt)
 		//env.register(DfiniteZS)
 		//env.register(Dinexact) = exact->inexact
 		//env.register(DinfiniteZS)
 		//env.register(DintegerZKvaluedZS) = integer?
+		env.register(DlistZKcopy)
 		//env.register(Dmod)
 		//env.register(Dmod0)
 		//env.register(DnanZS)
-		//env.register(Draise)
-		//env.register(DraiseZKcontinuable)
+		env.register(Draise)
+		env.register(DraiseZKcontinuable)
 		//env.register(DrationalZKvaluedZS) = rational?
 		//env.register(DrealZKvaluedZS) = real?
-		//env.register(DstringZKforZKeach)
-		//env.register(DstringZKmap)
-		//env.register(DsymbolZQZS)
-		//env.register(Dthrow)
+		//env.register(DstringZKforZKeach) // derived
+		//env.register(DstringZKmap) // derived
+		env.register(DstringZKZRutf8)
+		env.register(DstringZKZRvector)
+		//env.register(DsymbolZQZS) ; derived
 		env.register(DvectorZKforZKeach)
 		env.register(DvectorZKmap)
 		env.register(DvectorZKZRstring)
 		env.register(DvectorZKcopy)
-		env.register(DstringZKZRutf8)
-		env.register(DstringZKZRvector)
-		env.register(DlistZKcopy)
 
 		fallthrough
 	case v == 5: // R5RS
@@ -1934,9 +2026,9 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		env.register(DcurrentZKoutputZKport)    // R2RS, R4RS, R5RS
 		env.register(Ddisplay)
 		env.register(DeofZKobjectZS)
-		env.register(DeqZS)
 		env.register(DequalZS)
-		env.register(DeqvZS)
+		//env.register(DeqZS) // derived
+		//env.register(DeqvZS) // derived
 		//env.register(DevenZS) // derived
 		env.register(DexactZKZRinexact)
 		env.register(DexactZS)
@@ -1959,7 +2051,7 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		env.register(DlistZKZRvector)
 		env.register(DlistZKref)
 		env.register(DlistZKtail)
-		env.register(Dload)
+		//env.register(Dload)
 		env.register(Dlog)
 		env.register(Dmagnitude)
 		env.register(DmakeZKpolar)
@@ -1981,14 +2073,14 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		//env.register(DobjectZKhash)   // R2RS only
 		//env.register(DobjectZKunhash) // R2RS only
 		//env.register(DoddZS) // derived
-		//env.register(DopenZKinputZKfile)  // R2RS, R4RS, R5RS
-		//env.register(DopenZKoutputZKfile) // R2RS, R4RS, R5RS
+		env.register(DopenZKinputZKfile)  // R2RS, R4RS, R5RS
+		env.register(DopenZKoutputZKfile) // R2RS, R4RS, R5RS
 		env.register(DoutputZKportZS)
 		env.register(DpairZS)
 		env.register(DpositiveZS)
 		//env.register(Dquotient)  // derived
 		env.register(DrationalZS)
-		env.register(Drationalize)
+		//env.register(Drationalize) // derived
 		env.register(Dread)
 		env.register(DreadZKchar)
 		env.register(DrealZKpart)
@@ -2103,18 +2195,18 @@ func DschemeZKreportZKenvironment(a Any) Any {
 		return env
 	case 7:
 		// load (scheme base)
-		Dload(list2(ToString(src + "scheme.base.7.ss"), env))
+		Load(src + "scheme.base.7.ss", env)
 	case 6:
 		// load (rnrs base)
-		Dload(list2(ToString(src + "scheme.base.6.ss"), env))
+		Load(src + "scheme.base.6.ss", env)
 	case 5:
 		// load (rnrs r5rs)
-		Dload(list2(ToString(src + "scheme.base.5.ss"), env))
+		Load(src + "scheme.base.5.ss", env)
 	case 'D':
 		fallthrough
 	default:
 		// load (ds base)
-		Dload(list2(ToString(src + "ds.base.ss"), env))
+		Load(src + "ds.base.ss", env)
 	}
 	return env
 }
@@ -2332,11 +2424,6 @@ func DsymbolZS(a Any) Any {
 	return SBool(IsSymbol(unlist1(a)))
 }
 
-func DsyntaxZKerror(a Any) Any {
-	// TODO
-	return Derror(a)
-}
-
 func Dtan(a Any) Any {
 	return unlist1(a).(TrigNum).Tan()
 }
@@ -2489,6 +2576,7 @@ func DvectorZKfillZA(a Any) Any {
 }
 
 func DvectorZKforZKeach(a Any) Any {
+	// TODO
 	return list0()
 }
 
@@ -2497,6 +2585,7 @@ func DvectorZKlength(a Any) Any {
 }
 
 func DvectorZKmap(a Any) Any {
+	// TODO
 	return list0()
 }
 
@@ -2519,6 +2608,7 @@ func Dvoid(a Any) Any {
 }
 
 func DwithZKexceptionZKhandler(a Any) Any {
+	// TODO
 	return list0()
 }
 
@@ -2563,10 +2653,6 @@ func DwriteZKchar(a Any) Any {
 		panic(err)
 	}
 	return Void()
-}
-
-func DwriteZKpartialZKbytevector(a Any) Any {
-	return list0()
 }
 
 func DwriteZKu8(a Any) Any {

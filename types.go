@@ -155,6 +155,10 @@ func (o SChar) String() string {
 
 type SVoid struct{}
 
+func IsVoid(a Any) bool {
+	return IsType(a, TypeCodeVoid)
+}
+
 func Void() Any {
 	return SVoid{}
 }
@@ -246,7 +250,7 @@ func (o *List) GetType() int {
 }
 
 func (o *List) Equal(a Any) bool {
-	return false // TODO
+	return Equal(o, a)
 }
 
 func (o *List) Eval(env *Env) Any {
@@ -398,7 +402,15 @@ func (o SBinary) GetHash() uintptr {
 }
 
 func (o SBinary) Equal(a Any) bool {
-	return false // TODO
+	return Equal(o, a)
+}
+
+func (o SBinary) Match(syntax Any, env *Env) bool {
+	return o.Equal(syntax)
+}
+
+func (o SBinary) Replace(env *Env) Any {
+	return o
 }
 
 func (o SBinary) String() string {
@@ -452,6 +464,14 @@ func (o SString) Equal(a Any) bool {
 		return false
 	}
 	return Equal(o, a.(SString))
+}
+
+func (o SString) Match(syntax Any, env *Env) bool {
+	return o.Equal(syntax)
+}
+
+func (o SString) Replace(env *Env) Any {
+	return o
 }
 
 func (o SString) String() string {
@@ -558,7 +578,7 @@ func (o SVector) GetHash() uintptr {
 }
 
 func (o SVector) Equal(a Any) bool {
-	return false // TODO
+	return Equal(o, a)
 }
 
 func (o SVector) Eval(env *Env) Any {
@@ -585,6 +605,8 @@ func (o SVector) String() string {
 func IsEmpty(a Any) bool {
 	switch a.(type) {
 	case SNull:
+		return true
+	case SVoid:
 		return true
 	case SBinary:
 		return len(a.(SBinary)) == 0
@@ -623,7 +645,7 @@ func (o SValues) GetHash() uintptr {
 }
 
 func (o SValues) Equal(a Any) bool {
-	return false
+	return Equal(o, a)
 }
 
 func (o SValues) String() string {
@@ -729,9 +751,12 @@ func (o STable) String() string {
 }
 
 func (o STable) Ref(k Any) Any {
+	const debug = false
 	hash := o.hash(k)
 	bucket := o.it[hash]
-	fmt.Printf("hashtable-ref: found bucket %v\n", bucket)
+	if debug {
+		fmt.Printf("hashtable-ref: found bucket %v\n", bucket)
+	}
 	if bucket == nil {
 		return nil
 	}
@@ -739,7 +764,9 @@ func (o STable) Ref(k Any) Any {
 		pair := bucket[i].(*List)
 		car, cdr := pair.car, pair.cdr
 		if o.equiv(car, k) {
-			fmt.Printf("hashtable-ref: found pair %v\n", pair)
+			if debug {
+				fmt.Printf("hashtable-ref: found pair %v\n", pair)
+			}
 			return cdr
 		}
 	}
@@ -747,9 +774,12 @@ func (o STable) Ref(k Any) Any {
 }
 
 func (o STable) Set(k, v Any) {
+	const debug = false
 	hash := o.hash(k)
 	bucket := o.it[hash]
-	fmt.Printf("hashtable-set!: found bucket %v\n", bucket)
+	if debug {
+		fmt.Printf("hashtable-set!: found bucket %v\n", bucket)
+	}
 	if bucket == nil {
 		o.it[hash] = []Any{list1R(k, v)}
 		return
@@ -757,7 +787,9 @@ func (o STable) Set(k, v Any) {
 	for i := 0; i < len(bucket); i++ {
 		pair := bucket[i].(*List)
 		if o.equiv(pair.car, k) {
-			fmt.Printf("hashtable-set!: found pair %v\n", pair)
+			if debug {
+				fmt.Printf("hashtable-set!: found pair %v\n", pair)
+			}
 			bucket[i] = list1R(k, v)
 		}
 	}
@@ -1207,7 +1239,12 @@ func (o SRuleSyntax) Equal(a Any) bool {
 	return false
 }
 
+/* RuleSyntax.Transform
+ *
+ *
+ */
 func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
+	const debug = false
 	/* (syntax-rules (literals ...)
 	 *   (patterns templates) ...)
 	 */
@@ -1229,21 +1266,29 @@ func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
 	for cur := o.body; IsPair(cur); cur = cur.(*List).cdr {
 		// one syntax rule
 		rule := cur.(*List).car
+
+		// get pattern/template
 		pat := Dcdr(list1(Dcar(list1(rule))))
 		tmp := DlistZKref(list2(rule, Sint64(1)))
 
-		//fmt.Printf("MatchRule(")
-		//fmt.Printf("syntax=%s, ", st)
-		//fmt.Printf("pattern=%s, ", pat)
-		//fmt.Printf("template=%s", tmp)
-		//fmt.Printf(")\n")
+		if debug {
+			fmt.Printf("RuleSyntax.Match() %s = %s\n", pat, st)
+		}
 
+		// get literals
 		cenv := lenv.Extend()
+
+		// phase 1: match
 		if pat.(Matcher).Match(st, cenv) {
+			// phase 2: replace
 			expr := tmp.(Replacer).Replace(cenv)
-			//fmt.Printf("RuleSyntax.Transform() = %s\n", expr)
+
+			if debug {
+				fmt.Printf("RuleSyntax.Transform() = %s\n", expr)
+			}
+
+			// phase 3: eval
 			return Deval(list2(expr, env))
-			//return expr
 		}
 	}
 
@@ -1566,21 +1611,7 @@ func list3R(a, b, c, rest Any) Any {
 }
 
 func listR(most, last Any) Any {
-	//// this would have worked in the mutable model
-	//var lastpair Any
-	//for lastpair = most;
-	//IsPair(lastpair.(*List).cdr);
-	//lastpair = lastpair.(*List).cdr {}
-	//lastpair.(*List).cdr = last
-	//return most
-
-	// immutable model requires reconstruction
-	if IsPair(most) {
-		return list1R(most.(*List).car, listR(most.(*List).cdr, last))
-	}
-
-	// assume IsNull
-	return last
+	return DlistZI(list1R(most, last))
 }
 
 func unlist1(o Any) Any {

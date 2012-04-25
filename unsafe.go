@@ -18,6 +18,21 @@ import (
 	//"unsafe"
 )
 
+func TypeEqual(x, y Any) bool {
+	return x.GetType() == y.GetType()
+}
+
+func PointerEqual(x, y Any) bool {
+	if !TypeEqual(x, y) {
+		return false
+	}
+	//switch x.(type) {
+	//}
+	xp := reflect.ValueOf(x).Pointer()
+	yp := reflect.ValueOf(y).Pointer()
+	return xp == yp
+}
+
 type Cont uintptr
 func GetCC(dummy *byte) Cont
 func SetCC(dummy *byte, cont Cont)

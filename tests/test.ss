@@ -1,3 +1,5 @@
+(define dummy '())
+
 (define (assert-true name expr)
   (if expr
       (begin

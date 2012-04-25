@@ -283,31 +283,31 @@
 ;       (let* ((name2 val2) ...)
 ;         body1 body2 ...)))))
 
-(define-syntax letrec
-  (syntax-rules ()
-    ((letrec ((var1 init1) ...) body ...)
-     (letrec "generate temp names"
-       (var1 ...)
-       ()
-       ((var1 init1) ...)
-       body ...))
-    ((letrec "generate temp names" ()
-             (temp1 ...)
-             ((var1 init1) ...)
-             body ...)
-     (let ((var1 <undefined>) ...)
-       (let ((temp1 init1) ...)
-         (set! var1 temp1)
-         ...
-         body ...)))
-    ((letrec "generate temp names" (x y ...)
-             (temp ...)
-             ((var1 init1) ...)
-             body ...)
-     (letrec "generate temp names" (y ...)
-             (newtemp temp ...)
-             ((var1 init1) ...)
-             body ...))))
+;(define-syntax letrec
+;  (syntax-rules ()
+;    ((letrec ((var1 init1) ...) body ...)
+;     (letrec "generate temp names"
+;       (var1 ...)
+;       ()
+;       ((var1 init1) ...)
+;       body ...))
+;    ((letrec "generate temp names" ()
+;             (temp1 ...)
+;             ((var1 init1) ...)
+;             body ...)
+;     (let ((var1 <undefined>) ...)
+;       (let ((temp1 init1) ...)
+;         (set! var1 temp1)
+;         ...
+;         body ...)))
+;    ((letrec "generate temp names" (x y ...)
+;             (temp ...)
+;             ((var1 init1) ...)
+;             body ...)
+;     (letrec "generate temp names" (y ...)
+;             (newtemp temp ...)
+;             ((var1 init1) ...)
+;             body ...))))
 
 (define-syntax letrec*
   (syntax-rules ()
@@ -349,18 +349,12 @@
     ((do ((var init step ...) ...)
          (test expr ...)
        command ...)
-     (letrec
-         ((loop
-           (lambda (var ...)
-             (if test
-                 (begin (if #f #f) expr ...)
-                 (begin command ...
-                   (loop (do "step" var step ...) ...))))))
-       (loop init ...)))
-    ((do "step" x)
-     x)
-    ((do "step" x y)
-     y)))
+     (let loop ((var init) ...)
+       (when test expr ...)
+       command ...
+       (loop (do "step" var step ...) ...)))
+    ((do "step" x) x)
+    ((do "step" x y) y)))
 
 (define-syntax lazy
   (syntax-rules ()
@@ -426,19 +420,19 @@
 
 (define =
   (lambda rest
-    (apply for-and (map num=  (most rest) (cdr rest)))))
+    (andmap num=  (most rest) (cdr rest))))
 (define <
   (lambda rest
-    (apply for-and (map num<  (most rest) (cdr rest)))))
+    (andmap num<  (most rest) (cdr rest))))
 (define <= 
   (lambda rest 
-    (apply for-and (map num<= (most rest) (cdr rest)))))
+    (andmap num<= (most rest) (cdr rest))))
 (define >  
   (lambda rest 
-    (apply for-and (map num>  (most rest) (cdr rest)))))
+    (andmap num>  (most rest) (cdr rest))))
 (define >= 
   (lambda rest 
-    (apply for-and (map num>= (most rest) (cdr rest)))))
+    (andmap num>= (most rest) (cdr rest))))
 
 (define (abs x)
   (if (negative? x) (- x) x))
@@ -581,18 +575,18 @@
 ;(define (type=?)) ; core
 ;(define (empty?)) ; core
 
-;(define (eq? a b) (eqv? a b))
-;(define (eqv? a b)
-;  (cond
-;    ((not (type=? a b)) #f)
-;    ((and (symbol? a) (symbol? b)) (symbol=? a b))
-;    ((and (boolean? a) (boolean? b)) (boolean=? a b))
-;    ((and (inexact? a) (inexact? b)) (inexact=? a b))
-;    ((and (exact? a) (exact? b)) (= a b))
-;    ((and (char? a) (char? b)) (char=? a b))
-;    ((and (null? a) (null? b)) #t)
-;    ((and (empty? a) (empty? b)) #t)
-;    (else (pointer=? a b))))
+(define (eq? a b) (eqv? a b))
+(define (eqv? a b)
+  (cond
+    ((not (type=? a b)) #f)
+    ((and (symbol? a) (symbol? b)) (symbol=? a b))
+    ((and (boolean? a) (boolean? b)) (boolean=? a b))
+    ((and (inexact? a) (inexact? b)) (inexact=? a b))
+    ((and (exact? a) (exact? b)) (= a b))
+    ((and (char? a) (char? b)) (char=? a b))
+    ((and (null? a) (null? b)) #t)
+    ((and (empty? a) (empty? b)) #t)
+    (else (pointer=? a b))))
 
 ;(define (error))
 ;(define (error-object-irritants))
@@ -636,9 +630,6 @@
 
 (define (floor-remainder a b)
   (- a (* b (floor-quotient a b))))
-
-;(define (flush-output-port))
-;
 
 ;(define fold-left
 ;  (case-lambda
@@ -735,10 +726,15 @@
       (if (null? (cdr ls)) (car ls)
           (last (cdr ls)))))
 
+;(define (list* . rest) ; core
+;  (apply apply list rest))
+;
+;(define (list+ a . rest) ; core
+;  (append a rest))
+
 ;(define (list->string))
 ;(define (list->vector))
 ;(define (list-copy))
-;(define (list-opt)) ; core
 ;(define (list-ref))
 ;(define (list-set!))
 ;(define (list-tail))
@@ -747,6 +743,16 @@
 ;(define (make-parameter))
 ;(define (make-string k))
 ;(define (make-vector))
+
+(define make-promise
+  (lambda (done? proc)
+    (list (cons done? proc))))
+
+(define (make-eqv-hashtable . rest)
+  (apply make-hashtable hash eqv? rest))
+
+(define (make-eq-hashtable . rest)
+  (apply make-hashtable hash eq? rest))
 
 (define (map-1 proc ls)
   (if (null? ls) ()
@@ -760,6 +766,15 @@
                 (cdrs (map-1 cdr rest)))
             (cons (apply proc cars)
                   (apply map proc cdrs))))))
+
+; TODO: alphabetize these
+
+(define (andmap proc . rest)
+  (apply for-and (apply map proc rest)))
+
+(define (ormap proc . rest)
+  (apply for-or (apply map proc rest)))
+
 
 (define (max a . rest)
   (if (null? rest) a
@@ -947,19 +962,19 @@
 
 (define string<=? 
   (lambda rest 
-    (apply for-and (apply map char<=? (map string->list rest)))))
+    (apply andmap char<=? (map string->list rest))))
 (define string<?  
   (lambda rest 
-    (apply for-and (apply map char<?  (map string->list rest)))))
+    (apply andmap char<?  (map string->list rest))))
 (define string=?  
   (lambda rest 
-    (apply for-and (apply map char=?  (map string->list rest)))))
+    (apply andmap char=?  (map string->list rest))))
 (define string>=? 
   (lambda rest 
-    (apply for-and (apply map char>=? (map string->list rest)))))
+    (apply andmap char>=? (map string->list rest))))
 (define string>?  
   (lambda rest 
-    (apply for-and (apply map char>?  (map string->list rest)))))
+    (apply andmap char>?  (map string->list rest))))
 
 ;(define (string?))
 
@@ -967,6 +982,14 @@
 
 ;(define (symbol->string))
 ;(define (textual-port?))
+
+(define (symbol=? a b)
+  (string=? (symbol->string a)
+            (symbol->string b)))
+
+(define (symbol-ci=? a b)
+  (string-ci=? (symbol->string a)
+               (symbol->string b)))
 
 (define (truncate x)
   (* (sign x) (floor (abs x))))

@@ -327,6 +327,16 @@ func IsComplex(a Any) bool {
 	return false
 }
 
+func InexactEqual(x, y float64) bool {
+	if x == 0.0 && y == 0.0 {
+		return 1/x == 1/y
+	}
+	if math.IsNaN(x) && math.IsNaN(y) {
+		return true
+	}
+	return x == y
+}
+
 func ToFixnum(a Any) int64 {
 	switch a.(type) {
 	case SChar:
@@ -801,7 +811,6 @@ func (o Sfloat32) Shr(n Num) Num { return Sfloat32(0) } // wrong
 func (o Sfloat32) RTE() IntNum { return Sint64(int64(math.Floor(float64(o)))) }
 func (o Sfloat32) RTN() IntNum { return Sint64(int64(math.Floor(float64(o)))) }
 
-
 // F64
 
 func (o Sfloat64) ArcCos() Num {
@@ -855,6 +864,14 @@ func (o Sfloat64) MakePolar(n RealNum) ComplexNum {
 	return NewComplexPolar(o, Sfloat64(ToFlonum(n)))
 }
 func (o Sfloat64) String() string {
+	switch f := float64(o); {
+	case math.IsNaN(f):
+		return "+nan.0"
+	case math.IsInf(f, 1):
+		return "+inf.0"
+	case math.IsInf(f, -1):
+		return "-inf.0"
+	}
 	//return strings.Trim(fmt.Sprintf("%f", o), "0")
 	s := strings.TrimRight(fmt.Sprintf("%f", o), "0")
 	if s[len(s) - 1] == '.' {
@@ -863,8 +880,13 @@ func (o Sfloat64) String() string {
 	return s
 }
 func (o Sfloat64) Equal(n Any) bool {
-	return o == n.(Sfloat64)
+	m := n.(Sfloat64)
+	if math.IsNaN(float64(o)) && math.IsNaN(float64(m)) {
+		return false
+	}
+	return o == m
 }
+
 func (o Sfloat64) Cmp(n Num) int {
 	if o < n.(Sfloat64) {
 		return -1

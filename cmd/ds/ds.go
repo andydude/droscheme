@@ -63,7 +63,7 @@ func getLine(in *bufio.Reader, prompt string) (string, error) {
 func doReadEval(str string) error {
 
 	//R
-	val, lerr := ds.Read(str)
+	val, lerr := ds.ReadString(str)
 	if lerr != nil {
 		fmt.Println("ReadError: " + lerr.Error())
 		return lerr
@@ -113,7 +113,7 @@ func shell() {
 		}
 
 		//R
-		val, lerr := ds.Read(lines)
+		val, lerr := ds.ReadString(lines)
 		if lerr != nil {
 			fmt.Println("ReadError: " + lerr.Error())
 			continue
