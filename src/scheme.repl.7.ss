@@ -3,5 +3,5 @@
     interaction-environment)
   (import
    (only
-    (builtin)
+    (ds base)
     interaction-environment)))

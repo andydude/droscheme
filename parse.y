@@ -37,8 +37,8 @@ import (
 	"strings"
 )
 
-var ret Any // returned value from yyParse
-var err error // return value for parsing errors
+var parseValue Any // returned value from yyParse
+var parseErr error // return value for parsing errors
 
 %}
 
@@ -70,6 +70,7 @@ var err error // return value for parsing errors
 %token <token> UNSYNTAX  /* "#," */
 %token <token> UNSYNTAXS /* "#,@" */
 %token <token> ELLIPSIS  /* "..." */
+%token <token> DCOMMENT  /* "#;" */
 
 %start datum
 
@@ -83,12 +84,17 @@ datum:
 	simpledatum
 	{
 		$$ = $1
-		ret = $$
+		parseValue = $$
 	}
 |	compounddatum
 	{
 		$$ = $1
-		ret = $$
+		parseValue = $$
+	}
+|	comment datum
+	{
+		$$ = $2
+		parseValue = $$
 	}
 |	LABEL '=' datum
 	{
@@ -97,6 +103,17 @@ datum:
 |	LABEL '#'
 	{
 		$$ = $1
+	}
+
+comment:
+	DCOMMENT datum
+	{
+	}
+
+symbol:
+	ID
+	{
+        $$ = $1
 	}
 
 simpledatum:
@@ -120,14 +137,7 @@ simpledatum:
 	{
         $$ = $1
 	}
-// This is our name for bytevector, in case we want to support all SRFI-4 vectors
 |	u8vector
-	{
-        $$ = $1
-	}
-
-symbol:
-	ID
 	{
         $$ = $1
 	}
@@ -147,7 +157,15 @@ list:
 	{
         $$ = $2
 	}
+|	'[' datums0 ']'
+	{
+        $$ = $2
+	}
 |	'(' datums1 '.' datum ')'
+	{
+        $$ = listR($2, $4)
+	}
+|	'[' datums1 '.' datum ']'
 	{
         $$ = listR($2, $4)
 	}
@@ -157,7 +175,11 @@ list:
     }
 
 datums1:
-	datum
+	datum comment
+	{
+        $$ = list1($1)
+	}
+|	datum
 	{
         $$ = list1($1)
 	}
@@ -234,19 +256,19 @@ func (lex *Lexer) Lex(lval *yySymType) int {
 }
 
 func (lex *Lexer) Error(e string) {
-	err = fmt.Errorf("Syntax error at position %d in line %s: %s", lex.pos, lex.input, e)
+	parseErr = fmt.Errorf("Syntax error at position %d in line %s: %s", lex.pos, lex.input, e)
 }
 
-func Read(input string) (Any, error) {
+func ReadString(input string) (Any, error) {
 	input = strings.TrimSpace(input)
 	if input == "" {
 		return nil, nil
 	}
 	lex := newLexer(input)
 	yyParse(lex)
-	err2 := err
-	err = nil
-	return ret, err2
+	err := parseErr
+	parseErr = nil
+	return parseValue, err
 }
 
 // END functions

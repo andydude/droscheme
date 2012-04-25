@@ -7,7 +7,7 @@
     make-rectangular
     real-part)
   (import
-   (builtin))
+   (ds base))
   (begin
 
     (define-record-type complex-rect
@@ -35,7 +35,7 @@
       (define (hypot x y) (sqrt (+ (sq x) (sq y))))
       (let ((x (complex-rect-real z))
             (y (complex-rect-imag z)))
-        (hypot x y))) ; this should be builtin
+        (hypot x y))) ; this should be ds base
             
     (define (complex-rect-angle z)
       (let ((x (complex-rect-real z))

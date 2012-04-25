@@ -1,0 +1,1 @@
+(use-syntax (ice-9 syncase))

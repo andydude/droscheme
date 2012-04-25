@@ -7,4 +7,4 @@
     string-ni>=?
     string-ni>?)
   (import
-   (builtin)))
+   (ds base)))

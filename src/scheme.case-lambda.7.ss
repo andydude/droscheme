@@ -2,4 +2,4 @@
   (export
     case-lambda)
   (import
-   (builtin)))
+   (ds base)))

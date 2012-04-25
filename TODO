@@ -1,156 +1,164 @@
 - Ledgend:
   []      -- means TODO
-  [X]     -- means done!
-
-- Ports
-  [] byte ports
-  [] char ports
+  [?]     -- means partial implementation
+  [X]     -- means done! (please remove from this file)
+  [C]     -- means control flow related, see below
+  [S]     -- means syntax-rules related
+  [D]     -- means syntax-rules dependant
+  [L]     -- means define-library related
+  [R]     -- means research
 
 - Numbers
   [X] arithmetic functions
-  [] trigonometric functions [AJR]
-  [] type promotion [AJR]
+  [?] trigonometric functions, TODO: must accept integers
+  [?] type promotion [AJR]
+  [?] number->string, TODO: optional parameters
+  [] inexact->exact
+  [] exact->inexact
+  ---
+  [] test suite [AJR]
 
-- Project
-  [] move shell.go to eval.go
-  [] move list.go to types.go
+- Syntax
+  [X] (define-syntax)
+  [X] (let-syntax)
+  [?] (letrec-syntax), TODO: make recursive
+  [?] syntax-error, TODO: differentiate from (error)
+  [X] (syntax-rules)
+  [] (syntax-case) -- low priority
+  ---
+  [X] Label these as [S] for syntax or [D] for dependant on syntax-rules
+  [] research
+  [] see if (define-record-type) can be derived syntax
+  [] see if (parameterize) can be derived syntax
+  [] (a ...) works, but ((a b) ...) doesn't
+  [] let loop -- this should be builtin
 
-- (define-syntax)
-- (syntax-rules)
+(let-syntax ((foo (syntax-rules () ((_) (list "foo"))))) (foo))
+	=> '("foo")
+
+- Control flow
+  [] (call/cc)
+  [] (dynamic-wind)
+  [] (guard)
+  [] (with-exception-handler)
+  ---
+  [X] Label these as [C] for control
+  [?] raise-continuable -- may be revisited
   [] research
 
-- (dynamic-wind)
-  [] research
 
-- (call/cc)
-  [] research
+- Library support
+  [] cond-expand
+  [] define-library (R7RS)
+  [] library (R6RS)
+  [] import -- for programs
+  ---
+  [X] Label these as [L] for library
+  [] research snow
+  [] parameterize
+
+- Record support
+  [] define-record-type
+  ---
+  [] test suite
+
+- Hash Tables (from R6RS, and perhaps R7RS-large)
+  [?] hashtable-mutable?, TODO: immutability
+  [] list->hashtable -- equal? based
+  [] vector->hashtable -- equal? based
+  [] test suite [AJR]
 
 - (scheme base) R7RS
   If you don't see the function here, then it means 
-  that it's been implemented completely
-  [] and
-  [] bytevector-copy
-  [] bytevector-copy!
-  [] bytevector-copy-partial
-  [] bytevector-copy-partial!
-  [X] bytevector-length
-  [X] bytevector-ref
-  [X] bytevector-set!
-  [] call/cc
-  [] call-with-port
-  [] call-with-values
-  [] case
-  [] char-ready?
-  [] close-input-port
-  [] close-output-port
-  [] close-port
-  [] cond
-  [] cond-expand
-  [] current-error-port
-  [] current-input-port
-  [] current-output-port
-  [] define-record-type
-  [] define-syntax
-  [] define-values
-  [] do
-  [] dynamic-wind
-  [] eof-object?
-  [] error
-  [] error-object-irritants
-  [] error-object-message
-  [] error-object?
-  [] exact-integer-sqrt
-  [X] exact-integer?
-  [] floor
-  [] flush-output-port
-  [X] for-each
-  [X] map -- base (map f xs) and full (map f . rest) are done
-  [] gcd
-  [] get-output-bytevector
-  [] get-output-string
-  [] guard
-  [] import
-  [X] lambda
-  [] lcm
-  [X] let
-  [] let loop
-  [X] let*
-  [] let*-values
-  [] let-syntax
-  [] let-values
-  [] letrec
-  [] letrec*
-  [] letrec-syntax
-  [X] make-bytevector
-  [X] make-list
-  [] make-parameter
-  [X] make-string
-  [X] make-vector
-  [] max
-  [] min
-  [] newline
-  [] number->string
-  [] open-input-bytevector
-  [] open-input-string
-  [] open-output-bytevector
-  [] open-output-string
-  [] or
-  [] parameterize
-  [] peek-char
-  [] peek-u8
-  [] port-open?
-  [] rationalize
-  [] read-bytevector
-  [] read-bytevector!
-  [] read-char
-  [] read-line
-  [] read-u8
-  [X] reverse
-  [] round
-  [X] set!
-  [X] set-car!
-  [X] set-cdr!
-  [X] string->list
-  [] string->number
-  [] string->symbol
-  [X] string->utf8
-  [X] string->vector
-  [] string-append
-  [] string-copy
-  [] string-fill!
-  [X] string-for-each
-  [X] string-length
-  [X] string-map
-  [] string-ref
-  [] string-set!
-  [] substring
-  [] symbol->string
-  [] syntax-error
-  [] syntax-rules
-  [] u8-ready?
-  [] unless
-  [X] utf8->string
-  [X] values
-  [X] vector->list
-  [X] vector->string
-  [X] vector-copy
-  [X] vector-fill!
-  [X] vector-for-each
-  [X] vector-length
-  [X] vector-map
-  [X] vector-ref
-  [X] vector-set!
-  [] when
-  [] with-exception-handler
-  [] write-bytevector
-  [] write-char
-  [] write-partial-bytevector
-  [] write-u8
-  [] zero?
-  [X] integer->char
+  that it's been implemented (at least partially)
+  [C] call/cc
+  [X] call/ec
+  [D] case-lambda -- requires syntax-rules
+  [L] cond-expand
+  [R] define-record-type
+  [L] define-library/library
+  [D] do
+  [C] dynamic-wind
+  [C] guard
+  [L] import -- for programs
+  [R] parameterize
+  [C] with-exception-handler
+
+(cons i list)			a bcd
+(list i i i i)			a b c d
+(list* i i i list)		a b cd
+(list+ list i i i)		ab c d
+(listr list i)              	abc d
+(append list list list)
+
+(define (most ls)
+  (if (null? ls) ()
+      (if (null? (cdr ls)) ()
+          (cons (car ls) (most (cdr ls))))))
+
+(define (append a . rest)
+    (if (null? rest) a
+        (fold-right cons (apply append rest) a)))
+
+
+(define (list* . rest)
+  (if (list? rest)
+      (apply apply list rest)))
+
+(define (list+ a . rest)
+  (if (list? a)
+      (append a rest)))
+
+(cons (car ls) (cdr ls)) == ls
+(car (cons x y)) == x
+(cdr (cons x y)) == y
+
+
+
+- Guile compatibility
+  [] 
+
+- MIT-Scheme compatibility
+  [X] rationalize->exact
+  [X] simplest-rational->exact
+  [X] simplest-rational
+
+- Racket compatibility
+  [X] andmap
+  [X] ormap
 
 - Other
+  [] char-ci=?
+  [X] empty?
+  [X] inexact=?
+  [X] pointer=?
+  [] string-ci=?
+  [X] symbol-ci=?
+  [X] symbol=?
   [] make Seq interface
-  [] remove Equal() method
-  [] remove GetType() method
+
+- List of dependancies
+
+fold-left : case-lambda
+fold-right : case-lambda
+case-lambda : syntax-rules
+
+- Macros
+
+(and #t (begin (display "hello") #t))
+(and #t (begin (display "hello") #f))
+(and #f (begin (display "hello") #t))
+(and #f (begin (display "hello") #f))
+
+(define-macro (and . rest)
+  `(if (null? (list ,@rest)) #t
+       (if (car (list ,@rest))
+           (and ,@(cdr (list ,@rest)))
+           #f)))
+
+(define-macro (or . rest)
+  `(if (null? (list ,@rest)) #f
+       (if (car (list ,@rest))
+           #t
+           (or ,@(cdr (list ,@rest))))))
 

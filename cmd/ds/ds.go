@@ -11,7 +11,7 @@ package main
 
 import (
 	"bufio"
-	"droscheme"
+	ds "droscheme"
 	"flag"
 	"fmt"
 	"os"
@@ -19,7 +19,7 @@ import (
 
 var gLibrary string = ""
 var gDontEval bool = false
-var gEnv *droscheme.Env
+var gEnv *ds.Env
 var gExpr string = ""
 var gFilename string = ""
 var gInteract bool = false
@@ -63,7 +63,7 @@ func getLine(in *bufio.Reader, prompt string) (string, error) {
 func doReadEval(str string) error {
 
 	//R
-	val, lerr := droscheme.Read(str)
+	val, lerr := ds.ReadString(str)
 	if lerr != nil {
 		fmt.Println("ReadError: " + lerr.Error())
 		return lerr
@@ -74,7 +74,7 @@ func doReadEval(str string) error {
 	}
 	
 	//E
-	_, verr := droscheme.Eval(val, gEnv)
+	_, verr := ds.Eval(val, gEnv)
 	if verr != nil {
 		fmt.Println("EvalError: " + verr.Error())
 		return verr
@@ -107,13 +107,13 @@ func shell() {
 			lines += line
 		}
 
-		if droscheme.CountParens(lines) != 0 {
+		if ds.CountParens(lines) != 0 {
 			prompt = "   -"
 			continue
 		}
 
 		//R
-		val, lerr := droscheme.Read(lines)
+		val, lerr := ds.ReadString(lines)
 		if lerr != nil {
 			fmt.Println("ReadError: " + lerr.Error())
 			continue
@@ -135,7 +135,7 @@ func shell() {
 		}
 
 		//E
-		out, verr := droscheme.Eval(val, gEnv)
+		out, verr := ds.Eval(val, gEnv)
 		if verr != nil {
 			fmt.Println("EvalError: " + verr.Error())
 			continue
@@ -159,37 +159,23 @@ func main() {
 	/* This creates a new environment that is empty
 	 * but its parent is the builtin environment.
 	 */
-	gEnv = droscheme.BuiltinEnv().Extend()
-
-	/* This is where the scheme libraries are stored
-	 */
-	gRootPath = os.Getenv("DROSCHEME_ROOT")
-	//fmt.Printf("root=%s\n", gRootPath)
-	if gRootPath != "" {
-		filename := gRootPath + "/src/ds.base.ss"
-		_, err := droscheme.Load(filename, gEnv)
-		if err != nil {
-			panic(err)
-		}
-	}
+	gEnv = ds.BuiltinEnv().Extend()
 
 	if gMangle != "" {
-		fmt.Printf("%s\n", droscheme.MangleName(gMangle))
+		fmt.Printf("%s\n", ds.MangleName(gMangle))
 		os.Exit(0)
 	}
 
 	if gUnmangle != "" {
-		fmt.Printf("%s\n", droscheme.UnmangleName(gUnmangle))
+		fmt.Printf("%s\n", ds.UnmangleName(gUnmangle))
 		os.Exit(0)
 	}
 
 	if gFilename != "" {
 		gShell = false
-		_, err := droscheme.Load(gFilename, gEnv)
+		_, err := ds.Load(gFilename, gEnv)
 		if err != nil {
-			if err.Error() != "EOF" {
-				panic(err)
-			}
+			panic(err)
 		}
 	}
 

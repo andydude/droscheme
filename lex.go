@@ -109,7 +109,6 @@ func (lex *Lexer) accept(valid string) bool {
 }
 
 func (lex *Lexer) backup() {
-	//fmt.Printf("\n-- backup() --\n")
 	lex.pos -= lex.width
 }
 
@@ -145,15 +144,12 @@ func (lex *Lexer) getSpan() string {
 }
 
 func (lex *Lexer) nextToken() *yySymType {
-	//fmt.Printf("\n-- nextyySymType() --\n")
 	for {
 		select {
 		case tok := <-lex.tokens:
-			//fmt.Printf("\n-- nextToken() %s --\n", tok.String())
 			return tok
 		default:
 			if lex.state == nil {
-
 				return newEOF()
 			}
 			lex.state = lex.state(lex)
@@ -179,7 +175,6 @@ func (lex *Lexer) peek() rune {
 }
 
 func (lex *Lexer) skip() {
-	//fmt.Printf("\n-- skip() --\n")
 	lex.next()
 }
 
@@ -251,7 +246,29 @@ func (lex *Lexer) lexString() State {
 
 	lex.next()
 	for lex.isStringElement() {
-		//fmt.Printf("lex.ch == %c\n", lex.ch)
+		if lex.ch == '\\' {
+			lex.next()
+			switch lex.ch {
+			case 'a': lex.ch = 0x07
+			case 'b': lex.ch = 0x08
+			case 't': lex.ch = 0x09
+			case 'n': lex.ch = 0x0A
+			case 'v': lex.ch = 0x0B
+			case 'f': lex.ch = 0x0C
+			case 'r': lex.ch = 0x0D
+			case 'x':
+				lex.peek()
+				lex.consume()
+				for lex.isDigit16() {
+					lex.next()
+				}
+				lex.backup()
+				base = 16
+				ret := lex.getInt().(Sint64)
+				lex.match1(';')
+				lex.ch = rune(ret)
+			}
+		}
 		contents = append(contents, lex.ch)
 		lex.next()
 	}
@@ -263,9 +280,32 @@ func (lex *Lexer) lexString() State {
 }
 
 func (lex *Lexer) lexChar() State {
-	// assume we've consumed #\ already
+	// assume we've consumed '#' '\\' already
 	ch := lex.next()
-	if ch == 'x' {
+	pk := lex.peek()
+	switch {
+	case ch == 'a' && pk == 'l': // alarm		
+	case ch == 'b' && pk == 'a': // backspace
+	case ch == 'd' && pk == 'e': // delete
+	case ch == 'e' && pk == 's': // esc
+	case ch == 'l' && pk == 'i': // linefeed
+		lex.match("inefeed")
+		lex.emitDatum(CHAR, SChar('\n'))
+	case ch == 'n' && pk == 'e': // newline
+		lex.match("ewline")
+		lex.emitDatum(CHAR, SChar('\n'))
+	case ch == 'v' && pk == 't': // vtab
+	case ch == 'p' && pk == 'a': // page
+	case ch == 'r' && pk == 'e': // return
+		lex.match("eturn")
+		lex.emitDatum(CHAR, SChar('\r'))
+	case ch == 's' && pk == 'p': // space
+		lex.match("pace")
+		lex.emitDatum(CHAR, SChar(' '))
+	case ch == 't' && pk == 'a': // tab
+		lex.match("ab")
+		lex.emitDatum(CHAR, SChar('\t'))
+	case ch == 'x' && lex.isDigit16():
 		lex.peek()
 		lex.consume()
 		for lex.isDigit16() {
@@ -275,7 +315,7 @@ func (lex *Lexer) lexChar() State {
 		base = 16
 		ret := lex.getInt().(Sint64)
 		lex.emitDatum(CHAR, SChar(ret))
-	} else {
+	default:
 		lex.emitDatum(CHAR, SChar(ch))
 	}
 	return (*Lexer).lexToken
@@ -297,6 +337,7 @@ func (lex *Lexer) lexDot() State {
 	if lex.next() == '.' {
 		if lex.next() == '.' {
 			lex.emitId("...")
+			//lex.emit(ELLIPSIS)
 			return (*Lexer).lexToken
 		} else {
 			panic("expected ...")
@@ -350,6 +391,9 @@ func (lex *Lexer) lexHash() State {
 		return (*Lexer).lexToken
 	case '\\':
 		return (*Lexer).lexChar
+	case ';':
+		lex.emit(DCOMMENT)
+		return (*Lexer).lexToken
 	case 'f':
 		lex.emitDatum(BOOL, SBool(false))
 		return (*Lexer).lexToken
@@ -823,15 +867,6 @@ func (lex *Lexer) isWhitespace() bool {
 // ⟨string element⟩ -> ⟨any character other than " or \⟩ | \" | \\
 func (lex *Lexer) isStringElement() bool {
 	if lex.ch == '"' {
-		return false
-	}
-	if lex.ch == '\\' {
-		lex.next()
-		if lex.ch == '\\' || lex.ch == '"' {
-			return true
-		}
-		// not a \\ or \"--put it back
-		lex.backup()
 		return false
 	}
 	return true
