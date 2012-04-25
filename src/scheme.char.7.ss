@@ -19,4 +19,4 @@
     string-foldcase
     string-upcase)
   (import
-   (builtin)))
+   (ds base)))

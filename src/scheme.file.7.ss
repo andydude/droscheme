@@ -11,4 +11,4 @@
     with-input-from-file
     with-output-to-file)
   (import
-    (builtin)))
+    (ds base)))

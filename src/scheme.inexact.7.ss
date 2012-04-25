@@ -12,5 +12,5 @@
     sqrt
     tan)
   (import
-   (builtin)))
+   (ds base)))
     

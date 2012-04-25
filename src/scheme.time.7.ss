@@ -5,7 +5,7 @@
     jiffies-per-second)
   (import
    (only
-    (builtin)
+    (ds base)
     current-second))
   (begin
     (define (current-jiffy) (current-second))
