@@ -1,0 +1,12 @@
+(begin
+  (assert (equal? '() '()))
+  (assert (not (equal? '() (cons 1 2))))
+  (assert (equal? (cons 1 2) (cons 1 2)))
+  (assert (not (equal? (cons 1 2) '())))
+  (assert (equal? '#(1 2) '#(1 2)))
+  (assert (not (equal? '#(1 2) '#(1 3))))
+  (assert (equal? "a" "a"))
+  (assert (not (equal? "a" "b")))
+  (assert (equal? 'a 'a))
+  (assert (not (equal? 'a 'b)))
+)

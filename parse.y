@@ -48,8 +48,8 @@ var parseErr error // return value for parsing errors
 	token int; // this is for token identifiers
 }
 
-%type <datum> datum datums1 datums0 simpledatum compounddatum
-%type <datum> symbol list vector u8vector abbreviation
+%type <datum> datum datums2 datums1 datums0 simpledatum compounddatum
+%type <datum> keyword symbol list vector u8vector abbreviation
 
 // BEGIN tokens
 
@@ -70,7 +70,8 @@ var parseErr error // return value for parsing errors
 %token <token> UNSYNTAX  /* "#," */
 %token <token> UNSYNTAXS /* "#,@" */
 %token <token> ELLIPSIS  /* "..." */
-%token <token> DCOMMENT  /* "#;" */
+%token <token> KEYWORD   /* "#:" */
+%token <token> COMMENT   /* "#;" */
 
 %start datum
 
@@ -91,6 +92,11 @@ datum:
 		$$ = $1
 		parseValue = $$
 	}
+|	keyword datum
+	{
+		$$ = NewKeyword($1, $2)
+		parseValue = $$
+	}
 |	comment datum
 	{
 		$$ = $2
@@ -105,8 +111,14 @@ datum:
 		$$ = $1
 	}
 
+keyword:
+	KEYWORD datum
+	{
+        $$ = $2
+	}
+
 comment:
-	DCOMMENT datum
+	COMMENT datum
 	{
 	}
 
@@ -161,31 +173,44 @@ list:
 	{
         $$ = $2
 	}
-|	'(' datums1 '.' datum ')'
+|	'(' datums2 ')'
 	{
-        $$ = listR($2, $4)
+        $$ = $2
 	}
-|	'[' datums1 '.' datum ']'
+|	'[' datums2 ']'
 	{
-        $$ = listR($2, $4)
+        $$ = $2
 	}
 |	abbreviation
     {
         $$ = $1
     }
 
-datums1:
-	datum comment
+datums2:
+	datums1 '.' datum
 	{
-        $$ = list1($1)
+        $$ = listR($1, $3)
 	}
-|	datum
+|	datums1 '.' datum '.' datum
+	{
+        if (ToFixnum(Dlength(list1($1))) != 1) {
+            panic("double-dotted-lists must have 3 elements")
+        }
+        $$ = list3($3, unlist1($1), $5)
+	}
+
+datums1:
+	datum
 	{
         $$ = list1($1)
 	}
 |	datum datums1
 	{
         $$ = list1R($1, $2)
+	}
+|	datum comment
+	{
+        $$ = list1($1)
 	}
 
 datums0:
@@ -235,13 +260,13 @@ abbreviation:
 vector:
 	VECTORPAREN datums0 ')'
 	{
-        $$ = DlistZKZRvector(list1($2))
+        $$ = Dvector($2)
 	}
 
 u8vector:
 	U8VECTORPAREN datums0 ')'
 	{
-        $$ = Du8ZKlistZKZRbytevector(list1($2))
+        $$ = DbytevectorZKu8($2)
 	}
 
 // END grammar

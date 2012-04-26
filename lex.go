@@ -360,7 +360,7 @@ func (lex *Lexer) lexHash() State {
 	// #! comment
 	// #| comment |#
 	// #; comment
-	// #\ character -- done (TODO: \x)
+	// #\ character
 	// #' syntax
 	// #` quasisyntax
 	// #, unsyntax
@@ -375,6 +375,11 @@ func (lex *Lexer) lexHash() State {
 	//fmt.Printf("\n-- lexHash() --\n")
 
 	switch lex.next() {
+	case ':':
+		lex.emit(KEYWORD)
+		return (*Lexer).lexToken
+	case '%':
+		return (*Lexer).lexId
 	case '\'':
 		lex.emit(SYNTAX)
 		return (*Lexer).lexToken
@@ -391,17 +396,35 @@ func (lex *Lexer) lexHash() State {
 		return (*Lexer).lexToken
 	case '\\':
 		return (*Lexer).lexChar
+	case '|':
+		return (*Lexer).lexNestedComment
+	case '!':
+		return (*Lexer).lexLineComment
 	case ';':
-		lex.emit(DCOMMENT)
+		lex.emit(COMMENT)
 		return (*Lexer).lexToken
+	case 'E', 'I', 'B', 'O', 'D', 'X':
+		fallthrough
+	case 'e', 'i', 'b', 'o', 'd', 'x':
+		lex.backup()
+		lex.backup()
+		return (*Lexer).lexNumber
+	case 'F':
+		fallthrough
 	case 'f':
 		lex.emitDatum(BOOL, SBool(false))
 		return (*Lexer).lexToken
+	case 'T':
+		fallthrough
 	case 't':
 		lex.emitDatum(BOOL, SBool(true))
 		return (*Lexer).lexToken
+	case 'V':
+		fallthrough
 	case 'v':
 		lex.next()
+		fallthrough
+	case 'U':
 		fallthrough
 	case 'u':
 		lex.match1('8')
@@ -411,10 +434,6 @@ func (lex *Lexer) lexHash() State {
 	case '(':
 		lex.emit(VECTORPAREN)
 		return (*Lexer).lexToken
-	case 'e', 'i', 'b', 'o', 'd', 'x':
-		lex.backup()
-		lex.backup()
-		return (*Lexer).lexNumber
 	}
 
 	if lex.isDigit10() {
@@ -473,6 +492,8 @@ func (lex *Lexer) lexSigns() State {
 }
 
 func (lex *Lexer) lexLineComment() State {
+	// we have read ';' or
+	// we have read '#!'
 	for lex.ch != '\n' && lex.ch != eof {
 		lex.next()
 	}
@@ -482,7 +503,20 @@ func (lex *Lexer) lexLineComment() State {
 }
 
 func (lex *Lexer) lexNestedComment() State {
+	// we have read '#|'
 	// TODO
+	for {
+		c := lex.ch
+		d := lex.next()
+		if c == '#' && d == '|' {
+			lex.lexNestedComment()
+			continue
+		}
+		if c == '|' && d == '#' {
+			lex.consume()
+			break
+		}
+	}
 	return (*Lexer).lexToken
 }
 
@@ -507,26 +541,32 @@ func (lex *Lexer) lexNumber() State {
 
 	if lex.next() == '#' {
 		switch lex.next() {
+		case 'E':
 		case 'e':
 			inexact = false
 			lex.consume()
 			return (*Lexer).lexNumber
+		case 'I':
 		case 'i':
 			inexact = true
 			lex.consume()
 			return (*Lexer).lexNumber
+		case 'B':
 		case 'b':
 			base = 2
 			lex.consume()
 			return (*Lexer).lexNumber
+		case 'O':
 		case 'o':
 			base = 8
 			lex.consume()
 			return (*Lexer).lexNumber
+		case 'D':
 		case 'd':
 			base = 10
 			lex.consume()
 			return (*Lexer).lexNumber
+		case 'X':
 		case 'x':
 			base = 16
 			lex.consume()
