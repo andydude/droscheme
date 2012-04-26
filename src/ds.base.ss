@@ -1,3 +1,13 @@
+#|
+ | Droscheme - a Scheme implementation
+ | Copyright © 2012 Andrew Robbins, Daniel Connelly
+ |
+ | This program is free software: it is distributed in the hope that it will be useful,
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ | FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+ | terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
+ |#
+
 ;(define-library (ds base)
 ;  (export
 ;    *
@@ -408,7 +418,7 @@
         (let ((n (car rest))
               (ns (cdr rest)))
           (if (null? ns) (num- 0 n)
-              (num- n (apply * ns)))))))
+              (num- n (apply + ns)))))))
 
 (define /
   (lambda rest
@@ -857,7 +867,10 @@
 ;(define (rationalize))
 
 (define (rationalize x e)
-  (simplest-rational (- x e) (+ x e)))
+  (if (or (inexact? x)
+          (inexact? e))
+      (exact->inexact (simplest-rational (- x e) (+ x e)))
+      (simplest-rational->exact (- x e) (+ x e))))
 
 (define (rationalize->exact x e)
   (rationalize (inexact->exact x) (inexact->exact e)))
@@ -906,6 +919,7 @@
 
 ;(define (round)) ; core
 
+;; from <trac.sacrideo.us/wg/wiki/RationalizeDefinition>
 (define (simplest-rational x y)
   (define (simplest-rational-internal x y)
     ;; assumes 0 < X < Y
@@ -931,10 +945,7 @@
         ((negative? y)
          (- (simplest-rational-internal (- y)
                                         (- x))))
-        (else
-         (if (and (exact? x) (exact? y))
-             0
-           0.0))))
+        (else 0)))
 
 (define (simplest-rational->exact x y)
   (simplest-rational (inexact->exact x) (inexact->exact y)))
@@ -1037,6 +1048,8 @@
       (if (complex? z)
           (and (real-zero? (real-part z))
                (real-zero? (imag-part z))))))
+
+(define #%key cons)
 
 ;);begin
 ;);define-library

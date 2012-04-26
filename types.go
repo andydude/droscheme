@@ -1268,8 +1268,8 @@ func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
 		rule := cur.(*List).car
 
 		// get pattern/template
-		pat := Dcdr(list1(Dcar(list1(rule))))
-		tmp := DlistZKref(list2(rule, Sint64(1)))
+		pat := Dcdr(list1(Dcar(list1(rule)))) // cdar
+		tmp := DlistZKref(list2(rule, Sint64(1))) // cadr
 
 		if debug {
 			fmt.Printf("RuleSyntax.Match() %s = %s\n", pat, st)
@@ -1551,6 +1551,22 @@ func seqHash(v []Any) uintptr {
 		}
 	}
 	return uintptr(hash32.Sum32())
+}
+
+func SetCmdLine(args []string) {
+	aargs := []Any{}
+	
+	for _, str := range args {
+		aargs = append(aargs, ToString(str))
+		if str == "-f" {
+			aargs = []Any{}
+		}
+	}
+	gCmdLine.(Applier).Apply(list1(NewVector(aargs).ToList()))
+}
+
+func NewKeyword(key, value Any) Any {
+	return list3(NewSymbol("#%key"), list2(NewSymbol("quote"), key), value)
 }
 
 func newError(s string) error {

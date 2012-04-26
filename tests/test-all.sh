@@ -1,8 +1,8 @@
 #!/bin/sh
 ECHO="/bin/echo"
 NOW="$(date '+%Y%m%dT%H%M%S')"
-FILES="$(ls *ss | grep -v '^test')"
-#FILES="test-choice-*ss"
+#FILES="$(ls *ss | grep -v '^test')"
+FILES="test-choice-*ss"
 #FILES="inexacteq.ss test-choice-negative-zero.ss"
 IMPLS="guile mit racket ds"
 #IMPLS="ds"

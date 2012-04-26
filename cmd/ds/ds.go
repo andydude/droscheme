@@ -156,6 +156,8 @@ func main() {
 
 	arguments()
 
+	ds.SetCmdLine(os.Args)
+
 	/* This creates a new environment that is empty
 	 * but its parent is the builtin environment.
 	 */

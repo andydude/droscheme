@@ -10,13 +10,21 @@
 package droscheme
 
 import (
-	//"os"
+	"os"
 	//"fmt"
 	"reflect"
 	"runtime"
 	"runtime/debug"
 	//"unsafe"
 )
+
+func exit(s Any) {
+	var status int = 0
+	if IsInteger(s) {
+		status = int(ToFixnum(s))
+	}
+	os.Exit(status)
+}
 
 func TypeEqual(x, y Any) bool {
 	return x.GetType() == y.GetType()

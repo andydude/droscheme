@@ -15,6 +15,7 @@ import (
 	"math/big"
 	"math/cmplx"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -356,6 +357,13 @@ func ToFlonum(a Any) float64 {
 		return float64(int64(a.(Sint64)))
 	case Sfloat64:
 		return reflect.ValueOf(a).Float()
+	case SRational:
+		str := a.(SRational).it.FloatString(16)
+		val, err := strconv.ParseFloat(str, 64)
+		if err != nil {
+			panic(err)
+		}
+		return val
 	}
 	// TODO: fix ERROR
 	return 0.0
@@ -381,6 +389,13 @@ func ToRational(n Num) SRational {
 		return SRational{it: big.NewRat(0, 1).SetInt64(int64(n.(Sint64)))}
 	//case SFixnum:
 	//	return SRational{it: big.NewRat(0, 1).SetInt64(n.(SFixnum).it.(Sint64))}
+	case Sfloat64:
+		str := n.(Sfloat64).String()
+		rat, ok := big.NewRat(0, 1).SetString(str)
+		if !ok {
+			panic("rational could not be constructed from: " + str)
+		}
+		return SRational{it: rat}
 	case SInteger:
 		return SRational{it: big.NewRat(0, 1).SetInt(n.(SInteger).it)}
 	case SRational:
@@ -412,7 +427,6 @@ func NewComplexI() SComplex {
 func NewComplex(x, y Num) ComplexNum {
 	t := unifyComplexType(x.GetNumberType(), y.GetNumberType())
 	if isComplexType(t) {
-		fmt.Printf("%v, %v\n", t, NumberTypeCodeComplexPolar)
 		panic(newTypeError("expected real number"))
 	}
 	if isInexactType(t) {
@@ -424,7 +438,6 @@ func NewComplex(x, y Num) ComplexNum {
 func NewComplexPolar(s, a Num) ComplexNum {
 	t := unifyComplexType(s.GetNumberType(), a.GetNumberType())
 	if isComplexType(t) {
-		fmt.Printf("cp=%v\n", t)
 		panic(newTypeError("expected real number"))
 	}
 	if isInexactType(t) {
@@ -555,6 +568,10 @@ func unlist2float64(args Any) (x, y float64) {
 	x = ToFlonum(a)
 	y = ToFlonum(b)
 	return
+}
+
+func unlist1Flonum(args Any) (x Num) {
+	return Sfloat64(ToFlonum(unlist1(args)))
 }
 
 func unlist2Flonum(args Any) (x, y Num) {
@@ -753,13 +770,44 @@ func (o Sint64) Cmp(n Num) int {
 	}
 	return 0
 }
-func (o Sint64) Add(n Num) Num { return Sint64(o + n.(Sint64)) }
-func (o Sint64) Sub(n Num) Num { return Sint64(o - n.(Sint64)) }
-func (o Sint64) Mul(n Num) Num { return Sint64(o * n.(Sint64)) }
-func (o Sint64) Div(n Num) Num { return Sint64(o / n.(Sint64)) }
-func (o Sint64) Mod(n Num) Num { return Sint64(o % n.(Sint64)) }
-func (o Sint64) Shl(n Num) Num { return Sint64(o << uint(n.(Sint64))) }
-func (o Sint64) Shr(n Num) Num { return Sint64(o >> uint(n.(Sint64))) }
+func (o Sint64) Add(n Num) Num {
+	m := n.(Sint64)
+	if int64(o) != int64(int16(o)) || int64(m)!= int64(int16(m)) {
+		return ToInteger(o).Add(ToInteger(n))
+	}
+	return Sint64(o + n.(Sint64)) 
+}
+func (o Sint64) Sub(n Num) Num { 
+	m := n.(Sint64)
+	if int64(o) != int64(int16(o)) || int64(m)!= int64(int16(m)) {
+		return ToInteger(o).Sub(ToInteger(n))
+	}
+	return Sint64(o - n.(Sint64)) 
+}
+func (o Sint64) Mul(n Num) Num { 
+	m := n.(Sint64)
+	if int64(o) != int64(int16(o)) || int64(m)!= int64(int16(m)) {
+		return ToInteger(o).Mul(ToInteger(n))
+	}
+	return Sint64(o * n.(Sint64)) 
+}
+func (o Sint64) Div(n Num) Num { 
+	m := n.(Sint64)
+	var r Sint64 = o / m
+	if (r*m != o) {
+		return ToRational(o).Div(ToRational(m))
+	}
+	return r
+}
+func (o Sint64) Mod(n Num) Num { 
+	return Sint64(o % n.(Sint64)) 
+}
+func (o Sint64) Shl(n Num) Num { 
+	return Sint64(o << uint(n.(Sint64))) 
+}
+func (o Sint64) Shr(n Num) Num { 
+	return Sint64(o >> uint(n.(Sint64))) 
+}
 
 //// U32
 //func (o Suint32) Add(n Num) Num { return Suint32(o + n.(Suint32)) }
@@ -1011,20 +1059,30 @@ func (o SRational) Sub(n Num) Num {
 func (o SRational) Mul(n Num) Num {
 	return SRational{it: big.NewRat(0, 1).Mul(o.it, n.(SRational).it)}
 }
-func (o SRational) Div(n Num) Num { return Sfloat64(0) } // wrong
-func (o SRational) Mod(n Num) Num { return Sfloat64(0) } // wrong
-func (o SRational) Shl(n Num) Num { return Sfloat64(0) } // wrong
-func (o SRational) Shr(n Num) Num { return Sfloat64(0) } // wrong
-
+func (o SRational) Div(n Num) Num {
+	return SRational{it: big.NewRat(0, 1).Quo(o.it, n.(SRational).it)}
+}
+func (o SRational) Mod(n Num) Num { 
+	return Sfloat64(0) 
+} // wrong
+func (o SRational) Shl(n Num) Num { 
+	return Sfloat64(0) 
+} // wrong
+func (o SRational) Shr(n Num) Num { 
+	return Sfloat64(0) 
+} // wrong
 func (o SRational) Dmtr() Num {
 	return SInteger{it: o.it.Denom()}
 }
-
 func (o SRational) Nmtr() Num {
 	return SInteger{it: o.it.Num()}
 }
-func (o SRational) RTE() IntNum { return o.Nmtr(); }
-func (o SRational) RTN() IntNum { return o.Nmtr(); }
+func (o SRational) RTE() IntNum { 
+	return Sfloat64(ToFlonum(o)).RTE() 
+}
+func (o SRational) RTN() IntNum { 
+	return Sfloat64(ToFlonum(o)).RTN() 
+}
 
 // C64
 func (o Scomplex64) String() string {
