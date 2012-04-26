@@ -29,7 +29,6 @@
   [X] Label these as [S] for syntax or [D] for dependant on syntax-rules
   [] research
   [] see if (define-record-type) can be derived syntax
-  [] see if (parameterize) can be derived syntax
   [] (a ...) works, but ((a b) ...) doesn't
   [] let loop -- this should be builtin
 
@@ -55,12 +54,19 @@
   ---
   [X] Label these as [L] for library
   [] research snow
-  [] parameterize
 
 - Record support
   [] define-record-type
   ---
   [] test suite
+
+(define x 3)
+(define-syntax foo (syntax-rules () ((foo) x)))
+(define x 4)
+(foo)
+
+(/ (/ -1.0 0.0))
+(define (assert x) (if x #t (error "Assert fail")))
 
 - Hash Tables (from R6RS, and perhaps R7RS-large)
   [?] hashtable-mutable?, TODO: immutability
@@ -81,7 +87,7 @@
   [C] dynamic-wind
   [C] guard
   [L] import -- for programs
-  [R] parameterize
+  [X] parameterize
   [C] with-exception-handler
 
 (cons i list)			a bcd

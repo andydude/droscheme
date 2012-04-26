@@ -291,6 +291,26 @@ func Kload(kw, st Any, env *Env) Any {
 	return Void()
 }
 
+func Kparameterize(kw, st Any, env *Env) Any {
+	binds, body := unlist1R(st)
+
+	// separate variables and values
+	bvars, bvals := bindingsToPair(binds)
+	vvars := listToVector(bvars).Eval(env).(SVector)
+	vnews := listToVector(bvals)
+	volds := listToVector(bvals)
+	for k, _ := range vvars {
+		volds[k] = vvars[k].(Applier).Apply(list0())
+		vvars[k].(Applier).Apply(list1(vnews[k]))
+	}
+	ret := NewBegin(body, env)
+	for k, _ := range vvars {
+		vvars[k].(Applier).Apply(list1(volds[k]))
+	}
+
+	return ret
+}
+
 func Kunquote(kw, st Any, env *Env) Any {
 	return listToValues(Deval(list2(list1R(NewSymbol("list"), st), env)))
 }
@@ -451,7 +471,7 @@ func KsyntaxZKrules(kw, st Any, env *Env) Any {
 //}
 
 func Dacos(a Any) Any {
-	return unlist1(a).(TrigNum).ArcCos()
+	return unlist1Flonum(a).(TrigNum).ArcCos()
 }
 
 func Dangle(a Any) Any {
@@ -465,17 +485,13 @@ func Dapply(a Any) Any {
 }
 
 func Dasin(a Any) Any {
-	return unlist1(a).(TrigNum).ArcSin()
+	return unlist1Flonum(a).(TrigNum).ArcSin()
 }
 
 func Datan(a Any) Any {
-	// CLEANUP
-	xa, ya := unlist1R(a)
-	x, y := Sfloat64(ToFlonum(xa.(Num))), Sfloat64(1)
-	if !IsNull(ya) {
-		y = Sfloat64(ToFlonum(unlist1(ya).(Num)))
-	}
-	return x.ArcTan(y)
+	xa, ya := unlist1O(a, Sfloat64(1.0))
+	x, y := unlist2Flonum(list2(xa, ya))
+	return x.(TrigNum).ArcTan(y)
 }
 
 func DbinaryZKportZS(a Any) Any {
@@ -567,8 +583,7 @@ func DbytevectorZS(a Any) Any {
 }
 
 func DcallZKwithZKcomposableZKcontinuation(a Any) Any {
-	// TODO
-	return Void()
+	return DcallZKwithZKescapeZKcontinuation(a) // TODO
 }
 
 func DcallZKwithZKcurrentZKcontinuation(a Any) Any {
@@ -603,10 +618,6 @@ func DcallZKwithZKvalues(a Any) Any {
 	producer, consumer := unlist2(a)
 	values := producer.(Applier).Apply(list0())
 	return consumer.(Applier).Apply(valuesToList(values))
-}
-
-func DcallZMcc(a Any) Any {
-	return DcallZKwithZKcurrentZKcontinuation(a)
 }
 
 func Dcar(a Any) Any {
@@ -685,7 +696,7 @@ func Dcons(a Any) Any {
 }
 
 func Dcos(a Any) Any {
-	return unlist1(a).(TrigNum).Cos()
+	return unlist1Flonum(a).(TrigNum).Cos()
 }
 
 func DcurrentZKerrorZKport(a Any) Any {
@@ -741,6 +752,11 @@ func DdroschemeZKfloat64ZKenvironment(a Any) Any {
 	return Void()
 }
 
+func DdroschemeZKprimitiveZKenvironment(a Any) Any {
+	// TODO
+	return Void()
+}
+
 func DdroschemeZKbranch(a Any) Any {
 	go DdroschemeZKwait(list0())
 	return Void()
@@ -752,6 +768,7 @@ func DdroschemeZKwait(a Any) Any {
 }
 
 func DdynamicZKwind(a Any) Any {
+	// TODO
 	return list0()
 }
 
@@ -860,13 +877,24 @@ func DexactZS(a Any) Any {
 	return SBool(IsExact(unlist1(a)))
 }
 
+func Dexit(a Any) Any {
+	var status int = 0
+	if IsPair(a) {
+		s := unlist1(a)
+		if IsInteger(s) {
+			status = int(ToFixnum(s))
+		}
+	}
+	os.Exit(status)
+	return Void()
+}
+
 func Dexp(a Any) Any {
-	x := unlist1(a)
-	return x.(TrigNum).Exp()
+	return unlist1Flonum(a).(TrigNum).Exp()
 }
 
 func Dexpt(a Any) Any {
-	x, y := unlist2Number(a)
+	x, y := unlist2Flonum(a)
 	return x.(TrigNum).Pow(y)
 }
 
@@ -1142,12 +1170,12 @@ func DinteractionZKenvironment(a Any) Any {
 
 func DlastZKpair(a Any) Any {
 	//// cycle detection (only needed in mutable model)
-	if IsNull(unlist1(a)) {
+	cur := unlist1(a)
+	if IsNull(cur) {
 		return list0()
 	}
-	var cur *List = unlist1(a).(*List)
-	for IsPair(cur.cdr) {
-		cur = cur.cdr.(*List)
+	for IsPair(cur.(*List).cdr) {
+		cur = cur.(*List).cdr
 	}
 	return cur
 }
@@ -1271,10 +1299,11 @@ func DlistZS(a Any) Any {
 
 func Dlog(a Any) Any {
 	xa, ya := unlist1R(a)
+	xa = Sfloat64(ToFlonum(xa))
 	if IsNull(ya) {
 		return xa.(TrigNum).Ln()
 	}
-	x, y := unify(xa.(Num), unlist1(ya).(Num))
+	x, y := unify(xa.(Num), unlist1Flonum(ya).(Num))
 	return x.(TrigNum).Log(y)
 }
 
@@ -1365,7 +1394,7 @@ func DmakeZKvector(a Any) Any {
 }
 
 func DnegativeZS(a Any) Any {
-	return SBool(unlist1(a).(RealNum).Cmp(Sfloat64(0)) == -1)
+	return SBool(unlist1(a).(RealNum).Cmp(Sint64(0)) == -1)
 }
 
 func Dnewline(a Any) Any {
@@ -1398,7 +1427,7 @@ func DnullZKenvironment(a Any) Any {
 		//env.registerSyntax(KdefineZKrecordZKtype)
 		env.registerSyntax(KdefineZKvalues)
 		//env.registerSyntax(Kguard)
-		//env.registerSyntax(Kparameterize)
+		env.registerSyntax(Kparameterize)
 		fallthrough
 	case v == 6:
 		//assert
@@ -1591,7 +1620,7 @@ func DportZS(a Any) Any {
 }
 
 func DpositiveZS(a Any) Any {
-	return SBool(unlist1(a).(RealNum).Cmp(Sfloat64(0)) == 1)
+	return SBool(unlist1(a).(RealNum).Cmp(Sint64(0)) == 1)
 }
 
 func DprocedureZS(a Any) Any {
@@ -1768,6 +1797,7 @@ func DschemeZKprimitiveZKenvironment(a Any) Any {
 		env.register(DdroschemeZKwait)
 		env.register(DemptyZS)
 		env.register(DevalZKliteral)
+		env.register(Dexit)
 		env.register(Dhash)
 		env.register(DhashtableZKZRlist)
 		env.register(DhashtableZKZRvector)
@@ -2269,7 +2299,7 @@ func Dsign(a Any) Any {
 }
 
 func Dsin(a Any) Any {
-	return unlist1(a).(TrigNum).Sin()
+	return unlist1Flonum(a).(TrigNum).Sin()
 }
 
 func Dsqrt(a Any) Any {
@@ -2425,7 +2455,7 @@ func DsymbolZS(a Any) Any {
 }
 
 func Dtan(a Any) Any {
-	return unlist1(a).(TrigNum).Tan()
+	return unlist1Flonum(a).(TrigNum).Tan()
 }
 
 func DtextualZKportZS(a Any) Any {
@@ -2433,6 +2463,10 @@ func DtextualZKportZS(a Any) Any {
 }
 
 func DnumberZKtypeZKof(a Any) Any {
+	if ToFixnum(Dlength(list1(a))) == 2 {
+		x, _ := unlist2Number(a)
+		return NewSymbol(numberTypeToString(x.(BaseNum).GetNumberType()))
+	}
 	return NewSymbol(numberTypeToString(unlist1(a).(BaseNum).GetNumberType()))
 }
 
