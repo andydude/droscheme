@@ -1,12 +1,12 @@
-/*
- * Droscheme - a Scheme implementation
- * Copyright © 2012 Andrew Robbins, Daniel Connelly
- *
- * This program is free software: it is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
- */
+//
+// Droscheme - a Scheme implementation
+// Copyright © 2012 Andrew Robbins, Daniel Connelly
+//
+// This program is free software: it is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+// terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
+//
 package droscheme
 
 import (
@@ -16,6 +16,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"runtime/debug"
 	"sort"
 	"strings"
 )
@@ -183,53 +184,53 @@ func (_ SVoid) String() string {
 
 // null type
 
-type SNull struct{}
+type Null struct{}
 
 // null methods
 
 func IsNull(o Any) bool {
-	var _, ok = o.(SNull)
+	var _, ok = o.(*Null)
 	return ok
 }
 
-func (o SNull) GetType() int {
+func (o *Null) GetType() int {
 	return TypeCodeNull
 }
 
-func (o SNull) GetHash() uintptr {
+func (o *Null) GetHash() uintptr {
 	return 0
 }
 
-func (_ SNull) Equal(a Any) bool {
+func (_ *Null) Equal(a Any) bool {
 	if !IsNull(a) {
 		return false
 	}
 	return true
 }
 
-func (o SNull) Eval(env *Env) Any {
+func (o *Null) Eval(env *Env) Any {
 	return o
 }
 
-func (o SNull) Match(syntax Any, env *Env) bool {
+func (o *Null) Match(syntax Any, env *Env) bool {
 	return o.Equal(syntax)
 }
 
-func (o SNull) Replace(env *Env) Any {
+func (o *Null) Replace(env *Env) Any {
 	return o
 }
 
-func (_ SNull) String() string {
+func (_ *Null) String() string {
 	return "()"
 }
 
-func (o SNull) ToVector() Any {
+func (o *Null) ToVector() Any {
 	return SVector([]Any{})
 }
 
 // s:pair type
 
-type List struct {
+type Pair struct {
 	car Any
 	cdr Any
 }
@@ -237,40 +238,43 @@ type List struct {
 // s:pair methods
 
 func IsPair(o Any) bool {
-	var _, ok = o.(*List)
+	var _, ok = o.(*Pair)
 	return ok
 }
 
-func (o *List) GetHash() uintptr {
+func (o *Pair) GetHash() uintptr {
 	return seqHash([]Any(DlistZHZKZRvector(list1(o)).(SVector)))
 }
 
-func (o *List) GetType() int {
+func (o *Pair) GetType() int {
 	return TypeCodePair
 }
 
-func (o *List) Equal(a Any) bool {
+func (o *Pair) Equal(a Any) bool {
 	return Equal(o, a)
 }
 
-func (o *List) Eval(env *Env) Any {
-	cas, cds := unlist1R(o)
-	car := Deval(list2(cas, env))
-	cdr := DevalZKliteral(list2(cds, env))
-	return list1R(car, cdr)
+func (o *Pair) Eval(env *Env) Any {
+	v := []Any{}
+	var cur Any
+	for cur = o; IsPair(cur); cur = cur.(*Pair).cdr {
+		car := cur.(*Pair).car
+		v = append(v, Eval(car, env))
+	}
+	return DvectorZKZRlist(list1(NewVector(v)))
 }
 
-func (p *List) Match(syntax Any, env *Env) bool {
+func (p *Pair) Match(syntax Any, env *Env) bool {
 	pas, pds := unlist1R(p) // pattern
 
 	//fmt.Printf("List.Match[ %s, %s ]\n", p, syntax)
 
 	if IsPair(pds) {
-		pads := pds.(*List).car
+		pads := pds.(*Pair).car
 		if IsSymbol(pads) && pads.(SSymbol).String() == "..." {
 			//fmt.Printf("= ellipsis = %s\n", syntax)
 			if IsSymbol(pas) {
-				if env.Has(pas) {
+				if env.Ref(pas) != nil {
 					KdumpZKenvironment(pas, pds, env)
 					//fmt.Printf("= %s = %s\n", pas, env.Ref(pas))
 					//fmt.Printf("= %s | %s\n", p, syntax)
@@ -304,11 +308,11 @@ func (p *List) Match(syntax Any, env *Env) bool {
 	return true
 }
 
-func (t *List) Replace(env *Env) Any {
+func (t *Pair) Replace(env *Env) Any {
 	tas, tds := unlist1R(t)
 
 	if IsPair(tds) {
-		tads := tds.(*List).car
+		tads := tds.(*Pair).car
 		if IsSymbol(tads) && tads.(SSymbol).String() == "..." {
 			return env.Ref(tas)
 		}
@@ -319,33 +323,33 @@ func (t *List) Replace(env *Env) Any {
 	return list1R(car, cdr)
 }
 
-func (o *List) String() string {
+func (o *Pair) String() string {
 	return DshowZKlist(list1(o)).(SString).GoString()
 }
 
-func (o *List) ToVector() Any {
+func (o *Pair) ToVector() Any {
 	var ret = []Any{}
 	var cur Any
-	for cur = o; IsPair(cur); cur = cur.(*List).cdr {
-		ret = append(ret, cur.(*List).car)
+	for cur = o; IsPair(cur); cur = cur.(*Pair).cdr {
+		ret = append(ret, cur.(*Pair).car)
 	}
 	return NewVector(ret)
 }
 
-func (o *List) First() Any {
+func (o *Pair) First() Any {
 	return o.car
 }
 
-func (o *List) Rest() Any {
+func (o *Pair) Rest() Any {
 	return o.cdr
 }
 
 func listToVector(a Any) SVector {
 	switch {
 	case IsNull(a):
-		return a.(SNull).ToVector().(SVector)
+		return a.(*Null).ToVector().(SVector)
 	case IsPair(a):
-		return a.(*List).ToVector().(SVector)
+		return a.(*Pair).ToVector().(SVector)
 	}
 	panic(newTypeError("list->vector expected list"))
 }
@@ -369,12 +373,12 @@ func bindingsToPair(a Any) (ls, rs Any) {
 	//fmt.Printf("bindingsToPair(%s)\n", a)
 	var lhs = []Any{}
 	var rhs = []Any{}
-	var car *List
+	var car *Pair
 	var cur Any
-	for cur = a; IsPair(cur); cur = cur.(*List).cdr {
-		car = cur.(*List).car.(*List)
+	for cur = a; IsPair(cur); cur = cur.(*Pair).cdr {
+		car = cur.(*Pair).car.(*Pair)
 		lhs = append(lhs, car.car)
-		rhs = append(rhs, car.cdr.(*List).car)		
+		rhs = append(rhs, car.cdr.(*Pair).car)		
 	}
 	ls = NewVector(lhs).ToList()
 	rs = NewVector(rhs).ToList()
@@ -387,6 +391,10 @@ type SBinary []byte
 
 func IsBinary(o Any) bool {
 	return IsType(o, TypeCodeBinary)
+}
+
+func ToBinary(s string) Any {
+	return NewBinary([]byte(s))
 }
 
 func NewBinary(b []byte) SBinary {
@@ -564,9 +572,9 @@ func NewVector(a []Any) SVector {
 
 func (o SVector) ToList() Any {
 	if len(o) == 0 {
-		return SNull{}
+		return list0()
 	}
-	return &List{o[0], NewVector(o[1:]).ToList()}
+	return list1R(o[0], NewVector(o[1:]).ToList())
 }
 
 func (o SVector) GetType() int {
@@ -584,7 +592,7 @@ func (o SVector) Equal(a Any) bool {
 func (o SVector) Eval(env *Env) Any {
 	var ret = DmakeZKvector(list1(Sint64(len(o)))).(SVector)
 	for i := 0; i < len(o); i++ {
-		ret[i] = Deval(list2(o[i], env))
+		ret[i] = Eval(o[i], env)
 	}
 	return ret
 }
@@ -604,7 +612,7 @@ func (o SVector) String() string {
 
 func IsEmpty(a Any) bool {
 	switch a.(type) {
-	case SNull:
+	case *Null:
 		return true
 	case SVoid:
 		return true
@@ -761,7 +769,7 @@ func (o STable) Ref(k Any) Any {
 		return nil
 	}
 	for i := 0; i < len(bucket); i++ {
-		pair := bucket[i].(*List)
+		pair := bucket[i].(*Pair)
 		car, cdr := pair.car, pair.cdr
 		if o.equiv(car, k) {
 			if debug {
@@ -785,7 +793,7 @@ func (o STable) Set(k, v Any) {
 		return
 	}
 	for i := 0; i < len(bucket); i++ {
-		pair := bucket[i].(*List)
+		pair := bucket[i].(*Pair)
 		if o.equiv(pair.car, k) {
 			if debug {
 				fmt.Printf("hashtable-set!: found pair %v\n", pair)
@@ -806,7 +814,7 @@ func (o STable) Delete(k Any) {
 	}
 	buf := []Any{}
 	for i := 0; i < len(bucket); i++ {
-		pair := bucket[i].(*List)
+		pair := bucket[i].(*Pair)
 		if o.equiv(pair.car, k) {
 			fmt.Printf("hashtable-delete!: found pair %v\n", pair)
 		} else {
@@ -834,8 +842,8 @@ func (o STable) Entries() (keys []Any, values []Any) {
 	values = []Any{}
 	for _, bucket := range o.it {
 		for _, pair := range bucket {
-			keys = append(keys, pair.(*List).car)
-			values = append(values, pair.(*List).cdr)
+			keys = append(keys, pair.(*Pair).car)
+			values = append(values, pair.(*Pair).cdr)
 		}
 	}
 	return
@@ -896,13 +904,31 @@ func (o SError) Error() string {
 
 // environment type
 
+//type EnvSpec struct {
+//	env *Env
+//}
+
 type Env struct {
 	bound  map[string]Any
 	parent *Env
 }
 
+func EmptyFrame() map[string]Any {
+	return make(map[string]Any, 4)
+}
+
 func EmptyEnv() *Env {
-	return &Env{bound: make(map[string]Any, 1024)}
+	return &Env{bound: EmptyFrame()}
+}
+
+func toEnv(env Any) *Env {
+	//return envs.env
+	return env.(*Env)
+}
+
+func toEnvSpec(env *Env) *Env {
+	//return EnvSpec{env}
+	return env
 }
 
 func (env *Env) GetType() int {
@@ -918,7 +944,7 @@ func (env *Env) Equal(a Any) bool {
 }
 
 func (env *Env) Extend() *Env {
-	return &Env{bound: make(map[string]Any, 1024), parent: env}
+	return &Env{bound: EmptyFrame(), parent: env}
 }
 
 func (env *Env) Update(child *Env) *Env {
@@ -927,13 +953,13 @@ func (env *Env) Update(child *Env) *Env {
 	return &Env{bound: child.bound, parent: env}
 }
 
-func (env *Env) Has(symbol Any) bool {
-	//fmt.Printf("Env.Has(%s)\n", symbol)
-	if env.Ref(symbol) == nil {
-		return false
-	}
-	return true
-}
+//func (env *Env) Has(symbol Any) bool {
+//	//fmt.Printf("Env.Has(%s)\n", symbol)
+//	if env.Ref(symbol) == nil {
+//		return false
+//	}
+//	return true
+//}
 
 func (env *Env) Ref(symbol Any) Any {
 	//fmt.Printf("Env.Ref(%s)\n", symbol)
@@ -950,7 +976,7 @@ func (env *Env) Ref(symbol Any) Any {
 }
 
 func (env *Env) Set(symbol, value Any) Any {
-	fmt.Printf("Env.Set(%s) %s\n", symbol, value)
+	//fmt.Printf("Env.Set(%s) %s\n", symbol, value)
 	//if !env.Has(symbol) {
 	//	panic(newEvalError("set! variable must be prebound"))
 	//}
@@ -999,7 +1025,7 @@ func (env *Env) DefMatch(symbol, value Any) Any {
 }
 func (env *Env) DefMacro(symbol, body Any) Any {
 	id, value := env.DefValue(symbol, body)
-	env.bound[id] = SProcSyntax{value.(SProc), id}
+	env.bound[id] = SProcSyntax{value.(*Proc), id}
 	return Void()
 }
 
@@ -1048,12 +1074,12 @@ func (env *Env) registerName(fn interface{}) string {
 
 func (env *Env) registerSyntax(fn func(Any, Any, *Env) Any) {
 	n := env.registerName(fn)
-	env.bound[n] = SPrimSyntax{form: fn, name: n}
+	env.bound[n] = &PrimSyntax{form: fn, name: n}
 }
 
 func (env *Env) register(fn func(Any) Any) {
 	n := env.registerName(fn)
-	env.bound[n] = SPrim{call: fn, name: n}
+	env.bound[n] = &Prim{call: fn, name: n}
 }
 
 func MangleName(name string) string {
@@ -1096,21 +1122,58 @@ func GetRootPath() string {
 
 // exception type
 
-func PanicToError(expr Any) (value Any, err error) {
-	x := recover()
-	if x != nil {
-		value = expr
-		err = ToError(x)
-		fmt.Printf("ERROR: %s\n", err)
-	}
-	return
-}
-
-func ErrorToPanic(value Any, err error) Any {
+func error1panic(err error) {
 	if err != nil {
 		panic(err)
 	}
-	return value
+	return	
+}
+
+func error2panic(a Any, err error) Any {
+	if err != nil {
+		panic(err)
+	}
+	return a
+}
+
+func error3panic(a, b Any, err error) (c, d Any) {
+	if err != nil {
+		panic(err)
+	}
+	return a, b
+}
+
+func panic1error() (err error) {
+	x := recover()
+	if x != nil {
+		debug.PrintStack()
+		err = ToError(x)
+		fmt.Printf("ERROR: %s\n", err)
+	}
+	return nil
+}
+
+func panic2error(a Any) (c Any, err error) {
+	x := recover()
+	if x != nil {
+		debug.PrintStack()
+		c = a
+		err = ToError(x)
+		fmt.Printf("ERROR: %s\n", err)
+	}
+	return a, nil
+}
+
+func panic3error(a, b Any) (c, d Any, err error) {
+	x := recover()
+	if x != nil {
+		debug.PrintStack()
+		c = a
+		d = b
+		err = ToError(x)
+		fmt.Printf("ERROR: %s\n", err)
+	}
+	return a, b, nil
 }
 
 func ToError(a interface{}) error {
@@ -1120,15 +1183,15 @@ func ToError(a interface{}) error {
 	case string:
 		return newEvalError(a.(string))
 	}
-	return newEvalError("unknown error")
+	return newEvalError("unknown error type")
 }
 
-func IsSyntax(kw Any, env *Env) bool {
-	if env.Has(kw) && IsType(env.Ref(kw), TypeCodeSyntax) {
-		return true
-	}
-	return false
-}
+//func IsSyntax(kw Any, env *Env) bool {
+//	if env.Has(kw) && IsType(env.Ref(kw), TypeCodeSyntax) {
+//		return true
+//	}
+//	return false
+//}
 
 func CountParens(s string) int {
 	return strings.Count(s, "(") - strings.Count(s, ")")
@@ -1136,13 +1199,13 @@ func CountParens(s string) int {
 
 // syntax type
 
-type SPrimSyntax struct {
+type PrimSyntax struct {
 	form func(Any, Any, *Env) Any
 	name string
 }
 
 type SProcSyntax struct {
-	form SProc
+	form *Proc
 	name string
 }
 
@@ -1163,23 +1226,23 @@ type SRuleSyntax struct {
 
 // syntax methods
 
-func (o SPrimSyntax) Equal(a Any) bool {
+func (o *PrimSyntax) Equal(a Any) bool {
 	return false
 }
 
-func (o SPrimSyntax) GetHash() uintptr {
+func (o *PrimSyntax) GetHash() uintptr {
 	return 0
 }
 
-func (o SPrimSyntax) GetType() int {
+func (o *PrimSyntax) GetType() int {
 	return TypeCodeSyntax
 }
 
-func (o SPrimSyntax) Transform(kw, st Any, env *Env) Any {
+func (o *PrimSyntax) Transform(kw, st Any, env *Env) Any {
     return o.form(kw, st, env)
 }
 
-func (o SPrimSyntax) String() string {
+func (o *PrimSyntax) String() string {
 	return fmt.Sprintf("#<syntax:%s>", o.name)
 }
 
@@ -1196,14 +1259,12 @@ func (o SProcSyntax) Equal(a Any) bool {
 }
 
 func (o SProcSyntax) Transform(kw, st Any, env *Env) Any {
-	//fmt.Printf("SProcSyntax.Transform\n")
 	expr := o.form.Apply(st)
-	//fmt.Println(expr)
-    return Deval(list2(expr, env))
+    return Eval(expr, env)
 }
 
 func (o SProcSyntax) String() string {
-	return fmt.Sprintf("#<syntax:%s:>", o.name, o.form)
+	return fmt.Sprintf("#<syntax:%s:%s>", o.name, o.form)
 }
 
 func (o SCaseSyntax) GetType() int {
@@ -1253,9 +1314,9 @@ func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
 	// the template syntax 'tmp' is evaluated with o.env.Update(renv)
 
 	lenv := EmptyEnv() // literal environment
-	for cur := o.lits; IsPair(cur); cur = cur.(*List).cdr {
+	for cur := o.lits; IsPair(cur); cur = cur.(*Pair).cdr {
 		// this environment is also used as a set
-		symbol := cur.(*List).car
+		symbol := cur.(*Pair).car
 		if !IsSymbol(symbol) {
 			panic(newTypeError("syntax-rules expected symbol literal"))
 		}
@@ -1263,9 +1324,9 @@ func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
 	}
 
 	// for each in body
-	for cur := o.body; IsPair(cur); cur = cur.(*List).cdr {
+	for cur := o.body; IsPair(cur); cur = cur.(*Pair).cdr {
 		// one syntax rule
-		rule := cur.(*List).car
+		rule := cur.(*Pair).car
 
 		// get pattern/template
 		pat := Dcdr(list1(Dcar(list1(rule)))) // cdar
@@ -1288,7 +1349,7 @@ func (o SRuleSyntax) Transform(kw, st Any, env *Env) Any {
 			}
 
 			// phase 3: eval
-			return Deval(list2(expr, env))
+			return Eval(expr, env)
 		}
 	}
 
@@ -1301,12 +1362,12 @@ func (o SRuleSyntax) String() string {
 
 // procedure types
 
-type SPrim struct {
+type Prim struct {
 	call func(Any) Any
 	name string
 }
 
-type SProc struct {
+type Proc struct {
 	env  *Env
 	form Any
 	body Any
@@ -1316,17 +1377,21 @@ type SProc struct {
 // procedure methods
 
 func NewPrim(fn func(Any) Any) Any {
-	return SPrim{call: fn}
+	return &Prim{call: fn}
 }
 
-func NewEval(body Any, env *Env) Any {
-	if _, ok := body.(SProc); !ok {
-		panic("define-macro: expected lambda")
-	}
-	a := list3(NewSymbol("apply"), body, NewSymbol("R"))
-	e := list3(NewSymbol("eval"), a, env)
-	return NewLambda(list2(NewSymbol("R"), e), env)
+func NewPrim2(fn func(Any) Any, name string) Any {
+	return &Prim{call: fn, name: name}
 }
+
+//func NewEval(body Any, env *Env) Any {
+//	if _, ok := body.(SProc); !ok {
+//		panic("define-macro: expected lambda")
+//	}
+//	a := list3(NewSymbol("apply"), body, NewSymbol("R"))
+//	e := list3(NewSymbol("eval"), a, env)
+//	return NewLambda(list2(NewSymbol("R"), e), env)
+//}
 
 func NewBegin(body Any, env *Env) Any {
 	return Kbegin(NewSymbol("begin"), body, env)
@@ -1340,64 +1405,68 @@ func IsProcedure(o Any) bool {
 	return IsType(o, TypeCodeProc)
 }
 
-func (o SPrim) GetType() int {
+func (o *Prim) GetType() int {
 	return TypeCodeProc
 }
 
-func (o SPrim) GetHash() uintptr {
+func (o *Prim) GetHash() uintptr {
 	return 0 // TODO
 }
 
-func (o SPrim) Equal(a Any) bool {
+func (o *Prim) Equal(a Any) bool {
 	return false
 }
 
-func (o SPrim) Apply(a Any) Any {
+func (o *Prim) Apply(a Any) Any {
 	return o.call(a)
 }
 
-func (o SPrim) String() string {
+func (o *Prim) String() string {
 	return fmt.Sprintf("#<primitive-procedure:%s>", o.name)
 }
 
 // lambda procedure type
 
-func (o SProc) GetType() int {
+func (o *Proc) GetType() int {
 	return TypeCodeProc
 }
 
-func (o SProc) GetHash() uintptr {
+func (o *Proc) GetHash() uintptr {
 	//return NewString([]rune(o.String())).GetHash()
 	return 0
 }
 
-func (o SProc) Equal(a Any) bool {
+func (o *Proc) Equal(a Any) bool {
 	return false
 }
 
-func (o SProc) Apply(a Any) Any {
+func (o *Proc) Apply(a Any) Any {
 	body := o.body
 	body = list1R(SSymbol{"begin"}, body)
 	cenv := o.env.Extend()
+
+	// (lambda rest body)
 	if IsSymbol(o.form) {
 		cenv.bound[o.form.(SSymbol).name] = a
-		return Deval(list2(body, cenv))
+		return Eval(body, cenv)
 	}
+
+	// (lambda () body)
 	if !IsPair(o.form) {
-		return Deval(list2(body, cenv))
+		return Eval(body, cenv)
 	}
 
 	// iterate over formal and actual arguments
 	var bvar, bval Any
 	for bvar, bval = o.form, a; IsPair(bvar) && IsPair(bval); 
-	    bvar, bval = bvar.(*List).cdr, bval.(*List).cdr {
-		cenv.bound[bvar.(*List).car.(SSymbol).name] = bval.(*List).car
+	    bvar, bval = bvar.(*Pair).cdr, bval.(*Pair).cdr {
+		cenv.bound[bvar.(*Pair).car.(SSymbol).name] = bval.(*Pair).car
 	}
 
-	// check for (a b c . rest) formal arguments
+	// (lambda (a b c . rest) body)
 	if IsSymbol(bvar) {
 		cenv.bound[bvar.(SSymbol).name] = bval
-		return Deval(list2(body, cenv))
+		return Eval(body, cenv)
 	}
 
 	// check for argument mismatch
@@ -1408,14 +1477,14 @@ func (o SProc) Apply(a Any) Any {
 		panic(newEvalError("lambda-apply expected more arguments"+body.(fmt.Stringer).String()))
 	}
 
-	return Deval(list2(body, cenv))
+	return Eval(body, cenv)
 }
 
-func (o SProc) String() string {
+func (o *Proc) String() string {
 	return o.ToList().(fmt.Stringer).String()
 }
 
-func (o SProc) ToList() Any {
+func (o *Proc) ToList() Any {
 	return list2R(SSymbol{"lambda"}, o.form, o.body)
 }
 
@@ -1484,10 +1553,10 @@ func typeOf(a Any) int {
 	switch a.(type) {
 	case SBool: return TypeCodeBool
 	case SChar:	return TypeCodeChar
-	case SNull: return TypeCodeNull  
-	case *List: return TypeCodePair
-	case SPrim: return TypeCodeProc
-	case SProc: return TypeCodeProc
+	case *Null: return TypeCodeNull  
+	case *Pair: return TypeCodePair
+	case *Prim: return TypeCodeProc
+	case *Proc: return TypeCodeProc
 	//case SType: return TypeCodeType
 	case SVoid:	return TypeCodeVoid
 	case SBinary: return TypeCodeBinary
@@ -1495,9 +1564,10 @@ func typeOf(a Any) int {
 	case SSymbol: return TypeCodeSymbol
 	case SValues: return TypeCodeValues
 	case SVector: return TypeCodeVector
+	//case SFrame: return TypeCodeFrame
 	case STable: return TypeCodeTable
 	case *Env: return TypeCodeEnvSpec
-	case SPrimSyntax: return TypeCodeSyntax
+	case *PrimSyntax: return TypeCodeSyntax
 	case SCaseSyntax: return TypeCodeSyntax
 	case SRuleSyntax: return TypeCodeSyntax
 	}
@@ -1596,9 +1666,17 @@ func newWriteError(s string) error {
 // returns multiple values for argument handling
 // so I don't think we need to export any of these
 
+func Car(l Any) Any {
+	return l.(*Pair).car
+}
+
+func Cdr(l Any) Any {
+	return l.(*Pair).cdr
+}
+
 // equivalent to '()
 func list0() Any {
-	return SNull{}
+	return gNull
 }
 
 func list1(a Any) Any {
@@ -1606,24 +1684,24 @@ func list1(a Any) Any {
 }
 
 func list2(a, b Any) Any {
-	return list1R(a, list1R(b, list0()))
+	return list2R(a, b, list0())
 }
 
 func list3(a, b, c Any) Any {
-	return list1R(a, list1R(b, list1R(c, list0())))
+	return list3R(a, b, c, list0())
 }
 
 // equivalent to cons
-func list1R(a, rest Any) Any {
-	return &List{a, rest}
+func list1R(a, r Any) Any {
+	return &Pair{a, r}
 }
 
-func list2R(a, b, rest Any) Any {
-	return list1R(a, list1R(b, rest))
+func list2R(a, b, r Any) Any {
+	return &Pair{a, &Pair{b, r}}
 }
 
-func list3R(a, b, c, rest Any) Any {
-	return list1R(a, list1R(b, list1R(c, rest)))
+func list3R(a, b, c, r Any) Any {
+	return &Pair{a, &Pair{b, &Pair{c, r}}}
 }
 
 func listR(most, last Any) Any {
@@ -1631,79 +1709,79 @@ func listR(most, last Any) Any {
 }
 
 func unlist1(o Any) Any {
-	return o.(*List).car
+	return Car(o)
 }
 
 func unlist2(o Any) (a, b Any) {
-	a = o.(*List).car
-	b = o.(*List).cdr
-	b = b.(*List).car
+	a = Car(o)
+	b = Cdr(o)
+	b = Car(b)
 	return
 }
 
 func unlist3(o Any) (a, b, c Any) {
-	a = o.(*List).car
-	c = o.(*List).cdr
-	b = c.(*List).car
-	c = c.(*List).cdr
-	c = c.(*List).car
+	a = Car(o)
+	c = Cdr(o)
+	b = Car(c)
+	c = Cdr(c)
+	c = Car(c)
 	return
 }
 
 func unlist1R(o Any) (a Any, r Any) {
-	a = o.(*List).car
-	r = o.(*List).cdr
+	a = Car(o)
+	r = Cdr(o)
 	return
 }
 
 func unlist2R(o Any) (a Any, b Any, r Any) {
-	a = o.(*List).car
-	r = o.(*List).cdr
-	b = r.(*List).car
-	r = r.(*List).cdr
+	a = Car(o)
+	r = Cdr(o)
+	b = Car(r)
+	r = Cdr(r)
 	return
 }
 
 func unlist3R(o Any) (a Any, b Any, c Any, r Any) {
-	a = o.(*List).car
-	r = o.(*List).cdr
-	b = r.(*List).car
-	r = r.(*List).cdr
-	c = r.(*List).car
-	r = r.(*List).cdr
+	a = Car(o)
+	r = Cdr(o)
+	b = Car(r)
+	r = Cdr(r)
+	c = Car(r)
+	r = Cdr(r)
 	return
 }
 
 func unlist0O(o Any, d Any) Any {
     if IsPair(o) {
-        return o.(*List).car
+        return Car(o)
     }
 	return d
 }
 
 func unlist1O(o Any, d Any) (a Any, r Any) {
-	a = o.(*List).car
-	r = o.(*List).cdr
+	a = Car(o)
+	r = Cdr(o)
 	r = unlist0O(r, d)
 	return
 }
 
 func unlist2O(o Any, d Any) (a Any, b Any, r Any) {
-	a = o.(*List).car
-	r = o.(*List).cdr
-	b = r.(*List).car
-	r = r.(*List).cdr
+	a = Car(o)
+	r = Cdr(o)
+	b = Car(r)
+	r = Cdr(r)
 	r = unlist0O(r, d)
 	return
 }
 
 func unlist3O(o Any, d Any) (a Any, b Any, c Any, r Any) {
-	a = o.(*List).car
-	r = o.(*List).cdr
-	b = r.(*List).car
-	r = r.(*List).cdr
-	c = r.(*List).car
-	r = r.(*List).cdr
+	a = Car(o)
+	r = Cdr(o)
+	b = Car(r)
+	r = Cdr(r)
+	c = Car(r)
+	r = Cdr(r)
 	r = unlist0O(r, d)
 	return
 }

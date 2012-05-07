@@ -4,14 +4,10 @@ package droscheme
 
 import (
 	"fmt"
-	"strings"
 )
 
-var parseValue Any // returned value from yyParse
-var parseErr error // return value for parsing errors
 
-
-//line parse.y:46
+//line parse.y:42
 type yySymType struct {
 	yys int
     datum Any;
@@ -65,7 +61,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyMaxDepth = 200
 
-//line parse.y:273
+//line parse.y:271
 
 // BEGIN functions
 
@@ -77,19 +73,7 @@ func (lex *Lexer) Lex(lval *yySymType) int {
 }
 
 func (lex *Lexer) Error(e string) {
-	parseErr = fmt.Errorf("Syntax error at position %d in line %s: %s", lex.pos, lex.input, e)
-}
-
-func ReadString(input string) (Any, error) {
-	input = strings.TrimSpace(input)
-	if input == "" {
-		return nil, nil
-	}
-	lex := newLexer(input)
-	yyParse(lex)
-	err := parseErr
-	parseErr = nil
-	return parseValue, err
+	lex.err = fmt.Errorf("Syntax error at position %d in line %s: %s", lex.pos, lex.input, e)
 }
 
 // END functions
@@ -418,125 +402,127 @@ yydefault:
 	switch yynt {
 
 	case 1:
-		//line parse.y:86
+		//line parse.y:82
 		{
 			yyVAL.datum = yyS[yypt-0].datum
-			parseValue = yyVAL.datum
+	        yylex.(*Lexer).value = yyVAL.datum
 		}
 	case 2:
-		//line parse.y:91
+		//line parse.y:87
 		{
 			yyVAL.datum = yyS[yypt-0].datum
-			parseValue = yyVAL.datum
+	        yylex.(*Lexer).value = yyVAL.datum
 		}
 	case 3:
-		//line parse.y:96
+		//line parse.y:92
 		{
 			yyVAL.datum = NewKeyword(yyS[yypt-1].datum, yyS[yypt-0].datum)
-			parseValue = yyVAL.datum
+	        yylex.(*Lexer).value = yyVAL.datum
 		}
 	case 4:
-		//line parse.y:101
+		//line parse.y:97
 		{
 			yyVAL.datum = yyS[yypt-0].datum
-			parseValue = yyVAL.datum
+	        yylex.(*Lexer).value = yyVAL.datum
 		}
 	case 5:
-		//line parse.y:106
+		//line parse.y:102
 		{
 	        yyVAL.datum = NewLabel(yyS[yypt-2].datum, yyS[yypt-0].datum)
+	        yylex.(*Lexer).value = yyVAL.datum
 		}
 	case 6:
-		//line parse.y:110
+		//line parse.y:107
 		{
 			yyVAL.datum = yyS[yypt-1].datum
+	        yylex.(*Lexer).value = yyVAL.datum
 		}
 	case 7:
-		//line parse.y:116
+		//line parse.y:114
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 		}
 	case 8:
-		//line parse.y:122
+		//line parse.y:120
 		{
 		}
 	case 9:
-		//line parse.y:127
+		//line parse.y:125
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 		}
 	case 10:
-		//line parse.y:133
+		//line parse.y:131
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 		}
 	case 11:
-		//line parse.y:137
+		//line parse.y:135
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 	    }
 	case 12:
-		//line parse.y:141
+		//line parse.y:139
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 		}
 	case 13:
-		//line parse.y:145
+		//line parse.y:143
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 		}
 	case 14:
-		//line parse.y:149
+		//line parse.y:147
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 		}
 	case 15:
-		//line parse.y:153
+		//line parse.y:151
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 		}
 	case 16:
-		//line parse.y:159
+		//line parse.y:157
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 		}
 	case 17:
-		//line parse.y:163
+		//line parse.y:161
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 		}
 	case 18:
-		//line parse.y:169
+		//line parse.y:167
 		{
 	        yyVAL.datum = yyS[yypt-1].datum
 		}
 	case 19:
-		//line parse.y:173
+		//line parse.y:171
 		{
 	        yyVAL.datum = yyS[yypt-1].datum
 		}
 	case 20:
-		//line parse.y:177
+		//line parse.y:175
 		{
 	        yyVAL.datum = yyS[yypt-1].datum
 		}
 	case 21:
-		//line parse.y:181
+		//line parse.y:179
 		{
 	        yyVAL.datum = yyS[yypt-1].datum
 		}
 	case 22:
-		//line parse.y:185
+		//line parse.y:183
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 	    }
 	case 23:
-		//line parse.y:191
+		//line parse.y:189
 		{
 	        yyVAL.datum = listR(yyS[yypt-2].datum, yyS[yypt-0].datum)
 		}
 	case 24:
-		//line parse.y:195
+		//line parse.y:193
 		{
 	        if (ToFixnum(Dlength(list1(yyS[yypt-4].datum))) != 1) {
 	            panic("double-dotted-lists must have 3 elements")
@@ -544,77 +530,77 @@ yydefault:
 	        yyVAL.datum = list3(yyS[yypt-2].datum, unlist1(yyS[yypt-4].datum), yyS[yypt-0].datum)
 		}
 	case 25:
-		//line parse.y:204
+		//line parse.y:202
 		{
 	        yyVAL.datum = list1(yyS[yypt-0].datum)
 		}
 	case 26:
-		//line parse.y:208
+		//line parse.y:206
 		{
 	        yyVAL.datum = list1R(yyS[yypt-1].datum, yyS[yypt-0].datum)
 		}
 	case 27:
-		//line parse.y:212
+		//line parse.y:210
 		{
 	        yyVAL.datum = list1(yyS[yypt-1].datum)
 		}
 	case 28:
-		//line parse.y:218
+		//line parse.y:216
 		{
 	        yyVAL.datum = yyS[yypt-0].datum
 		}
 	case 29:
-		//line parse.y:222
+		//line parse.y:220
 		{
 	        yyVAL.datum = list0()
 		}
 	case 30:
-		//line parse.y:228
+		//line parse.y:226
 		{
 	        yyVAL.datum = list2(SSymbol{"quote"}, yyS[yypt-0].datum)
 		}
 	case 31:
-		//line parse.y:232
+		//line parse.y:230
 		{
 	        yyVAL.datum = list2(SSymbol{"quasiquote"}, yyS[yypt-0].datum)
 		}
 	case 32:
-		//line parse.y:236
+		//line parse.y:234
 		{
 	        yyVAL.datum = list2(SSymbol{"unquote"}, yyS[yypt-0].datum)
 		}
 	case 33:
-		//line parse.y:240
+		//line parse.y:238
 		{
 	        yyVAL.datum = list2(SSymbol{"unquote-splicing"}, yyS[yypt-0].datum)
 		}
 	case 34:
-		//line parse.y:244
+		//line parse.y:242
 		{
 	        yyVAL.datum = list2(SSymbol{"syntax"}, yyS[yypt-0].datum)
 		}
 	case 35:
-		//line parse.y:248
+		//line parse.y:246
 		{
 	        yyVAL.datum = list2(SSymbol{"quasisyntax"}, yyS[yypt-0].datum)
 		}
 	case 36:
-		//line parse.y:252
+		//line parse.y:250
 		{
 	        yyVAL.datum = list2(SSymbol{"unsyntax"}, yyS[yypt-0].datum)
 		}
 	case 37:
-		//line parse.y:256
+		//line parse.y:254
 		{
 	        yyVAL.datum = list2(SSymbol{"unsyntax-splicing"}, yyS[yypt-0].datum)
 		}
 	case 38:
-		//line parse.y:262
+		//line parse.y:260
 		{
 	        yyVAL.datum = Dvector(yyS[yypt-1].datum)
 		}
 	case 39:
-		//line parse.y:268
+		//line parse.y:266
 		{
 	        yyVAL.datum = DbytevectorZKu8(yyS[yypt-1].datum)
 		}

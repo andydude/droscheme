@@ -1,47 +1,92 @@
-/*
- * Droscheme - a Scheme implementation
- * Copyright © 2012 Andrew Robbins, Daniel Connelly
- *
- * This program is free software: it is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
- */
+//
+// Droscheme - a Scheme implementation
+// Copyright © 2012 Andrew Robbins, Daniel Connelly
+//
+// This program is free software: it is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+// terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
+//
 package droscheme
 
 import (
+	"io"
 	"fmt"
 	"math"
 	"math/big"
 	"strconv"
 	"strings"
-	"unicode/utf8"
 )
 
-const eof = 0x7F
-
-var sign int = 1
-var base int = 10
-var inexact bool = false
+const eof = rune(-1)
 
 // [AJR] Yes, I watched Rob Pike
 type State func(*Lexer) State
 type Lexer struct {
-	input             string
+	buffer            []rune
+	input             TIPort
 	start, pos, width int
 	tokens            chan *yySymType
 	state             State
 	ch                rune
+	pcount            int
+	base, sign        int
+    inexact           bool
+    err               error
+	value             Any
 }
 
-func newLexer(input string) *Lexer {
-	const bufferSize = 5
+//func newLexer(input string) *Lexer {
+//	return newLexerFromPort(OpenTIPort(input).(TIPort))
+//}
+//
+//func newLexerFile(filename string) *Lexer {
+//	return newLexerFromPort(OpenTIFile(filename).(TIPort))
+//}
+
+//func newBufReaderForLexer(input string) *dsbufio.Reader {
+//	return dsbufio.NewReader(newReaderForLexer(input))
+//}
+
+//func newReaderForLexer(input string) io.Reader {
+//	port := &SBytePort{
+//		it:   NewBinary([]byte(input)),
+//		code: PortTypeCodeByteIn}
+//
+//	return port
+//}
+
+func emptyTokens() chan *yySymType {
+	return make(chan *yySymType, 4)
+}
+
+func newLexer(rd TIPort) *Lexer {
+	return newLexerWithState(rd, (*Lexer).lexToken)
+}
+
+func newLexerWithBase(rd TIPort, base int) *Lexer {
 	lex := &Lexer{
-		input:  input,
-		tokens: make(chan *yySymType, bufferSize),
-		state:  (*Lexer).lexToken,
-		ch:     rune(input[0]),
-	}
+	    buffer: []rune{},
+		input:  rd,
+		tokens: emptyTokens(),
+		state:  (*Lexer).lexNumber,
+		base:   base,
+		sign:   1,
+		ch:     0}
+
+	return lex
+}
+
+func newLexerWithState(rd TIPort, state State) *Lexer {
+	lex := &Lexer{
+	    buffer: []rune{},
+		input:  rd,
+		tokens: emptyTokens(),
+		state:  state,
+		base:   10,
+		sign:   1,
+		ch:     0}
+
 	return lex
 }
 
@@ -51,10 +96,6 @@ func newToken(token int, datum Any) *yySymType {
 		datum: datum,
 	}
 	return tok
-}
-
-func newEOF() *yySymType {
-	return newToken(-1, nil)
 }
 
 func (t *yySymType) String() string {
@@ -70,6 +111,7 @@ func (lex *Lexer) emitLabel(label int) {
 }
 
 func (lex *Lexer) emitDatum(token int, datum Any) {
+	fmt.Printf("emit(%d, %v)\n", token, datum)
 	lex.tokens <- newToken(token, datum)
 	lex.consume()
 }
@@ -87,33 +129,39 @@ func (lex *Lexer) emit(token int) {
 }
 
 func (lex *Lexer) accept1(valid rune) bool {
-	if lex.next() == valid {
+	if lex.peek() == valid {
+		lex.next()
 		return true
 	}
-	lex.backup()
 	return false
 }
 
-func (lex *Lexer) acceptN(valid string) {
-	for strings.IndexRune(valid, lex.next()) >= 0 {
-	}
-	lex.backup()
-}
-
 func (lex *Lexer) accept(valid string) bool {
-	if strings.IndexRune(valid, lex.next()) >= 0 {
+	for strings.IndexRune(valid, lex.peek()) >= 0 {
+		lex.next()
 		return true
 	}
-	lex.backup()
 	return false
 }
 
 func (lex *Lexer) backup() {
+	defer func() {
+		x := recover()
+		if x != nil {
+			fmt.Printf("backup s=%s, p=%s, buf=%s\n", lex.start, lex.pos, lex.buffer)
+			panic("error in backup()")
+		}
+	}()
 	lex.pos -= lex.width
+	if len(lex.buffer) > 0 {
+		lex.buffer = lex.buffer[0:len(lex.buffer) - 1]
+	}
+	error1panic(lex.input.UnreadRune())
 }
 
 func (lex *Lexer) consume() {
 	lex.start = lex.pos
+	lex.buffer = []rune{}
 }
 
 func (lex *Lexer) match1(valid rune) {
@@ -140,7 +188,8 @@ func (lex *Lexer) getSpan() string {
 			panic("error in getSpan()")
 		}
 	}()
-	return lex.input[lex.start:lex.pos]
+	//return lex.input[lex.start:lex.pos]
+	return string(lex.buffer)
 }
 
 func (lex *Lexer) nextToken() *yySymType {
@@ -150,7 +199,7 @@ func (lex *Lexer) nextToken() *yySymType {
 			return tok
 		default:
 			if lex.state == nil {
-				return newEOF()
+				return newToken(-1, nil)
 			}
 			lex.state = lex.state(lex)
 		}
@@ -160,17 +209,36 @@ func (lex *Lexer) nextToken() *yySymType {
 
 // this is like consume() and eat()
 func (lex *Lexer) next() rune {
-	lex.peek()
+	if lex.ch == eof {
+		return eof
+	}
+	var err error
+	lex.ch, lex.width, err = lex.input.ReadRune()
+	if err != nil {
+		if err != io.EOF {
+			panic(err)
+		}
+		lex.ch, lex.width = eof, 0
+	}
+	lex.buffer = append(lex.buffer, lex.ch)
 	lex.pos += lex.width
+	fmt.Printf("--- next(%d) = '%s'\n", lex.ch, lex.buffer)
 	return lex.ch
 }
 
 func (lex *Lexer) peek() rune {
-	if lex.pos >= len(lex.input) {
-		lex.ch, lex.width = eof, 0
-	} else {
-		lex.ch, lex.width = utf8.DecodeRuneInString(lex.input[lex.pos:])
+	if lex.ch == eof {
+		return eof
 	}
+	var err error
+	lex.ch, lex.width, err = lex.input.PeekRune()
+	if err != nil {
+		if err != io.EOF {
+			panic(err)
+		}
+		lex.ch, lex.width = eof, 0
+	}
+	fmt.Printf("--- peek(%d)\n", lex.ch)
 	return lex.ch
 }
 
@@ -187,14 +255,16 @@ func (lex *Lexer) lexSpace() State {
 		lex.skip()
 	}
 	lex.backup()
-	lex.start = lex.pos
-	base = 10
-	sign = 1
+	lex.consume()
+	lex.base = 10
+	lex.sign = 1
 	return (*Lexer).lexToken
 }
 
 func (lex *Lexer) lexToken() State {
 	switch r := lex.peek(); {
+	case r == 0:
+		return nil
 	case r == eof:
 		return nil
 	case r == ';':
@@ -224,10 +294,19 @@ func (lex *Lexer) lexToken() State {
 	case lex.isInitial():
 		return (*Lexer).lexId
 	case lex.isDigit10():
-		base = 10
+		lex.base = 10
 		return (*Lexer).lexNumber
 	case lex.isWhitespace():
 		return (*Lexer).lexSpace
+	case r == '(':
+		lex.pcount++
+		lex.emit(int(lex.next()))
+	case r == ')':
+		lex.pcount--
+		lex.emit(int(lex.next()))
+		if lex.pcount == 0 {
+			return nil
+		}
 	default:
 		lex.emit(int(lex.next()))
 	}
@@ -249,13 +328,20 @@ func (lex *Lexer) lexString() State {
 		if lex.ch == '\\' {
 			lex.next()
 			switch lex.ch {
-			case 'a': lex.ch = 0x07
-			case 'b': lex.ch = 0x08
-			case 't': lex.ch = 0x09
-			case 'n': lex.ch = 0x0A
-			case 'v': lex.ch = 0x0B
-			case 'f': lex.ch = 0x0C
-			case 'r': lex.ch = 0x0D
+			case 'a':
+				lex.ch = 0x07
+			case 'b':
+				lex.ch = 0x08
+			case 't':
+				lex.ch = 0x09
+			case 'n':
+				lex.ch = 0x0A
+			case 'v':
+				lex.ch = 0x0B
+			case 'f':
+				lex.ch = 0x0C
+			case 'r':
+				lex.ch = 0x0D
 			case 'x':
 				lex.peek()
 				lex.consume()
@@ -263,7 +349,7 @@ func (lex *Lexer) lexString() State {
 					lex.next()
 				}
 				lex.backup()
-				base = 16
+				lex.base = 16
 				ret := lex.getInt().(Sint64)
 				lex.match1(';')
 				lex.ch = rune(ret)
@@ -312,7 +398,7 @@ func (lex *Lexer) lexChar() State {
 			lex.next()
 		}
 		lex.backup()
-		base = 16
+		lex.base = 16
 		ret := lex.getInt().(Sint64)
 		lex.emitDatum(CHAR, SChar(ret))
 	default:
@@ -443,7 +529,7 @@ func (lex *Lexer) lexHash() State {
 			lex.next()
 		}
 		lex.backup()
-		base = 10
+		lex.base = 10
 		label := lex.getInt().(Sint64)
 		lex.emitLabel(int(label))
 	}
@@ -481,7 +567,7 @@ func (lex *Lexer) lexSigns() State {
 	case r == 'n': // nan.0
 		fallthrough
 	case lex.isDigit10():
-		base = 10
+		lex.base = 10
 		lex.backup()
 		return (*Lexer).lexNumber
 	}
@@ -526,8 +612,8 @@ func (lex *Lexer) lexId() State {
 		lex.next()
 	}
 	lex.backup()
-	str := lex.input[lex.start:lex.pos]
-	//fmt.Printf("\n-- lexId() %s--\n", str)
+	str := lex.getSpan()
+	lex.consume()
 	lex.emitId(str)
 	return (*Lexer).lexToken
 }
@@ -538,51 +624,50 @@ func (lex *Lexer) lexNumber() State {
 	var im Num
 
 	//fmt.Printf("--lexNumber(%s...)--\n", lex.input[lex.start:lex.start+2])
-
-	if lex.next() == '#' {
+	p := lex.peek()
+	if p == '#' {
+		lex.next()
 		switch lex.next() {
 		case 'E':
 		case 'e':
-			inexact = false
+			lex.inexact = false
 			lex.consume()
 			return (*Lexer).lexNumber
 		case 'I':
 		case 'i':
-			inexact = true
+			lex.inexact = true
 			lex.consume()
 			return (*Lexer).lexNumber
 		case 'B':
 		case 'b':
-			base = 2
+			lex.base = 2
 			lex.consume()
 			return (*Lexer).lexNumber
 		case 'O':
 		case 'o':
-			base = 8
+			lex.base = 8
 			lex.consume()
 			return (*Lexer).lexNumber
 		case 'D':
 		case 'd':
-			base = 10
+			lex.base = 10
 			lex.consume()
 			return (*Lexer).lexNumber
 		case 'X':
 		case 'x':
-			base = 16
+			lex.base = 16
 			lex.consume()
 			return (*Lexer).lexNumber
 		default:
 			// this should never happen
 			return nil
 		}
-	} else {
-		lex.backup()
 	}
 
 	lex.acceptSign()
 	if lex.isI() {
 		lex.next()
-		lex.emitNum(NewComplex(NewRational64(0, 1), NewRational64(int64(sign), 1)))
+		lex.emitNum(NewComplex(NewRational64(0, 1), NewRational64(int64(lex.sign), 1)))
 		return (*Lexer).lexToken
 	}
 	re = lex.getReal()
@@ -591,7 +676,7 @@ func (lex *Lexer) lexNumber() State {
 		lex.matchSign()
 		if lex.isI() {
 			lex.next()
-			lex.emitNum(NewComplex(re, NewRational64(int64(sign), 1)))
+			lex.emitNum(NewComplex(re, NewRational64(int64(lex.sign), 1)))
 			return (*Lexer).lexToken
 		}
 		im = lex.getReal()
@@ -639,10 +724,10 @@ func (lex *Lexer) isSign() bool {
 func (lex *Lexer) matchSign() {
 	switch lex.peek() {
 	case '+':
-		sign = 1
+		lex.sign = 1
 		lex.next()
 	case '-':
-		sign = -1
+		lex.sign = -1
 		lex.next()
 	default:
 		panic("expected sign")
@@ -653,31 +738,30 @@ func (lex *Lexer) acceptSign() {
 	switch lex.peek() {
 	case '-':
 		lex.next()
-		sign = -1
+		lex.sign = -1
 	case '+':
 		lex.next()
-		sign = 1
+		lex.sign = 1
 	default:
-		sign = 1
+		lex.sign = 1
 	}
 }
 
 // <ureal> / <infinity>
 // should only be called by lexNumber
 func (lex *Lexer) getReal() Num {
-	//fmt.Printf("--getReal(%d)--\n", base)
 	switch lex.peek() {
 	case 'i': // must be inf.0
 		lex.match("inf.0")
 		lex.consume()
-		return Sfloat64(math.Inf(sign))
+		return Sfloat64(math.Inf(lex.sign))
 	case 'n': // must be nan.0
 		lex.match("nan.0")
 		lex.consume()
 		return Sfloat64(math.NaN())
 	}
 
-	if base != 10 {
+	if lex.base != 10 {
 		lex.posInt()
 		ret := lex.getInt()
 		lex.consume()
@@ -692,7 +776,7 @@ func (lex *Lexer) getReal() Num {
 // should only be called by lexNumber
 func (lex *Lexer) getDecimal() Num {
 	//fmt.Printf("--getDecimal(%d)--\n", base)
-	if base != 10 {
+	if lex.base != 10 {
 		panic(newReadError("only decimal fractions supported"))
 	}
 	if lex.peek() == '.' {
@@ -743,7 +827,8 @@ func (lex *Lexer) getFlonum() float64 {
 func (lex *Lexer) getFixnum() int64 {
 	str := lex.getSpan()
 	lex.consume()
-	num, err := strconv.ParseInt(str, base, 64)
+	//fmt.Printf("getFixnum(%s)\n", str)
+	num, err := strconv.ParseInt(str, lex.base, 64)
 	if err != nil {
 		panic(err)
 	}
@@ -754,7 +839,7 @@ func (lex *Lexer) getBigint() SInteger {
 	//fmt.Printf("--getBigint(%s)--\n", lex.getSpan())
 	str := lex.getSpan()
 	lex.consume()
-	num, err := big.NewInt(0).SetString(str, base)
+	num, err := big.NewInt(0).SetString(str, lex.base)
 	if num == nil {
 		panic(err)
 	}
@@ -789,8 +874,6 @@ func (lex *Lexer) getSuffix() (exp int, prec int) {
 		return 0, -1
 	}
 	lex.next()
-	//fmt.Printf("--getSuffix(%s)--\n", lex.getSpan())
-	cur := lex.pos
 	switch lex.peek() {
 	case '+':
 		lex.next()
@@ -799,10 +882,10 @@ func (lex *Lexer) getSuffix() (exp int, prec int) {
 		lex.next()
 		expSign = -1
 	}
-	//fmt.Printf("--getSuffix(%s)--b\n", lex.getSpan())
 	lex.posInt()
-	//fmt.Printf("--getSuffix(%s)--a\n", lex.getSpan())
-	expAbs, err := strconv.ParseInt(lex.input[cur:lex.pos], base, 64)
+	str := lex.getSpan()
+	lex.consume()
+	expAbs, err := strconv.ParseInt(str, lex.base, 64)
 	if err != nil {
 		panic(err)
 	}
@@ -813,7 +896,7 @@ func (lex *Lexer) getSuffix() (exp int, prec int) {
 // should only be called by lexNumber
 func (lex *Lexer) posInt() {
 	lex.peek()
-	switch base {
+	switch lex.base {
 	case 2:
 		for lex.isDigit2() {
 			lex.next()

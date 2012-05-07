@@ -1,24 +1,24 @@
 #!/bin/sh
 ECHO="/bin/echo"
 NOW="$(date '+%Y%m%dT%H%M%S')"
-#FILES="$(ls *ss | grep -v '^test')"
-FILES="test-choice-*ss"
+FILES="$(ls *ss | grep -v '^test')"
+#FILES="test-choice-*ss"
 #FILES="inexacteq.ss test-choice-negative-zero.ss"
-IMPLS="guile mit racket ds"
+IMPLS="guile racket ds"
 #IMPLS="ds"
+
+function colorize () {
+    sed -e "s/PASS/$(cat test-pass.txt)/g" | sed -e "s/FAIL/$(cat test-fail.txt)/g"
+}
 
 function run () {
     $ECHO '----' "$@"
     OUT="$($@ 2>&1 | grep -v '^[^-]')"
     if test $? -eq 0 ; then
-        if ($ECHO "$OUT" | grep FAIL >> /dev/null) ; then
-            $ECHO "[31m$OUT[0m"
-        else
-            $ECHO "[32m$OUT[0m"
-        fi
+        $ECHO "$OUT" | colorize
     else
         $ECHO "$OUT" >> test-output-${NOW}.txt
-        $ECHO '[31m-- [FAIL] (see test-output-'${NOW}'.txt for details)[0m'
+        $ECHO '-- [FAIL] (see test-output-'${NOW}'.txt for details)' | colorize
     fi
 }
 

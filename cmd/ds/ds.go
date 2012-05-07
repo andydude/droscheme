@@ -15,8 +15,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime/pprof"
 )
 
+var gProfile string = ""
 var gLibrary string = ""
 var gDontEval bool = false
 var gEnv *ds.Env
@@ -36,6 +38,7 @@ func arguments() {
 	flag.StringVar(&gLibrary, "l", "", "load a scheme library")
 	flag.StringVar(&gMangle, "m", "", "mangle a scheme name")
 	flag.StringVar(&gUnmangle, "u", "", "unmangle a go name")
+	flag.StringVar(&gProfile, "p", "", "profiling")
 	flag.Usage = usage
 	flag.Parse()
 }
@@ -74,7 +77,7 @@ func doReadEval(str string) error {
 	}
 	
 	//E
-	_, verr := ds.Eval(val, gEnv)
+	_, verr := ds.EvalErr(val, gEnv)
 	if verr != nil {
 		fmt.Println("EvalError: " + verr.Error())
 		return verr
@@ -135,7 +138,7 @@ func shell() {
 		}
 
 		//E
-		out, verr := ds.Eval(val, gEnv)
+		out, verr := ds.EvalErr(val, gEnv)
 		if verr != nil {
 			fmt.Println("EvalError: " + verr.Error())
 			continue
@@ -157,6 +160,16 @@ func main() {
 	arguments()
 
 	ds.SetCmdLine(os.Args)
+
+	if gProfile != "" {
+        f, err := os.Create(gProfile)
+        if err != nil {
+            //log.Fatal(err)
+			panic(err)
+        }
+        pprof.StartCPUProfile(f)
+        defer pprof.StopCPUProfile()
+    }
 
 	/* This creates a new environment that is empty
 	 * but its parent is the builtin environment.

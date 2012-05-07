@@ -1,18 +1,19 @@
-/*
- * Droscheme - a Scheme implementation
- * Copyright © 2012 Andrew Robbins, Daniel Connelly
- *
- * This program is free software: it is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
- */
+//
+// Droscheme - a Scheme implementation
+// Copyright © 2012 Andrew Robbins, Daniel Connelly
+//
+// This program is free software: it is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+// terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
+//
 package droscheme
 
 import (
 	"fmt"
 	"io"
 	"os"
+//	"runtime/debug"
 	"unicode/utf8"
 )
 
@@ -31,13 +32,19 @@ import (
  * ReadByte() (c byte, err error)           // io.ByteReader
  * ReadRune() (r rune, size int, err error) // io.RuneReader -- assume UTF-8
  * ReadLine() (line []rune, err error)      // ds.LineReader
+ * ReadRunes(delim rune) ([]rune, error)    // ds.RunesReader
  * ReadyByte() bool                         // ds.BytePeeker
  * ReadyRune() bool                         // ds.RunePeeker
+ * UnreadByte() error                       // io.ByteScanner
+ * UnreadRune() error                       // io.RuneScanner
  *
  * -- All output-ports must implement:
  * Flush() error                            // ds.Flusher
  * Write(p []byte) (n int, err error)       // io.Writer
+ * WriteByte(c byte) error                  // ds.ByteWriter
+ * WriteRune(r rune) (size int, err error)  // ds.RuneWriter
  * WriteRunes(p []rune) (n int, err error)  // ds.RunesWriter -- assume UTF-8
+ * WriteString(s string) (int, error)       // ds.StringWriter
  *
  */
 
@@ -49,12 +56,12 @@ type Closer interface {
 	Closed() bool
 }
 
-// implemented by bufio.Writer
+// implemented by dsbufio.Writer
 type Flusher interface {
 	Flush() error
 }
 
-// implemented by bufio.Reader
+// implemented by dsbufio.Reader
 type Peeker interface {
 	Peek(n int) (c []byte, err error)
 }
@@ -62,11 +69,25 @@ type Peeker interface {
 type BytePeeker interface {
 	PeekByte() (c byte, err error)
     ReadyByte() bool
+	UnreadByte() error
 }
 
 type RunePeeker interface {
 	PeekRune() (r rune, size int, err error)
     ReadyRune() bool
+	UnreadRune() error
+}
+
+type LineReader interface {
+	ReadLine() (line []byte, isPrefix bool, err error)
+}
+
+type StringReader interface {
+	ReadString(delim byte) (line string, err error)
+}
+
+type RunesReader interface {
+	ReadRunes(delim rune) (line []rune, err error)
 }
 
 // similar to io.WriteString
@@ -74,9 +95,9 @@ type RunesWriter interface {
 	WriteRunes(p []rune) (n int, err error)
 }
 
-type LineReader interface {
-	ReadLine() (line []rune, err error)
-}
+//type LineReader interface {
+//	ReadLine() (line []rune, err error)
+//}
 
 // scheme-specific interfaces
 
@@ -93,8 +114,8 @@ type BOPort interface {
 
 type TIPort interface {
 	io.RuneReader
+	RunesReader
 	RunePeeker
-	LineReader
 }
 
 type TOPort interface {
@@ -184,80 +205,100 @@ func IsOutputPort(o Any) bool {
 	return true
 }
 
-// (open-binary-input-file f)
-func OpenBIFile(filename string) Any {
-	f, err := os.Open(filename)
+func OpenBIPort(input string) Any {
+	return DopenZKinputZKbytevector(list1(ToBinary(input)))
+}
+
+func OpenTIPort(input string) Any {
+	return DopenZKinputZKstring(list1(ToString(input)))
+}
+
+func newFile(file *os.File, filename string, code int) Any {
+	port := &FilePort{name: filename, code: code}
+	port.File = file
+	return port
+}
+
+func err2File(f *os.File, err error) *os.File {
 	if err != nil {
 		panic(err)
 	}
-	return SFilePort{f, filename, PortTypeCodeByteIn, false}
+	return f
+}
+
+// (open-binary-input-file f)
+func OpenBIFile(filename string) Any {
+	return newFile(err2File(os.Open(filename)), filename, PortTypeCodeByteIn)
 }
 
 // (open-binary-output-file f)
 func OpenBOFile(filename string) Any {
-	f, err := os.Create(filename)
-	if err != nil {
-		panic(err)
-	}
-	return SFilePort{f, filename, PortTypeCodeByteOut, false}
+	return newFile(err2File(os.Create(filename)), filename, PortTypeCodeByteOut)
 }
 
 // (open-input-file f)
 func OpenTIFile(filename string) Any {
-	f, err := os.Open(filename)
-	if err != nil {
-		panic(err)
-	}
-	return SFilePort{f, filename, PortTypeCodeCharIn, false}
+	return newFile(err2File(os.Open(filename)), filename, PortTypeCodeCharIn)
 }
 
 // (open-output-file f)
 func OpenTOFile(filename string) Any {
-	f, err := os.Create(filename)
-	if err != nil {
-		panic(err)
-	}
-	return SFilePort{f, filename, PortTypeCodeCharOut, false}
+	return newFile(err2File(os.Create(filename)), filename, PortTypeCodeCharOut)
 }
 
 // file port
 
-type SFilePort struct {
+type FilePort struct {
 	*os.File
 	name string
 	code int
 	closed bool
+	pos int64
 }
 
-func (o SFilePort) Equal(a Any) bool {
+func (o *FilePort) Equal(a Any) bool {
 	return false
 }
 
-func (o SFilePort) GetType() int {
+func (o *FilePort) GetType() int {
 	return TypeCodePort
 }
 
-func (o SFilePort) GetHash() uintptr {
+func (o *FilePort) GetHash() uintptr {
 	return 0
 }
 
-func (o SFilePort) GetPortType() int {
+func (o *FilePort) GetPortType() int {
 	return o.code
 }
 
-func (o SFilePort) Flush() error {
+func (o *FilePort) Flush() error {
 	return o.Sync()
 }
 
-func (o SFilePort) String() string {
+func (o *FilePort) String() string {
 	return fmt.Sprintf("#<file-port:%s>", o.name)
 }
 
-func (o SFilePort) ReadyByte() bool {
+func (o *FilePort) Peek(n int) (b []byte, err error) {
+	return []byte{}, nil
+}
+
+func (o *FilePort) PeekByte() (b byte, err error) {
+	defer o.UnreadByte()
+	return o.ReadByte()
+}
+
+func (o *FilePort) PeekRune() (r rune, size int, err error) {
+	defer o.UnreadRune()
+	return o.ReadRune()
+}
+
+func (o *FilePort) ReadyByte() bool {
 	return false // TODO
 }
 
-func (o SFilePort) ReadByte() (c byte, err error) {
+func (o *FilePort) ReadByte() (c byte, err error) {
 	buf := make([]byte, 1)
 	_, err =  o.Read(buf)
 	if err != nil {
@@ -267,11 +308,11 @@ func (o SFilePort) ReadByte() (c byte, err error) {
 	return buf[0], nil
 }
 
-func (o SFilePort) ReadyRune() bool {
+func (o *FilePort) ReadyRune() bool {
 	return false // TODO
 }
 
-func (o SFilePort) ReadRune() (r rune, size int, err error) {
+func (o *FilePort) ReadRune() (r rune, size int, err error) {
 	buf := []byte{}
 	for !utf8.FullRune(buf) {
 		var c byte
@@ -286,20 +327,33 @@ func (o SFilePort) ReadRune() (r rune, size int, err error) {
 	return ruf[0], len(buf), nil	
 }
 
-func (o SFilePort) WriteRunes(r []rune) (n int, err error) {
+func (o *FilePort) ReadRunes(delim rune) (line []rune, err error) {
+	return nil, nil
+}
+
+func (o *FilePort) UnreadByte() (err error) {
+	o.pos, err = o.Seek(-1, 1)
+	return
+}
+
+func (o *FilePort) UnreadRune() (err error) {
+	return o.UnreadByte() // TODO
+}
+
+func (o *FilePort) WriteRunes(r []rune) (n int, err error) {
 	return o.Write([]byte(string(r)))
 }
 
-func (o SFilePort) Closed() bool {
+func (o *FilePort) Closed() bool {
 	return o.closed
 }
 
-//func (o SFilePort) ReadByte() (c byte, err error) {
+//func (o *FilePort) ReadByte() (c byte, err error) {
 //	c = 0
 //	return
 //}
 //
-//func (o SFilePort) ReadRune() (r rune, err error) {
+//func (o *FilePort) ReadRune() (r rune, err error) {
 //	r = 0
 //	return
 //}
@@ -339,15 +393,20 @@ func (o *SBytePort) Close() error {
 }
 
 func (o *SBytePort) Peek(n int) (b []byte, err error) {
+	if o.pos >= len(o.it) {
+		return nil, io.EOF
+	}
 	return []byte{}, nil
 }
 
 func (o *SBytePort) PeekByte() (b byte, err error) {
-	return 0, nil
+	defer o.UnreadByte()
+	return o.ReadByte()
 }
 
-func (o *SBytePort) PeekRune() (r rune, err error) {
-	return 0, nil
+func (o *SBytePort) PeekRune() (r rune, n int, err error) {
+	defer o.UnreadRune()
+	return o.ReadRune()
 }
 
 func (o *SBytePort) Read(p []byte) (n int, err error) {
@@ -389,6 +448,10 @@ func (o *SBytePort) ReadRune() (r rune, size int, err error) {
 	return ruf[0], len(buf), nil
 }
 
+func (o *SBytePort) ReadRunes(delim rune) (line []rune, err error) {
+	return nil, nil
+}
+
 func (o *SBytePort) ReadLine() (line []rune, err error) {
 	if o.pos >= len(o.it) {
 		return []rune{}, io.EOF
@@ -399,6 +462,16 @@ func (o *SBytePort) ReadLine() (line []rune, err error) {
 		r, _, err = o.ReadRune()
 	}
 	return buf, nil
+}
+
+func (o *SBytePort) UnreadByte() error {
+	o.pos--
+	return nil
+}
+
+func (o *SBytePort) UnreadRune() error {
+	o.pos--
+	return nil
 }
 
 // string/textual port
@@ -444,14 +517,21 @@ func (o *SCharPort) Peek(n int) (b []byte, err error) {
 }
 
 func (o *SCharPort) PeekByte() (b byte, err error) {
-	return 0, nil
+	//fmt.Printf("--- StringPort.PeekByte()\n")
+	b, err = o.ReadByte()
+	err = o.UnreadByte()
+	return
 }
 
-func (o *SCharPort) PeekRune() (r rune, err error) {
-	return 0, nil
+func (o *SCharPort) PeekRune() (r rune, size int, err error) {
+	//fmt.Printf("--- StringPort.PeekRune()\n")
+	r, size, err = o.ReadRune()
+	error1panic(o.UnreadRune())
+	return
 }
 
 func (o *SCharPort) Read(p []byte) (n int, err error) {
+	//fmt.Printf("--- StringPort.Read()\n")
 	if o.pos >= len(o.it) {
 		return 0, io.EOF
 	}
@@ -469,10 +549,18 @@ func (o *SCharPort) Read(p []byte) (n int, err error) {
 }
 
 func (o *SCharPort) ReadByte() (c byte, err error) {
-	return 0, nil
+	//fmt.Printf("--- StringPort.ReadByte()\n")
+	return 0, newTypeError("u8-read expected binary-port")
+}
+
+func (o *SCharPort) ReadyByte() bool {
+	//fmt.Printf("--- StringPort.ReadyByte()\n")
+	return true
 }
 
 func (o *SCharPort) ReadRune() (r rune, size int, err error) {
+	//debug.PrintStack()
+	//fmt.Printf("--- StringPort.ReadRune()\n")
 	if o.pos >= len(o.it) {
 		return 0, 0, io.EOF
 	}
@@ -483,7 +571,17 @@ func (o *SCharPort) ReadRune() (r rune, size int, err error) {
 	return
 }
 
+func (o *SCharPort) ReadyRune() bool {
+	//fmt.Printf("--- StringPort.ReadyRune()\n")
+	return true
+}
+
+func (o *SCharPort) ReadRunes(delim rune) (line []rune, err error) {
+	return nil, nil
+}
+
 func (o *SCharPort) ReadLine() (line []rune, err error) {
+	//fmt.Printf("--- StringPort.ReadLine()\n")
 	if o.pos >= len(o.it) {
 		return []rune{}, io.EOF
 	}
@@ -495,7 +593,20 @@ func (o *SCharPort) ReadLine() (line []rune, err error) {
 	return buf, nil
 }
 
+func (o *SCharPort) UnreadByte() error {
+	//fmt.Printf("--- StringPort.UnreadByte()\n")
+	o.pos--
+	return nil
+}
+
+func (o *SCharPort) UnreadRune() error {
+	//fmt.Printf("--- StringPort.UnreadRune()\n")
+	o.pos--
+	return nil
+}
+
 func (o *SCharPort) Write(c []byte) (n int, err error) {
+	//fmt.Printf("--- StringPort.Write()\n")
 	// TODO: recalculate length in bytes
 	return o.WriteRunes([]rune(string(c)))
 }

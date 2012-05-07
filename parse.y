@@ -34,11 +34,7 @@ package droscheme
 
 import (
 	"fmt"
-	"strings"
 )
-
-var parseValue Any // returned value from yyParse
-var parseErr error // return value for parsing errors
 
 %}
 
@@ -85,30 +81,32 @@ datum:
 	simpledatum
 	{
 		$$ = $1
-		parseValue = $$
+        yylex.(*Lexer).value = $$
 	}
 |	compounddatum
 	{
 		$$ = $1
-		parseValue = $$
+        yylex.(*Lexer).value = $$
 	}
 |	keyword datum
 	{
 		$$ = NewKeyword($1, $2)
-		parseValue = $$
+        yylex.(*Lexer).value = $$
 	}
 |	comment datum
 	{
 		$$ = $2
-		parseValue = $$
+        yylex.(*Lexer).value = $$
 	}
 |	LABEL '=' datum
 	{
         $$ = NewLabel($1, $3)
+        yylex.(*Lexer).value = $$
 	}
 |	LABEL '#'
 	{
 		$$ = $1
+        yylex.(*Lexer).value = $$
 	}
 
 keyword:
@@ -281,19 +279,7 @@ func (lex *Lexer) Lex(lval *yySymType) int {
 }
 
 func (lex *Lexer) Error(e string) {
-	parseErr = fmt.Errorf("Syntax error at position %d in line %s: %s", lex.pos, lex.input, e)
-}
-
-func ReadString(input string) (Any, error) {
-	input = strings.TrimSpace(input)
-	if input == "" {
-		return nil, nil
-	}
-	lex := newLexer(input)
-	yyParse(lex)
-	err := parseErr
-	parseErr = nil
-	return parseValue, err
+	lex.err = fmt.Errorf("Syntax error at position %d in line %s: %s", lex.pos, lex.input, e)
 }
 
 // END functions
