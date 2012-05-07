@@ -16,6 +16,7 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
+	//"runtime/debug"
 )
 
 const eof = rune(-1)
@@ -111,7 +112,7 @@ func (lex *Lexer) emitLabel(label int) {
 }
 
 func (lex *Lexer) emitDatum(token int, datum Any) {
-	fmt.Printf("emit(%d, %v)\n", token, datum)
+	//fmt.Printf("emit(%d, %v)\n", token, datum)
 	lex.tokens <- newToken(token, datum)
 	lex.consume()
 }
@@ -209,7 +210,11 @@ func (lex *Lexer) nextToken() *yySymType {
 
 // this is like consume() and eat()
 func (lex *Lexer) next() rune {
+	const debug = false
 	if lex.ch == eof {
+		lex.err = io.EOF
+		lex.consume()
+		//fmt.Printf("--- next(%d) = '%s'\n", lex.ch, lex.buffer)
 		return eof
 	}
 	var err error
@@ -219,15 +224,23 @@ func (lex *Lexer) next() rune {
 			panic(err)
 		}
 		lex.ch, lex.width = eof, 0
+		if debug {
+			fmt.Printf("--- next(%d) = '%s'\n", lex.ch, lex.buffer)
+		}
+		return lex.ch
 	}
 	lex.buffer = append(lex.buffer, lex.ch)
 	lex.pos += lex.width
-	fmt.Printf("--- next(%d) = '%s'\n", lex.ch, lex.buffer)
+	if debug {
+		fmt.Printf("--- next(%d) = '%s'\n", lex.ch, lex.buffer)
+	}
 	return lex.ch
 }
 
 func (lex *Lexer) peek() rune {
+	const debug = false
 	if lex.ch == eof {
+		//fmt.Printf("--- peek(%d)\n", eof)
 		return eof
 	}
 	var err error
@@ -238,7 +251,9 @@ func (lex *Lexer) peek() rune {
 		}
 		lex.ch, lex.width = eof, 0
 	}
-	fmt.Printf("--- peek(%d)\n", lex.ch)
+	if debug {
+		fmt.Printf("--- peek(%d)\n", lex.ch)
+	}
 	return lex.ch
 }
 
@@ -465,7 +480,8 @@ func (lex *Lexer) lexHash() State {
 		lex.emit(KEYWORD)
 		return (*Lexer).lexToken
 	case '%':
-		return (*Lexer).lexId
+		lex.emit(KSYMBOL)
+		return (*Lexer).lexToken
 	case '\'':
 		lex.emit(SYNTAX)
 		return (*Lexer).lexToken
@@ -557,11 +573,19 @@ func (lex *Lexer) lexSigns() State {
 		lex.pos += 1
 		return (*Lexer).lexId
 	}
-
 	//fmt.Printf("\n-- lexSigns() %s--\n", string(s))
-
 	// if this is the beginning of the token, then it is a number
 	switch {
+	case lex.isWhitespace():
+		lex.emitId(string([]rune{s}))
+		return (*Lexer).lexSpace
+	case r == '(':
+		fallthrough
+	case r == ')':
+		fallthrough
+	case r == eof:
+		lex.emitId(string([]rune{s}))
+		return (*Lexer).lexToken
 	case r == 'i': // inf.0 or i
 		fallthrough
 	case r == 'n': // nan.0
@@ -573,7 +597,7 @@ func (lex *Lexer) lexSigns() State {
 	}
 
 	// if this is the end of the token, then it is an id
-	lex.pos += 1
+	//lex.pos += 1
 	return (*Lexer).lexId
 }
 

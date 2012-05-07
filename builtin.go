@@ -271,17 +271,23 @@ func Klibrary(kw, st Any, env *Env) Any {
 	return Void()
 }
 
-func Kload(kw, st Any, env *Env) Any {
+func Kload(kw, st Any, env *Env) (value Any) {
 	filename := unlist1(st).(SString).GoString()
 	port := OpenTIFile(filename).(TIPort)
-
-	var value Any = Void()
-	var err error = nil
-	for err != io.EOF {
-		value, err = Read(port)
-		value = Eval(value, env)
+	expr, err := Read(port)
+	//fmt.Printf("read[%s] %s\n", err, expr)
+	for err == nil {
+		value = Eval(expr, env)
+		expr, err = Read(port)
+		//fmt.Printf("read[%s]1 %s\n", err, expr)
 	}
-
+	if err != nil && err != io.EOF {
+		expr, err = Read(port)
+		if expr != nil && err != nil {
+			//fmt.Printf("read[%s]2 %s\n", err, expr)
+			panic(err)
+		}
+	}
 	port.(Port).Close()
 	return value
 }

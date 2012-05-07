@@ -66,6 +66,7 @@ import (
 %token <token> UNSYNTAX  /* "#," */
 %token <token> UNSYNTAXS /* "#,@" */
 %token <token> ELLIPSIS  /* "..." */
+%token <token> KSYMBOL   /* "#%" */
 %token <token> KEYWORD   /* "#:" */
 %token <token> COMMENT   /* "#;" */
 
@@ -86,6 +87,11 @@ datum:
 |	compounddatum
 	{
 		$$ = $1
+        yylex.(*Lexer).value = $$
+	}
+|   KSYMBOL datum
+	{
+		$$ = NewSymbol("#%" + $2.(SSymbol).name)
         yylex.(*Lexer).value = $$
 	}
 |	keyword datum
@@ -114,7 +120,6 @@ keyword:
 	{
         $$ = $2
 	}
-
 comment:
 	COMMENT datum
 	{

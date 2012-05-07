@@ -11,8 +11,8 @@ package droscheme
 
 // (ds builtin)
 func BuiltinEnv() *Env {
-	//return toEnv(DinteractionZKenvironment(list0()))
-	return toEnv(DschemeZKprimitiveZKenvironment(list1(Sint64('D'))))
+	return toEnv(DinteractionZKenvironment(list0()))
+	//return toEnv(DschemeZKprimitiveZKenvironment(list1(Sint64('D'))))
 }
 
 // (eval expr env)
