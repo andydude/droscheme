@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Droscheme by andydude</title>
+    <title>Droscheme</title>
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
@@ -35,16 +35,21 @@
           <p>Droscheme - a Scheme implementation</p>
           <hr>
           <span class="credits left">Project maintained by <a href="https://github.com/andydude">andydude</a></span>
-          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by Matt Graham</span>
         </div>
 
-        <h3>Welcome to Droscheme.</h3>
+        <h3>Welcome to Droscheme</h3>
 
-<p>Droscheme is a variant of the algorithmic language Scheme, which is written in Go. It aims to be fully compliant to both R6RS and R7RS (when it is finished) standards. </p>
+<p>Droscheme is a variant of the algorithmic language Scheme, which is written in Go. It aims to be fully compliant to R5RS, R6RS and R7RS (draft) standards. The goals of Droscheme are to provide a complete numerical tower, a complete I/O port system including binary and textual ports,
+and to experiment with nonstandard numbers and ports.</p>
 
 <h3>Standard Compliance</h3>
 
-<p>It is currently mostly compliant to R5RS and mostly compliant ro R7RS, but nowhere near R6RS compliant.</p>
+<p>It is currently mostly compliant to R5RS and mostly compliant ro R7RS, but nowhere near R6RS compliant. The current implementation of 
+<tt>call/cc</tt> (<tt>call-with-current-continuation</tt>) is the same as that of
+<tt>call/ec</tt> (<tt>call-with-escape-continuation</tt>).
+There is no difference between non-tail-calls and tail-calls; neither are explicitly optimized, so tail call optimization is not implemented, unless the Go compiler you're using supports it.
+</p>
       </section>
 
     </div>
