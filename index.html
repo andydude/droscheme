@@ -40,12 +40,12 @@
 
         <h3>Welcome to Droscheme</h3>
 
-<p>Droscheme is a variant of the algorithmic language Scheme, which is written in Go. It aims to be fully compliant to R5RS, R6RS and R7RS (draft) standards. The goals of Droscheme are to provide a complete numerical tower, a complete I/O port system including binary and textual ports,
+<p>Droscheme is a variant of the algorithmic language Scheme, which is written in Go. It aims to be fully compliant to R5RS, R6RS and R7RS-small (draft) standards. The goals of Droscheme are to provide a complete numerical tower, a complete I/O port system including binary and textual ports,
 and to experiment with nonstandard numbers and ports.</p>
 
 <h3>Standard Compliance</h3>
 
-<p>It is currently mostly compliant to R5RS and mostly compliant ro R7RS, but nowhere near R6RS compliant. The current implementation of 
+<p>It is currently mostly compliant to R5RS and mostly compliant to R7RS-small, but nowhere near R6RS compliant. The current implementation of 
 <tt>call/cc</tt> (<tt>call-with-current-continuation</tt>) is the same as that of
 <tt>call/ec</tt> (<tt>call-with-escape-continuation</tt>).
 There is no difference between non-tail-calls and tail-calls; neither are explicitly optimized, so tail call optimization is not implemented, unless the Go compiler you're using supports it.
