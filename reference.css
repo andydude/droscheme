@@ -1,0 +1,39 @@
+.function {
+  margin-bottom: 8px;
+  background-color: rgba(127,127,127,0.1);
+  color: #999;
+  padding: 5px;
+}
+
+.description,
+.function .name,
+.function .implement,
+.function .category,
+.function .versions,
+.function .libraries { 
+  display: block;
+}
+
+.function .implement,
+.function .category,
+.function .versions,
+.function .libraries { 
+  float: right;
+  margin-left: 20px;
+}
+
+.function .category {
+  font-style: italic;
+}
+
+.function .name {
+  font-weight: bold;
+  color: #FFE;
+}
+
+.function .versions {
+  color: #777;
+}
+
+.function .libraries {
+}
