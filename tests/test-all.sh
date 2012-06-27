@@ -4,8 +4,9 @@ NOW="$(date '+%Y%m%dT%H%M%S')"
 FILES="$(ls *ss | grep -v '^test')"
 #FILES="test-choice-*ss"
 #FILES="inexacteq.ss test-choice-negative-zero.ss"
-IMPLS="guile racket ds"
-#IMPLS="ds"
+#IMPLS="guile racket kawa sisc mit gauche chibi ds"
+#IMPLS="kawa sisc"
+IMPLS="ds"
 
 function colorize () {
     sed -e "s/PASS/$(cat test-pass.txt)/g" | sed -e "s/FAIL/$(cat test-fail.txt)/g"

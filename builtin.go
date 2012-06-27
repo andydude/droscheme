@@ -1280,8 +1280,19 @@ func DlistZKcopy(a Any) Any {
 	return list1R(car, DlistZKcopy(list1(cdr)))
 }
 
+func _listZKopt(ls, k Any, rest ...Any) Any {
+	switch len(rest) {
+	case 0:
+		return DlistZKref(list2(ls, k))
+	case 1:
+		return DlistZKref(list3(ls, k, rest[0]))
+	}
+	panic("list-ref expected 2 or 3 arguments")
+}
+
 func DlistZKref(a Any) Any {
 	list, ka, rest := unlist2R(a)
+	fmt.Printf("\nlist-ref %v\n", a)
 	k := ToFixnum(ka)
 	for cur := list; IsPair(cur); k, cur = k-1, cur.(*Pair).cdr {
 		if k == 0 {

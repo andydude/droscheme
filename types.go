@@ -1082,6 +1082,11 @@ func (env *Env) register(fn func(Any) Any) {
 	env.bound[n] = &Prim{call: fn, name: n}
 }
 
+func (env *Env) registerGos(fn interface{}) {
+	n := env.registerName(fn)
+	env.bound[n] = &Prim{rcall: fn, name: n}
+}
+
 func MangleName(name string) string {
 	const table = "!\"#$%&'*+,-./:;<=>?@^`|~Z"
 	var out = []byte{}
@@ -1363,6 +1368,7 @@ func (o SRuleSyntax) String() string {
 // procedure types
 
 type Prim struct {
+	rcall interface{}
 	call func(Any) Any
 	name string
 }
@@ -1417,8 +1423,70 @@ func (o *Prim) Equal(a Any) bool {
 	return false
 }
 
+func insToValues(a Any, arity int, rest bool) (vs []reflect.Value) {
+	as := listToVector(a)
+	vs = make([]reflect.Value, len(as))
+	for i := 0; i < len(as); i++ {
+		vs[i] = reflect.ValueOf(as[i])
+	}
+	//if rest {
+	//	switch k {
+	//	case 1:
+	//		vs = 
+	//	case 2:
+	//	case 3:
+	//	case 4:
+	//	case 5:
+	//	default:
+	//		panic("Prim.Apply expected less than 8 arguments")
+	//	}
+	//} else {
+	//	switch k {
+	//	case 0:
+	//		vs = {a.(L)}
+	//	case 1:
+	//	case 2:
+	//	case 3:
+	//	case 4:
+	//	case 5:
+	//	default:
+	//		panic("Prim.Apply expected less than 8 arguments")
+	//	}
+	//}
+	return
+}
+
+func valuesToOuts(vs []reflect.Value) Any {
+	if len(vs) == 1 {
+		return vs[0].Interface().(Any)
+	}
+	as := make([]Any, len(vs))
+	for i := 0; i < len(vs); i++ {
+		as[i] = vs[i].Interface().(Any)
+	}
+	return NewValues(as)
+}
+
+func (o *Prim) reflectApply(a Any) Any {
+	ov := reflect.ValueOf(o.rcall)
+	ot := reflect.TypeOf(o.rcall)
+	return valuesToOuts(ov.Call(insToValues(a, ot.NumIn(), ot.IsVariadic())))
+}
+
 func (o *Prim) Apply(a Any) Any {
-	return o.call(a)
+	if o.call != nil {
+		return o.call(a)
+	}
+
+	if o.rcall != nil {
+		return o.reflectApply(a)
+	}
+	//r := []rune(GetFN(GetPC(o.call)))[0]
+	//switch r {
+	//case '_':
+	//case 'D':
+	//}
+	panic("Prim.Apply expected _ prefix")
 }
 
 func (o *Prim) String() string {

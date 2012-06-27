@@ -1,4 +1,4 @@
-(quote
+(quote (
 
 (&condition                             "1"  (base) (6))
 (&i/o                                   "1"  (base) (6))
@@ -33,7 +33,7 @@
 (alist-copy                             "3"  (base) () (srfi 1))
 (alist-delete                           "3"  (base) () (srfi 1))
 (alist-delete!                          "3"  (base) () (srfi 1))
-(and                                    "1"  (base syntax) (3 4 5 6 7))
+(and                                    "1"  (base syntax) (2 3 4 5 6 7))
 (angle                                  "1"  (builtin) (2 3 4 5 6 7) (scheme complex))
 (any                                    "1"  (base) () (srfi 1))
 (append                                 "1R" (base) (2 3 4 5 6 7))
@@ -513,7 +513,7 @@
 (make-i/o-decoding-error                "1"  (base) (6))
 (make-i/o-encoding-error                "1"  (base) (6))
 (make-i/o-error                         "1"  (base) (6))
-(make-implementation-restriction-violation "1" (base) (6))
+(make-implcommentation-restriction-violation "1" (base) (6))
 (make-irritants-condition               "1"  (base) (6))
 (make-lexical-violation                 "1"  (base) (6))
 (make-list                              "1"  (base) (7) (srfi 1))
@@ -794,4 +794,5 @@
 (zero?                                  "1"  (base) (2 3 4 5 6 7))
 (zip                                    "1"  (base) () (srfi 1))
 
+);list
 );quote

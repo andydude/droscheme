@@ -531,9 +531,11 @@ func (lex *Lexer) lexHash() State {
 	case 'u':
 		lex.match1('8')
 		lex.match1('(')
+		lex.pcount++
 		lex.emit(U8VECTORPAREN)
 		return (*Lexer).lexToken
 	case '(':
+		lex.pcount++
 		lex.emit(VECTORPAREN)
 		return (*Lexer).lexToken
 	}
