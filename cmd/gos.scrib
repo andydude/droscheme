@@ -1,9 +1,27 @@
 #lang scribble/manual
-@title{Gos Programming
-<br/>
-Language}
+@title{Gos Programming Language}
 
 @section{Introduction}
+
+This is a reference manual for the Gos programming language.
+Gos is an S-expressions syntax for Go, hence the name.
+Most forms are exactly the same as Go with parentheses added,
+however @tt{func} is written @tt{define-go} and @tt{if} is written @tt{if2}
+to allow syntactic sugar to be written that matches Scheme more closely.
+
+The purpose of Gos is to write the standard library for Droscheme.
+For example, the following Gos code:
+@verbatim{
+(define (square x)
+  (* x x))
+}
+compiles to the Go code:
+@verbatim{
+func _square(x Any) Any {
+  return _ZH(x, x);
+}
+}
+
 
 @section{Lexical syntax}
 
@@ -13,7 +31,12 @@ Source code is represented as S-expressions similar to Lisp and Scheme.
 
 @subsection{Integer literals}
 
+Integer literals are represented the same as they are in Go.
+
 @subsection{Floating-point literals}
+
+Floating-point literals are represented the same as they are in Go.
+Imaginary literals are not supported.
 
 @subsection{Character literals}
 
@@ -333,7 +356,7 @@ assign_op  = [ add_op | mul_op ] "=" .
 
 @subsection{If statements}
 @verbatim{
-IfStmt   = '(if' OptStmt Expression Block [ ElseStmt ] ')' .
+IfStmt   = '(if2' OptStmt Expression Block [ ElseStmt ] ')' .
 OptStmt  = '()' | SimpleStmt
 ElseStmt = '(else' Block ')' .
 Block    = { Statement } .

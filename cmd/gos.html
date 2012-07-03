@@ -4,13 +4,10 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>Droscheme</title>
-    <link rel="stylesheet" href="../stylesheets/styles.css">
-    <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
-    <link rel="stylesheet" href="scribble.css">
-    <link rel="stylesheet" href="gos-style.css">
-    <style type="text/css">
-      .wrapper { margin-top: 4em; }
-    </style>
+    <link rel="stylesheet" href="../stylesheets/styles.css" />
+    <link rel="stylesheet" href="../stylesheets/pygment_trac.css" />
+    <link rel="stylesheet" href="scribble.css" />
+    <link rel="stylesheet" href="gos-style.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script src="../javascripts/respond.js"></script>
     <!--[if lt IE 9]>
@@ -44,10 +41,7 @@
                                 </td>
                                 <td/>
                                 <td>
-                                    <a href="" class="tocviewselflink" pltdoc="x">Gos Programming
-                                        &lt;br/<span class="mywbr"> </span>&gt;
-                                        Language
-                                    </a>
+                                    <a href="" class="tocviewselflink" pltdoc="x">Gos Programming Language</a>
                                 </td>
                             </tr>
                         </table>
@@ -635,14 +629,77 @@
                     <span class="versionNoNav">Version: 5.2</span>
                 </div>
                 <h2>
-                    <a name="(part._.Gos_.Programming__br___.Language)"/>Gos Programming
-                    &lt;br/&gt;
-                    Language
+                    <a name="(part._.Gos_.Programming_.Language)"/>Gos Programming Language
                 </h2>
                 <h3>
                     1<tt> </tt><a name="(part._.Introduction)"/>
                     Introduction
                 </h3>
+                <p>This is a reference manual for the Gos programming language.
+                    Gos is an S-expressions syntax for Go, hence the name.
+                    Most forms are exactly the same as Go with parentheses added,
+                    however <span class="stt">func</span> is written <span class="stt">define-go</span> and <span class="stt">if</span> is written <span class="stt">if2</span>
+                    to allow syntactic sugar to be written that matches Scheme more closely.
+                </p>
+                <p/>
+                <div class="SIntrapara">The purpose of Gos is to write the standard library for Droscheme.
+                    For example, the following Gos code:
+                </div>
+                <div class="SIntrapara">
+                    <table cellspacing="0">
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(define (square x)</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">  </span><span class="stt">(* x x))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="SIntrapara">compiles to the Go code:
+                </div>
+                <div class="SIntrapara">
+                    <table cellspacing="0">
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">func _square(x Any) Any {</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">  </span><span class="stt">return _ZH(x, x);</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">}</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
                 <h3>
                     2<tt> </tt><a name="(part._.Lexical_syntax)"/>
                     Lexical syntax
@@ -656,10 +713,14 @@
                     2.2<tt> </tt><a name="(part._.Integer_literals)"/>
                     Integer literals
                 </h4>
+                <p>Integer literals are represented the same as they are in Go.</p>
                 <h4>
                     2.3<tt> </tt><a name="(part._.Floating-point_literals)"/>
                     Floating-point literals
                 </h4>
+                <p>Floating-point literals are represented the same as they are in Go.
+                    Imaginary literals are not supported.
+                </p>
                 <h4>
                     2.4<tt> </tt><a name="(part._.Character_literals)"/>
                     Character literals
@@ -2133,7 +2194,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    IfStmt<span class="hspace">   </span><span class="stt">= '(if' OptStmt Expression Block [ ElseStmt ] ')' .</span>
+                                    IfStmt<span class="hspace">   </span><span class="stt">= '(if2' OptStmt Expression Block [ ElseStmt ] ')' .</span>
                                 </span>
                             </p>
                         </td>
@@ -2436,7 +2497,6 @@
                 <p>Dot imports are not supported.</p>
             </div>
         </div>
-        <div id="contextindicator"> </div>
     </div>
     <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
     
