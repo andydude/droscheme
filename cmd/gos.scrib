@@ -1,0 +1,415 @@
+#lang scribble/manual
+@title{Gos Programming
+<br/>
+Language}
+
+@section{Introduction}
+
+@section{Lexical syntax}
+
+Source code is represented as S-expressions similar to Lisp and Scheme.
+
+@subsection{Identifiers}
+
+@subsection{Integer literals}
+
+@subsection{Floating-point literals}
+
+@subsection{Character literals}
+
+Characters are represented @tt["#\\"]@italic{char}.
+
+@subsection{String literals}
+
+Strings are represented @tt["\""]@italic{string}@tt["\""].
+
+@section{Types}
+
+@verbatim{
+Type     = TypeName | TypeLit .
+TypeName = QualifiedIdent .
+TypeLit  = ArrayType
+         | StructType
+         | PointerType
+         | FunctionType
+         | InterfaceType
+         | SliceType 
+         | MapType 
+         | ChannelType .
+}
+
+@subsection{Boolean types}
+
+The boolean type is written @tt{bool} and has the values @tt["#t"] and @tt["#f"].
+
+@subsection{Numeric types}
+
+Numeric types have the same names as they do in Go.
+
+@subsection{String types}
+
+The string type is written @tt{string}.
+
+@subsection{Array types}
+
+Array types are written @tt["(array"] @italic{size} @italic{type}@tt[")"]
+
+@verbatim{
+ArrayType   = '(array' ArrayLength ElementType ')' .
+ArrayLength = Expression .
+ElementType = Type .
+}
+
+@subsection{Slice types}
+
+@verbatim{
+SliceType = '(slice' ElementType ')'
+}
+
+@subsection{Struct types}
+
+Struct types represent a sequence of fields.
+
+@verbatim{
+StructType = '(struct' { FieldDecl } ')' .
+FieldDecl  = TypedIdentifierList .
+}
+
+If a @tt{TypedIdentifierList} includes no identifiers, then it represents an anonymous field, in which case the @tt{Type} is restricted to named types and pointers to named types. 
+
+Tags are not supported.
+
+For example:
+@verbatim{
+; An empty struct.
+(struct)
+
+; A struct with 6 fields.
+(struct
+	(x y int)
+	(u float32)
+	(_ float32) ; padding
+	(A (ptr (slice int)))
+	(F (func (void))))
+}
+
+@subsection{Pointer types}
+
+@verbatim{
+PointerType = '(ptr' Type ')' .
+}
+
+@subsection{Function types}
+
+@verbatim{
+FunctionType   = '(func' Signature ')'.
+Signature      = { ParameterDecl } Result .
+Result         = '(values' { ParameterDecl } ')' | '(void)' | Type .
+ParameterDecl  = TypedIdentifierList .
+}
+
+One major difference between Go and Gos is that in Go the return type is optional, but in Gos the parameters are optional, and the return type is required. 
+
+Ellipses are not supported.
+
+@subsection{Interface types}
+@verbatim{
+InterfaceType      = '(interface' { MethodSpec } ')' .
+MethodSpec         = '(' MethodName Signature ')' | InterfaceTypeName .
+MethodName         = Identifier .
+InterfaceTypeName  = TypeName .
+}
+
+For example:
+@verbatim{
+(type (Lock (interface
+	(Lock (void))
+	(Unlock (void)))))
+}
+
+@subsection{Map types}
+
+@subsection{Channel types}
+
+@section{Declarations}
+
+@subsection{Constant declarations}
+@verbatim{
+ConstDecl = '(const' { ConstSpec } ')' .
+ConstSpec = '(=' IdentifierList ExpressionList ')'
+          | '(=:' TypedIdentifierList ExpressionList ')'
+          | Identifier .
+
+TypedIdentifierList  = '(' { Identifier } Type ')' .
+IdentifierList       = '(' { Identifier } ')' .
+ExpressionList       = { Expression } .
+}
+
+Iota is written @tt{iota}.
+
+@subsection{Type declarations}
+@verbatim{
+TypeDecl = '(type' { TypeSpec } ')' .
+TypeSpec = '(' Identifier Type ')' .
+}
+
+@subsection{Variable declarations}
+@verbatim{
+VarDecl = '(var { VarSpec } ')' .
+VarSpec = '(=' IdentifierList ExpressionList ')'
+        | '(=:' TypedIdentifierList ExpressionList ')'
+        | '(::' TypedIdentifierList ')' .
+}
+
+@subsection{Short variable declarations}
+@verbatim{
+ShortVarDecl = '(:=' IdentifierList ExpressionList ')' .
+}
+
+@subsection{Function declarations}
+@verbatim{
+FunctionDecl = '(define-go' '(' FunctionName Signature ')' Body ')' .
+FunctionName = Identifier .
+Body         = { Statement } .
+}
+
+@subsection{Method declarations}
+@verbatim{
+MethodDecl = '(define-go' '(' Receiver MethodName Signature ')' Body ')' .
+Receiver   = '(' [ Identifier ] Type ')' .
+}
+
+@tt{Type} is restricted to named types or pointers to named types.
+
+@section{Expressions}
+
+@subsection{Operands}
+@verbatim{
+Operand  = Literal | QualifiedIdent | MethodExpr | "(" Expression ")" .
+Literal  = BasicLit | CompositeLit | FunctionLit .
+BasicLit = int_lit | float_lit | imaginary_lit | char_lit | string_lit .
+}
+
+@subsection{Qualified identifiers}
+@verbatim{
+QualifiedIdent = [ PackageName "." ] Identifier
+               | '(.' { Identifier } Identifier ')' .
+}
+
+@subsection{Composite literals}
+@verbatim{
+CompositeLit  = '#(' LiteralType LiteralValue ')' .
+LiteralType   = StructType | ArrayType | SliceType | MapType | TypeName .
+LiteralValue  = { Element } .
+Element       = [ '#:' Key ] Value .
+Key           = FieldName | ElementIndex .
+FieldName     = Identifier .
+ElementIndex  = Expression .
+Value         = Expression | CompositeLit .
+}
+
+Given the declarations
+@verbatim{
+(type
+  (Point3D (struct (x y z float64)))
+  (Line (struct (p q Point3D))))
+}
+one may write
+@verbatim{
+(:= origin #(Point3D)) ; zero value for Point3D
+(:= line #(Line origin #(Point3D #:y -4 #:z 12.3)))
+}
+
+@subsection{Function literals}
+@verbatim{
+FunctionLit = '(lambda' '(' Signature ')' Body ')' .
+}
+
+@subsection{Primary expressions}
+@verbatim{
+}
+
+@subsection{Selectors}
+@verbatim{
+}
+
+@subsection{Indexes}
+@verbatim{
+}
+
+@subsection{Slices}
+@verbatim{
+}
+
+@subsection{Type assertions}
+@verbatim{
+}
+
+@subsection{Calls}
+@verbatim{
+f(a1, a2, … an)
+}
+
+For example:
+@verbatim{
+(math.Atan2 x y)
+(var (pt) (ptr Point))
+(pt.Scale 3.5)
+}
+
+@subsection{Operators}
+@verbatim{
+}
+
+@subsection{Arithmetic operators}
+@verbatim{
+}
+
+@subsection{Comparison operators}
+@verbatim{
+}
+
+@subsection{Logical operators}
+@verbatim{
+}
+
+@subsection{Address operators}
+@verbatim{
+'(adr' Expression ')'
+'(ptr' Expression ')'
+}
+
+For example:
+@verbatim{
+(adr x)
+(adr (index a (f 2)))
+(ptr p)
+(ptr (pf x))
+}
+
+@subsection{Receive operator}
+@verbatim{
+'(<-' Expression ')'
+}
+
+For example:
+@verbatim{
+(= (x ok) (<- ch))
+(:= (x ok) (<- ch))
+(var (= (x ok) (<- ch)))
+}
+
+@subsection{Method expressions}
+@verbatim{
+MethodExpr    = '(methcall' ReceiverType MethodName ')' .
+ReceiverType  = TypeName | '(ptr' TypeName ')' .
+}
+
+@subsection{Conversions}
+@verbatim{
+Conversion = '(toa' Type Expression ')' .
+}
+
+@section{Statements}
+@verbatim{
+Statement = Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt
+          | BreakStmt | ContinueStmt | GotoStmt | FallthroughStmt | Block
+          | IfStmt | SwitchStmt | SelectStmt | ForStmt | DeferStmt .
+
+SimpleStmt = EmptyStmt | ExpressionStmt | SendStmt | IncDecStmt 
+           | Assignment | ShortVarDecl .
+}
+The @tt{Statement} production is the same as in Go.
+
+@subsection{Labeled statements}
+@subsection{Expression statements}
+@subsection{Send statements}
+@subsection{IncDec statements}
+@subsection{Assignments}
+@verbatim{
+Assignment = '(' assign_op '(' ExpressionList ')' ExpressionList ')' .
+assign_op  = [ add_op | mul_op ] "=" .
+}
+
+@subsection{If statements}
+@verbatim{
+IfStmt   = '(if' OptStmt Expression Block [ ElseStmt ] ')' .
+OptStmt  = '()' | SimpleStmt
+ElseStmt = '(else' Block ')' .
+Block    = { Statement } .
+}
+
+@subsection{Switch statements}
+
+TODO
+
+@subsection{For statements}
+@verbatim{
+ForStmt     = '(for' ( ForClause | RangeClause ) Block ')' .
+Condition   = Expression .
+ForClause   = '()' | '(' Condition ')'
+            | '(' OptStmt Condition OptStmt ')' .
+RangeClause = '(=' IdentifierList Expression ')'
+            | '(:=' IdentifierList Expression ')' .
+}
+
+@subsection{Go statements}
+@verbatim{
+GoStmt = '(go' Expression ')' .
+}
+
+@subsection{Select statements}
+
+TODO
+
+@subsection{Return statements}
+@verbatim{
+ReturnStmt = '(return' ExpressionList ')' .
+}
+
+@subsection{Break statements}
+@verbatim{
+BreakStmt = '(break' [ Label ] ')' .
+}
+
+@subsection{Continue statements}
+@verbatim{
+ContinueStmt = '(continue' [ Label ] ')' .
+}
+
+@subsection{Goto statements}
+@verbatim{
+GotoStmt = '(goto' Label ')' .
+}
+
+@subsection{Fallthrough statements}
+@verbatim{
+FallthroughStmt = '(fallthrough)' .
+}
+
+@subsection{Defer statements}
+@verbatim{
+DeferStmt = '(defer' Expression ')' .
+}
+
+
+@section{Packages}
+@verbatim{
+SourceFile = '(' PackageClause { ImportDecl } { TopLevelDecl } ')' .
+}
+
+@subsection{Package clause}
+@verbatim{
+PackageClause = 'package' PackageName .
+PackageName   = Identifier .
+}
+
+@subsection{Import declarations}
+@verbatim{
+ImportDecl = '(import' { ImportSpec } ')' .
+ImportSpec = '(' PackageName ImportPath ')'
+           | ImportPath .
+ImportPath = string_lit .
+}
+
+Dot imports are not supported.

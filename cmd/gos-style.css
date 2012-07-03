@@ -1,0 +1,95 @@
+body {
+background-color: #295A42;
+margin: 0 2em 0 2em;
+}
+
+.maincolumn {
+background-color: transparent;
+padding: 2em;
+}
+
+.tocset {
+margin: 1em 0 0 0;
+}
+
+.tocview,
+.tocsub {
+background-color: #94C5AD;
+border-radius: 6px;
+padding: 0 0.5em 0 0.5em;
+}
+
+a,
+.tocviewlink,
+.tocviewselflink {
+color: #639C7B;
+text-decoration: none;
+}
+.tocviewtoggle {
+color: black; 
+}
+.tocviewsublistonly {
+border-left: 1px solid #639C7B; 
+}
+
+.SAuthorListBox { 
+float: none;
+top: 0;
+left: 0;
+margin: 0 0 2em 0;
+display:block;
+}
+
+table {
+background-color: #333;
+border-radius: 4px;
+padding: 6px;
+}
+
+td {
+border-bottom: 0px;
+padding: 2px;
+padding-left: 10px !important;
+}
+
+a, a:hover,
+p, p:hover { color: #F0E7D5; }
+
+.stt {
+color: white;
+}
+
+.tocview {
+  display: none;
+}
+
+.tocsub,
+.tocsub a {
+  color: #BE9;
+}
+
+.tocsub {
+  border-top: 1px solid #453;
+  border-left: 1px solid #453;
+  background-color: #384032;
+}
+/*  background-color: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #93bd20), color-stop(100%, #659e10));
+  background: -webkit-linear-gradient(#93bd20, #659e10);
+  background: -moz-linear-gradient(#93bd20, #659e10);
+  background: -o-linear-gradient(#93bd20, #659e10);
+  background: -ms-linear-gradient(#93bd20, #659e10);
+  background: linear-gradient(#93bd20, #659e10);
+}*/
+
+.tocsub table {
+  background: transparent;
+  padding: 0px !important;
+}
+
+h1, h2, h3, h4, h5, h6, 
+h1 > a, h2 > a, h3 > a, h4 > a { 
+  color: #e8e8e8 !important;
+}
+.versionbox { display: none !important; }
+
+.wrapper { position: relative; right: 190px; }

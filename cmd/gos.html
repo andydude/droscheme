@@ -1,0 +1,2444 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Droscheme</title>
+    <link rel="stylesheet" href="../stylesheets/styles.css">
+    <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+    <link rel="stylesheet" href="scribble.css">
+    <link rel="stylesheet" href="gos-style.css">
+    <style type="text/css">
+      .wrapper { margin-top: 4em; }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="../javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  </head>
+  <body>
+
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/andydude/droscheme">View On GitHub</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/reference.html">Reference</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/cmd/index.html">Commands</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/index.html">Home</a></li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+        <div class="tocset">
+            <div class="tocview">
+                <div class="tocviewlist" style="margin-bottom: 1em;">
+                    <div class="tocviewtitle">
+                        <table cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td style="width: 1em;">
+                                    <a href="javascript:void(0);" title="Expand/Collapse" class="tocviewtoggle" onclick="TocviewToggle(this,&quot;tocview_0&quot;);">►</a>
+                                </td>
+                                <td/>
+                                <td>
+                                    <a href="" class="tocviewselflink" pltdoc="x">Gos Programming
+                                        &lt;br/<span class="mywbr"> </span>&gt;
+                                        Language
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="tocviewsublistonly" style="display: none;" id="tocview_0">
+                        <table cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td align="right">1 </td>
+                                <td>
+                                    <a href="#(part._.Introduction)" class="tocviewlink" pltdoc="x">Introduction</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">2 </td>
+                                <td>
+                                    <a href="#(part._.Lexical_syntax)" class="tocviewlink" pltdoc="x">Lexical syntax</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">3 </td>
+                                <td>
+                                    <a href="#(part._.Types)" class="tocviewlink" pltdoc="x">Types</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">4 </td>
+                                <td>
+                                    <a href="#(part._.Declarations)" class="tocviewlink" pltdoc="x">Declarations</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">5 </td>
+                                <td>
+                                    <a href="#(part._.Expressions)" class="tocviewlink" pltdoc="x">Expressions</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">6 </td>
+                                <td>
+                                    <a href="#(part._.Statements)" class="tocviewlink" pltdoc="x">Statements</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="right">7 </td>
+                                <td>
+                                    <a href="#(part._.Packages)" class="tocviewlink" pltdoc="x">Packages</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="tocsub">
+                <table class="tocsublist" cellspacing="0">
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                1<tt> </tt>
+                            </span>
+                            <a href="#(part._.Introduction)" class="tocsubseclink" pltdoc="x">Introduction</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                2<tt> </tt>
+                            </span>
+                            <a href="#(part._.Lexical_syntax)" class="tocsubseclink" pltdoc="x">Lexical syntax</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                2.1<tt> </tt>
+                            </span>
+                            <a href="#(part._.Identifiers)" class="tocsubseclink" pltdoc="x">Identifiers</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                2.2<tt> </tt>
+                            </span>
+                            <a href="#(part._.Integer_literals)" class="tocsubseclink" pltdoc="x">Integer literals</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                2.3<tt> </tt>
+                            </span>
+                            <a href="#(part._.Floating-point_literals)" class="tocsubseclink" pltdoc="x">
+                                Floating-<wbr/>point literals
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                2.4<tt> </tt>
+                            </span>
+                            <a href="#(part._.Character_literals)" class="tocsubseclink" pltdoc="x">Character literals</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                2.5<tt> </tt>
+                            </span>
+                            <a href="#(part._.String_literals)" class="tocsubseclink" pltdoc="x">String literals</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                3<tt> </tt>
+                            </span>
+                            <a href="#(part._.Types)" class="tocsubseclink" pltdoc="x">Types</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                3.1<tt> </tt>
+                            </span>
+                            <a href="#(part._.Boolean_types)" class="tocsubseclink" pltdoc="x">Boolean types</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                3.2<tt> </tt>
+                            </span>
+                            <a href="#(part._.Numeric_types)" class="tocsubseclink" pltdoc="x">Numeric types</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                3.3<tt> </tt>
+                            </span>
+                            <a href="#(part._.String_types)" class="tocsubseclink" pltdoc="x">String types</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                3.4<tt> </tt>
+                            </span>
+                            <a href="#(part._.Array_types)" class="tocsubseclink" pltdoc="x">Array types</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                3.5<tt> </tt>
+                            </span>
+                            <a href="#(part._.Slice_types)" class="tocsubseclink" pltdoc="x">Slice types</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                3.6<tt> </tt>
+                            </span>
+                            <a href="#(part._.Struct_types)" class="tocsubseclink" pltdoc="x">Struct types</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                3.7<tt> </tt>
+                            </span>
+                            <a href="#(part._.Pointer_types)" class="tocsubseclink" pltdoc="x">Pointer types</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                3.8<tt> </tt>
+                            </span>
+                            <a href="#(part._.Function_types)" class="tocsubseclink" pltdoc="x">Function types</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                3.9<tt> </tt>
+                            </span>
+                            <a href="#(part._.Interface_types)" class="tocsubseclink" pltdoc="x">Interface types</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                3.10<tt> </tt>
+                            </span>
+                            <a href="#(part._.Map_types)" class="tocsubseclink" pltdoc="x">Map types</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                3.11<tt> </tt>
+                            </span>
+                            <a href="#(part._.Channel_types)" class="tocsubseclink" pltdoc="x">Channel types</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                4<tt> </tt>
+                            </span>
+                            <a href="#(part._.Declarations)" class="tocsubseclink" pltdoc="x">Declarations</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                4.1<tt> </tt>
+                            </span>
+                            <a href="#(part._.Constant_declarations)" class="tocsubseclink" pltdoc="x">Constant declarations</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                4.2<tt> </tt>
+                            </span>
+                            <a href="#(part._.Type_declarations)" class="tocsubseclink" pltdoc="x">Type declarations</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                4.3<tt> </tt>
+                            </span>
+                            <a href="#(part._.Variable_declarations)" class="tocsubseclink" pltdoc="x">Variable declarations</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                4.4<tt> </tt>
+                            </span>
+                            <a href="#(part._.Short_variable_declarations)" class="tocsubseclink" pltdoc="x">Short variable declarations</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                4.5<tt> </tt>
+                            </span>
+                            <a href="#(part._.Function_declarations)" class="tocsubseclink" pltdoc="x">Function declarations</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                4.6<tt> </tt>
+                            </span>
+                            <a href="#(part._.Method_declarations)" class="tocsubseclink" pltdoc="x">Method declarations</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5<tt> </tt>
+                            </span>
+                            <a href="#(part._.Expressions)" class="tocsubseclink" pltdoc="x">Expressions</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.1<tt> </tt>
+                            </span>
+                            <a href="#(part._.Operands)" class="tocsubseclink" pltdoc="x">Operands</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.2<tt> </tt>
+                            </span>
+                            <a href="#(part._.Qualified_identifiers)" class="tocsubseclink" pltdoc="x">Qualified identifiers</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.3<tt> </tt>
+                            </span>
+                            <a href="#(part._.Composite_literals)" class="tocsubseclink" pltdoc="x">Composite literals</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.4<tt> </tt>
+                            </span>
+                            <a href="#(part._.Function_literals)" class="tocsubseclink" pltdoc="x">Function literals</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.5<tt> </tt>
+                            </span>
+                            <a href="#(part._.Primary_expressions)" class="tocsubseclink" pltdoc="x">Primary expressions</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.6<tt> </tt>
+                            </span>
+                            <a href="#(part._.Selectors)" class="tocsubseclink" pltdoc="x">Selectors</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.7<tt> </tt>
+                            </span>
+                            <a href="#(part._.Indexes)" class="tocsubseclink" pltdoc="x">Indexes</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.8<tt> </tt>
+                            </span>
+                            <a href="#(part._.Slices)" class="tocsubseclink" pltdoc="x">Slices</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.9<tt> </tt>
+                            </span>
+                            <a href="#(part._.Type_assertions)" class="tocsubseclink" pltdoc="x">Type assertions</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.10<tt> </tt>
+                            </span>
+                            <a href="#(part._.Calls)" class="tocsubseclink" pltdoc="x">Calls</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.11<tt> </tt>
+                            </span>
+                            <a href="#(part._.Operators)" class="tocsubseclink" pltdoc="x">Operators</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.12<tt> </tt>
+                            </span>
+                            <a href="#(part._.Arithmetic_operators)" class="tocsubseclink" pltdoc="x">Arithmetic operators</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.13<tt> </tt>
+                            </span>
+                            <a href="#(part._.Comparison_operators)" class="tocsubseclink" pltdoc="x">Comparison operators</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.14<tt> </tt>
+                            </span>
+                            <a href="#(part._.Logical_operators)" class="tocsubseclink" pltdoc="x">Logical operators</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.15<tt> </tt>
+                            </span>
+                            <a href="#(part._.Address_operators)" class="tocsubseclink" pltdoc="x">Address operators</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.16<tt> </tt>
+                            </span>
+                            <a href="#(part._.Receive_operator)" class="tocsubseclink" pltdoc="x">Receive operator</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.17<tt> </tt>
+                            </span>
+                            <a href="#(part._.Method_expressions)" class="tocsubseclink" pltdoc="x">Method expressions</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                5.18<tt> </tt>
+                            </span>
+                            <a href="#(part._.Conversions)" class="tocsubseclink" pltdoc="x">Conversions</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6<tt> </tt>
+                            </span>
+                            <a href="#(part._.Statements)" class="tocsubseclink" pltdoc="x">Statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.1<tt> </tt>
+                            </span>
+                            <a href="#(part._.Labeled_statements)" class="tocsubseclink" pltdoc="x">Labeled statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.2<tt> </tt>
+                            </span>
+                            <a href="#(part._.Expression_statements)" class="tocsubseclink" pltdoc="x">Expression statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.3<tt> </tt>
+                            </span>
+                            <a href="#(part._.Send_statements)" class="tocsubseclink" pltdoc="x">Send statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.4<tt> </tt>
+                            </span>
+                            <a href="#(part._.Inc.Dec_statements)" class="tocsubseclink" pltdoc="x">
+                                Inc<span class="mywbr"> </span>Dec statements
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.5<tt> </tt>
+                            </span>
+                            <a href="#(part._.Assignments)" class="tocsubseclink" pltdoc="x">Assignments</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.6<tt> </tt>
+                            </span>
+                            <a href="#(part._.If_statements)" class="tocsubseclink" pltdoc="x">If statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.7<tt> </tt>
+                            </span>
+                            <a href="#(part._.Switch_statements)" class="tocsubseclink" pltdoc="x">Switch statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.8<tt> </tt>
+                            </span>
+                            <a href="#(part._.For_statements)" class="tocsubseclink" pltdoc="x">For statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.9<tt> </tt>
+                            </span>
+                            <a href="#(part._.Go_statements)" class="tocsubseclink" pltdoc="x">Go statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.10<tt> </tt>
+                            </span>
+                            <a href="#(part._.Select_statements)" class="tocsubseclink" pltdoc="x">Select statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.11<tt> </tt>
+                            </span>
+                            <a href="#(part._.Return_statements)" class="tocsubseclink" pltdoc="x">Return statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.12<tt> </tt>
+                            </span>
+                            <a href="#(part._.Break_statements)" class="tocsubseclink" pltdoc="x">Break statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.13<tt> </tt>
+                            </span>
+                            <a href="#(part._.Continue_statements)" class="tocsubseclink" pltdoc="x">Continue statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.14<tt> </tt>
+                            </span>
+                            <a href="#(part._.Goto_statements)" class="tocsubseclink" pltdoc="x">Goto statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.15<tt> </tt>
+                            </span>
+                            <a href="#(part._.Fallthrough_statements)" class="tocsubseclink" pltdoc="x">Fallthrough statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                6.16<tt> </tt>
+                            </span>
+                            <a href="#(part._.Defer_statements)" class="tocsubseclink" pltdoc="x">Defer statements</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                7<tt> </tt>
+                            </span>
+                            <a href="#(part._.Packages)" class="tocsubseclink" pltdoc="x">Packages</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                7.1<tt> </tt>
+                            </span>
+                            <a href="#(part._.Package_clause)" class="tocsubseclink" pltdoc="x">Package clause</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tocsublinknumber">
+                                7.2<tt> </tt>
+                            </span>
+                            <a href="#(part._.Import_declarations)" class="tocsubseclink" pltdoc="x">Import declarations</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="maincolumn">
+            <div class="main">
+                <div class="versionbox">
+                    <span class="versionNoNav">Version: 5.2</span>
+                </div>
+                <h2>
+                    <a name="(part._.Gos_.Programming__br___.Language)"/>Gos Programming
+                    &lt;br/&gt;
+                    Language
+                </h2>
+                <h3>
+                    1<tt> </tt><a name="(part._.Introduction)"/>
+                    Introduction
+                </h3>
+                <h3>
+                    2<tt> </tt><a name="(part._.Lexical_syntax)"/>
+                    Lexical syntax
+                </h3>
+                <p>Source code is represented as S-expressions similar to Lisp and Scheme.</p>
+                <h4>
+                    2.1<tt> </tt><a name="(part._.Identifiers)"/>
+                    Identifiers
+                </h4>
+                <h4>
+                    2.2<tt> </tt><a name="(part._.Integer_literals)"/>
+                    Integer literals
+                </h4>
+                <h4>
+                    2.3<tt> </tt><a name="(part._.Floating-point_literals)"/>
+                    Floating-point literals
+                </h4>
+                <h4>
+                    2.4<tt> </tt><a name="(part._.Character_literals)"/>
+                    Character literals
+                </h4>
+                <p>
+                    Characters are represented <span class="stt">#\</span><span style="font-style: italic">char</span>.
+                </p>
+                <h4>
+                    2.5<tt> </tt><a name="(part._.String_literals)"/>
+                    String literals
+                </h4>
+                <p>
+                    Strings are represented <span class="stt">"</span><span style="font-style: italic">string</span><span class="stt">"</span>.
+                </p>
+                <h3>
+                    3<tt> </tt><a name="(part._.Types)"/>
+                    Types
+                </h3>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    Type<span class="hspace">     </span><span class="stt">= TypeName | TypeLit .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">TypeName = QualifiedIdent .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    TypeLit<span class="hspace">  </span><span class="stt">= ArrayType</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">         </span><span class="stt">| StructType</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">         </span><span class="stt">| PointerType</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">         </span><span class="stt">| FunctionType</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">         </span><span class="stt">| InterfaceType</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">         </span><span class="stt">| SliceType</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">         </span><span class="stt">| MapType</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">         </span><span class="stt">| ChannelType .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    3.1<tt> </tt><a name="(part._.Boolean_types)"/>
+                    Boolean types
+                </h4>
+                <p>
+                    The boolean type is written <span class="stt">bool</span> and has the values <span class="stt">#t</span> and <span class="stt">#f</span>.
+                </p>
+                <h4>
+                    3.2<tt> </tt><a name="(part._.Numeric_types)"/>
+                    Numeric types
+                </h4>
+                <p>Numeric types have the same names as they do in Go.</p>
+                <h4>
+                    3.3<tt> </tt><a name="(part._.String_types)"/>
+                    String types
+                </h4>
+                <p>
+                    The string type is written <span class="stt">string</span>.
+                </p>
+                <h4>
+                    3.4<tt> </tt><a name="(part._.Array_types)"/>
+                    Array types
+                </h4>
+                <p>
+                    Array types are written <span class="stt">(array</span> <span style="font-style: italic">size</span> <span style="font-style: italic">type</span><span class="stt">)</span>
+                </p>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    ArrayType<span class="hspace">   </span><span class="stt">= '(array' ArrayLength ElementType ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">ArrayLength = Expression .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">ElementType = Type .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    3.5<tt> </tt><a name="(part._.Slice_types)"/>
+                    Slice types
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">SliceType = '(slice' ElementType ')'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    3.6<tt> </tt><a name="(part._.Struct_types)"/>
+                    Struct types
+                </h4>
+                <p>Struct types represent a sequence of fields.</p><p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">StructType = '(struct' { FieldDecl } ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    FieldDecl<span class="hspace">  </span><span class="stt">= TypedIdentifierList .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p>
+                    If a <span class="stt">TypedIdentifierList</span> includes no identifiers, then it represents an anonymous field, in which case the <span class="stt">Type</span> is restricted to named types and pointers to named types.
+                </p>
+                <p>Tags are not supported.</p><p/>
+                <div class="SIntrapara">For example:
+                </div>
+                <div class="SIntrapara">
+                    <table cellspacing="0">
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">;An empty struct.</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(struct)</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt"/>
+                                    </span>
+                                    <span class="hspace"> </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">;A struct with 6 fields.</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(struct</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">        </span><span class="stt">(x y int)</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">        </span><span class="stt">(u float32)</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">        </span><span class="stt">(_ float32) ; padding</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">        </span><span class="stt">(A (ptr (slice int)))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">        </span><span class="stt">(F (func (void))))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <h4>
+                    3.7<tt> </tt><a name="(part._.Pointer_types)"/>
+                    Pointer types
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">PointerType = '(ptr' Type ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    3.8<tt> </tt><a name="(part._.Function_types)"/>
+                    Function types
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    FunctionType<span class="hspace">   </span><span class="stt">= '(func' Signature ')'.</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    Signature<span class="hspace">      </span><span class="stt">= { ParameterDecl } Result .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    Result<span class="hspace">         </span><span class="stt">= '(values' { ParameterDecl } ')' | '(void)' | Type .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    ParameterDecl<span class="hspace">  </span><span class="stt">= TypedIdentifierList .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p>One major difference between Go and Gos is that in Go the return type is optional, but in Gos the parameters are optional, and the return type is required.</p><p>Ellipses are not supported.</p>
+                <h4>
+                    3.9<tt> </tt><a name="(part._.Interface_types)"/>
+                    Interface types
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    InterfaceType<span class="hspace">      </span><span class="stt">= '(interface' { MethodSpec } ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    MethodSpec<span class="hspace">         </span><span class="stt">= '(' MethodName Signature ')' | InterfaceTypeName .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    MethodName<span class="hspace">         </span><span class="stt">= Identifier .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    InterfaceTypeName<span class="hspace">  </span><span class="stt">= TypeName .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p/>
+                <div class="SIntrapara">For example:
+                </div>
+                <div class="SIntrapara">
+                    <table cellspacing="0">
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(type (Lock (interface</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">        </span><span class="stt">(Lock (void))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">        </span><span class="stt">(Unlock (void)))))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <h4>
+                    3.10<tt> </tt><a name="(part._.Map_types)"/>
+                    Map types
+                </h4>
+                <h4>
+                    3.11<tt> </tt><a name="(part._.Channel_types)"/>
+                    Channel types
+                </h4>
+                <h3>
+                    4<tt> </tt><a name="(part._.Declarations)"/>
+                    Declarations
+                </h3>
+                <h4>
+                    4.1<tt> </tt><a name="(part._.Constant_declarations)"/>
+                    Constant declarations
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">ConstDecl = '(const' { ConstSpec } ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">ConstSpec = '(=' IdentifierList ExpressionList ')'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">          </span><span class="stt">| '(=:' TypedIdentifierList ExpressionList ')'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">          </span><span class="stt">| Identifier .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    TypedIdentifierList<span class="hspace">  </span><span class="stt">= '(' { Identifier } Type ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    IdentifierList<span class="hspace">       </span><span class="stt">= '(' { Identifier } ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    ExpressionList<span class="hspace">       </span><span class="stt">= { Expression } .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p>
+                    Iota is written <span class="stt">iota</span>.
+                </p>
+                <h4>
+                    4.2<tt> </tt><a name="(part._.Type_declarations)"/>
+                    Type declarations
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">TypeDecl = '(type' { TypeSpec } ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">TypeSpec = '(' Identifier Type ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    4.3<tt> </tt><a name="(part._.Variable_declarations)"/>
+                    Variable declarations
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">VarDecl = '(var { VarSpec } ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">VarSpec = '(=' IdentifierList ExpressionList ')'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">        </span><span class="stt">| '(=:' TypedIdentifierList ExpressionList ')'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">        </span><span class="stt">| '(::' TypedIdentifierList ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    4.4<tt> </tt><a name="(part._.Short_variable_declarations)"/>
+                    Short variable declarations
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">ShortVarDecl = '(:=' IdentifierList ExpressionList ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    4.5<tt> </tt><a name="(part._.Function_declarations)"/>
+                    Function declarations
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">FunctionDecl = '(define-go' '(' FunctionName Signature ')' Body ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">FunctionName = Identifier .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    Body<span class="hspace">         </span><span class="stt">= { Statement } .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    4.6<tt> </tt><a name="(part._.Method_declarations)"/>
+                    Method declarations
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">MethodDecl = '(define-go' '(' Receiver MethodName Signature ')' Body ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    Receiver<span class="hspace">   </span><span class="stt">= '(' [ Identifier ] Type ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p>
+                    <span class="stt">Type</span> is restricted to named types or pointers to named types.
+                </p>
+                <h3>
+                    5<tt> </tt><a name="(part._.Expressions)"/>
+                    Expressions
+                </h3>
+                <h4>
+                    5.1<tt> </tt><a name="(part._.Operands)"/>
+                    Operands
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    Operand<span class="hspace">  </span><span class="stt">= Literal | QualifiedIdent | MethodExpr | "(" Expression ")" .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    Literal<span class="hspace">  </span><span class="stt">= BasicLit | CompositeLit | FunctionLit .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">BasicLit = int_lit | float_lit | imaginary_lit | char_lit | string_lit .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.2<tt> </tt><a name="(part._.Qualified_identifiers)"/>
+                    Qualified identifiers
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">QualifiedIdent = [ PackageName "." ] Identifier</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">               </span><span class="stt">| '(.' { Identifier } Identifier ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.3<tt> </tt><a name="(part._.Composite_literals)"/>
+                    Composite literals
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    CompositeLit<span class="hspace">  </span><span class="stt">= '#(' LiteralType LiteralValue ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    LiteralType<span class="hspace">   </span><span class="stt">= StructType | ArrayType | SliceType | MapType | TypeName .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    LiteralValue<span class="hspace">  </span><span class="stt">= { Element } .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    Element<span class="hspace">       </span><span class="stt">= [ '#:' Key ] Value .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    Key<span class="hspace">           </span><span class="stt">= FieldName | ElementIndex .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    FieldName<span class="hspace">     </span><span class="stt">= Identifier .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    ElementIndex<span class="hspace">  </span><span class="stt">= Expression .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    Value<span class="hspace">         </span><span class="stt">= Expression | CompositeLit .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p/>
+                <div class="SIntrapara">Given the declarations
+                </div>
+                <div class="SIntrapara">
+                    <table cellspacing="0">
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(type</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">  </span><span class="stt">(Point3D (struct (x y z float64)))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">  </span><span class="stt">(Line (struct (p q Point3D))))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="SIntrapara">one may write
+                </div>
+                <div class="SIntrapara">
+                    <table cellspacing="0">
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(:= origin #(Point3D)) ; zero value for Point3D</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(:= line #(Line origin #(Point3D #:y -4 #:z 12.3)))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <h4>
+                    5.4<tt> </tt><a name="(part._.Function_literals)"/>
+                    Function literals
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">FunctionLit = '(lambda' '(' Signature ')' Body ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.5<tt> </tt><a name="(part._.Primary_expressions)"/>
+                    Primary expressions
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.6<tt> </tt><a name="(part._.Selectors)"/>
+                    Selectors
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.7<tt> </tt><a name="(part._.Indexes)"/>
+                    Indexes
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.8<tt> </tt><a name="(part._.Slices)"/>
+                    Slices
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.9<tt> </tt><a name="(part._.Type_assertions)"/>
+                    Type assertions
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.10<tt> </tt><a name="(part._.Calls)"/>
+                    Calls
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">f(a1, a2, … an)</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p/>
+                <div class="SIntrapara">For example:
+                </div>
+                <div class="SIntrapara">
+                    <table cellspacing="0">
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(math.Atan2 x y)</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(var (pt) (ptr Point))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(pt.Scale 3.5)</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <h4>
+                    5.11<tt> </tt><a name="(part._.Operators)"/>
+                    Operators
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.12<tt> </tt><a name="(part._.Arithmetic_operators)"/>
+                    Arithmetic operators
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.13<tt> </tt><a name="(part._.Comparison_operators)"/>
+                    Comparison operators
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.14<tt> </tt><a name="(part._.Logical_operators)"/>
+                    Logical operators
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt"/>
+                                </span>
+                                <span class="hspace"> </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.15<tt> </tt><a name="(part._.Address_operators)"/>
+                    Address operators
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">'(adr' Expression ')'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">'(ptr' Expression ')'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p/>
+                <div class="SIntrapara">For example:
+                </div>
+                <div class="SIntrapara">
+                    <table cellspacing="0">
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(adr x)</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(adr (index a (f 2)))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(ptr p)</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(ptr (pf x))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <h4>
+                    5.16<tt> </tt><a name="(part._.Receive_operator)"/>
+                    Receive operator
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">'(&lt;-' Expression ')'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p/>
+                <div class="SIntrapara">For example:
+                </div>
+                <div class="SIntrapara">
+                    <table cellspacing="0">
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(= (x ok) (&lt;- ch))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(:= (x ok) (&lt;- ch))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">(var (= (x ok) (&lt;- ch)))</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <h4>
+                    5.17<tt> </tt><a name="(part._.Method_expressions)"/>
+                    Method expressions
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    MethodExpr<span class="hspace">    </span><span class="stt">= '(methcall' ReceiverType MethodName ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    ReceiverType<span class="hspace">  </span><span class="stt">= TypeName | '(ptr' TypeName ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    5.18<tt> </tt><a name="(part._.Conversions)"/>
+                    Conversions
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">Conversion = '(toa' Type Expression ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h3>
+                    6<tt> </tt><a name="(part._.Statements)"/>
+                    Statements
+                </h3>
+                <p/>
+                <div class="SIntrapara">
+                    <table cellspacing="0">
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">Statement = Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">          </span><span class="stt">| BreakStmt | ContinueStmt | GotoStmt | FallthroughStmt | Block</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">          </span><span class="stt">| IfStmt | SwitchStmt | SelectStmt | ForStmt | DeferStmt .</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt"/>
+                                    </span>
+                                    <span class="hspace"> </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="stt">SimpleStmt = EmptyStmt | ExpressionStmt | SendStmt | IncDecStmt</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        <span class="hspace">           </span><span class="stt">| Assignment | ShortVarDecl .</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="SIntrapara">
+                    The <span class="stt">Statement</span> production is the same as in Go.
+                </div>
+                <h4>
+                    6.1<tt> </tt><a name="(part._.Labeled_statements)"/>
+                    Labeled statements
+                </h4>
+                <h4>
+                    6.2<tt> </tt><a name="(part._.Expression_statements)"/>
+                    Expression statements
+                </h4>
+                <h4>
+                    6.3<tt> </tt><a name="(part._.Send_statements)"/>
+                    Send statements
+                </h4>
+                <h4>
+                    6.4<tt> </tt><a name="(part._.Inc.Dec_statements)"/>
+                    IncDec statements
+                </h4>
+                <h4>
+                    6.5<tt> </tt><a name="(part._.Assignments)"/>
+                    Assignments
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">Assignment = '(' assign_op '(' ExpressionList ')' ExpressionList ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    assign_op<span class="hspace">  </span><span class="stt">= [ add_op | mul_op ] "=" .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    6.6<tt> </tt><a name="(part._.If_statements)"/>
+                    If statements
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    IfStmt<span class="hspace">   </span><span class="stt">= '(if' OptStmt Expression Block [ ElseStmt ] ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    OptStmt<span class="hspace">  </span><span class="stt">= '()' | SimpleStmt</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">ElseStmt = '(else' Block ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    Block<span class="hspace">    </span><span class="stt">= { Statement } .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    6.7<tt> </tt><a name="(part._.Switch_statements)"/>
+                    Switch statements
+                </h4>
+                <p>TODO</p>
+                <h4>
+                    6.8<tt> </tt><a name="(part._.For_statements)"/>
+                    For statements
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    ForStmt<span class="hspace">     </span><span class="stt">= '(for' ( ForClause | RangeClause ) Block ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    Condition<span class="hspace">   </span><span class="stt">= Expression .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    ForClause<span class="hspace">   </span><span class="stt">= '()' | '(' Condition ')'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">            </span><span class="stt">| '(' OptStmt Condition OptStmt ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">RangeClause = '(=' IdentifierList Expression ')'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">            </span><span class="stt">| '(:=' IdentifierList Expression ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    6.9<tt> </tt><a name="(part._.Go_statements)"/>
+                    Go statements
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">GoStmt = '(go' Expression ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    6.10<tt> </tt><a name="(part._.Select_statements)"/>
+                    Select statements
+                </h4>
+                <p>TODO</p>
+                <h4>
+                    6.11<tt> </tt><a name="(part._.Return_statements)"/>
+                    Return statements
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">ReturnStmt = '(return' ExpressionList ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    6.12<tt> </tt><a name="(part._.Break_statements)"/>
+                    Break statements
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">BreakStmt = '(break' [ Label ] ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    6.13<tt> </tt><a name="(part._.Continue_statements)"/>
+                    Continue statements
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">ContinueStmt = '(continue' [ Label ] ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    6.14<tt> </tt><a name="(part._.Goto_statements)"/>
+                    Goto statements
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">GotoStmt = '(goto' Label ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    6.15<tt> </tt><a name="(part._.Fallthrough_statements)"/>
+                    Fallthrough statements
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">FallthroughStmt = '(fallthrough)' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    6.16<tt> </tt><a name="(part._.Defer_statements)"/>
+                    Defer statements
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">DeferStmt = '(defer' Expression ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h3>
+                    7<tt> </tt><a name="(part._.Packages)"/>
+                    Packages
+                </h3>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">SourceFile = '(' PackageClause { ImportDecl } { TopLevelDecl } ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    7.1<tt> </tt><a name="(part._.Package_clause)"/>
+                    Package clause
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">PackageClause = 'package' PackageName .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    PackageName<span class="hspace">   </span><span class="stt">= Identifier .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    7.2<tt> </tt><a name="(part._.Import_declarations)"/>
+                    Import declarations
+                </h4>
+                <p/>
+                <table cellspacing="0">
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">ImportDecl = '(import' { ImportSpec } ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">ImportSpec = '(' PackageName ImportPath ')'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">           </span><span class="stt">| ImportPath .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">ImportPath = string_lit .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p>Dot imports are not supported.</p>
+            </div>
+        </div>
+        <div id="contextindicator"> </div>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>
