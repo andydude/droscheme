@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# gos2go is a simple transpiler from Gos to Go.
+#
+# This file is just a script. The main implementation can be
+# found in gos2go.ss. The main documentation can be found at
+# <http://andydude.github.com/droscheme/cmd/gos.html>
+
+# BEGIN config
+DIR="$(dirname $0)"
+GO_FORMAT="gofmt"
+SCHEME_SCRIPT="racket -f"
+#SCHEME_SCRIPT="guile -s"
+#SCHEME_SCRIPT="ds -f"
+# END config
+
+cat $DIR/prefix.txt
+$SCHEME_SCRIPT "$DIR/gos2go.ss" "$@" | grep -v '^$' | $GO_FORMAT

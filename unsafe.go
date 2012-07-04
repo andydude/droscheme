@@ -27,7 +27,7 @@ func exit(s Any) {
 }
 
 func TypeEqual(x, y Any) bool {
-	return x.GetType() == y.GetType()
+	return x.(AnyKinder).GetType() == y.(AnyKinder).GetType()
 }
 
 func PointerEqual(x, y Any) bool {

@@ -206,7 +206,7 @@ func IsNumber(a Any) bool {
 
 func Compare(x Num, y Num) int {
 	if x.GetNumberType() != y.GetNumberType() {
-		x, y = unify(x, y)
+		x, y = UnifyNumbers(x, y)
 	}
 	return x.(RealNum).Cmp(y)
 }
@@ -586,24 +586,33 @@ func unlist2Number(args Any) (x, y Num) {
 	x = a.(Num)
 	y = b.(Num)
 	if x.GetNumberType() != y.GetNumberType() {
-		x, y = unify(x, y)
+		x, y = UnifyNumbers(x, y)
 	}
 	return
 }
 
-func unifyRealNum(args Any) (x, y RealNum) {
+func UnifyReals(args Any) (x, y RealNum) {
 	a, b := unlist2(args)
 	xn := a.(Num)
 	yn := b.(Num)
 	if xn.GetNumberType() != yn.GetNumberType() {
-		xn, yn = unify(xn, yn)
+		xn, yn = UnifyNumbers(xn, yn)
 	}
 	x = xn.(RealNum)
 	y = yn.(RealNum)
 	return
 }
 
-func unify(a, b Num) (x, y Num) {
+func UnifyFlonums(a, b Any) (x, y float64) {
+	xn, yn := UnifyNumbers(a.(Num), b.(Num))
+	return ToFlonum(xn), ToFlonum(yn)
+}
+
+func UnifyAny(a, b Any) (x, y Num) {
+	return UnifyNumbers(a.(Num), b.(Num))
+}
+
+func UnifyNumbers(a, b Num) (x, y Num) {
 	switch unifyType(a.GetNumberType(), b.GetNumberType()) {
 	case NumberTypeCodeS64:
 		x = Sint64(ToFixnum(a))

@@ -1,0 +1,247 @@
+; -*- mode: scheme -*-
+(package droscheme
+
+  (define (any->go-string object)
+    (void))
+
+  (define (apply proc . args)
+    (as proc Applier (Apply (vector->list (SVector args)))))
+
+  (define (not bo)
+    (bool-not (as bo bool)))
+
+  (define (binary-port? a)
+    (SBool (IsBinaryPort a)))
+
+  (define (boolean=? a b)
+    (SBool (bool-and (IsBool a) 
+                     (IsBool b) 
+                     (Equal a b))))
+
+  (define (boolean? a)
+    (SBool (IsBool a)))
+
+  (define (bytevector-copy bv)
+    (:= rv (make-bytevector (bytevector-length bv)))
+    (bytevector-copy! bv rv)
+    rv)
+
+  (define (bytevector-length bv)
+    (Sint64 (call-go len (as bv SBinary))))
+
+  ; nonstandard
+  (define-go (bytevector (args (slice Any)) Any)
+    (return (u8-vector->bytevector (SVector args))))
+
+  (define (bytevector-u8-ref bv k)
+    (as bv SBinary (Ref k)))
+
+  (define (bytevector-u8-set! bv k v)
+    (as bv SBinary (Set k v)))
+
+  (define (bytevector->u8-list bv)
+    bv)
+
+  (define (bytevector->u8-vector ba)
+    (:= bv (as ba SBinary))
+    (:= bl (call-go len bv))
+    (:= rv (as (make-vector (Sint64 bl)) SBinary))
+    (for (:= i 0) (< i bl) (++ i)
+         (= ((index rv i)) (index bv i)))
+    rv)
+
+  (define (bytevector? a)
+    (SBool (IsBinary a)))
+
+  (define (call-with-input-file path proc)
+    (call-with-port (open-input-file path) proc))
+
+  ;(define (call-with-port)
+  ;  x)
+
+  (define (open-input-file filename) (void))
+  (define (open-output-file filename) (void))
+  (define (call-with-port port proc) (void))
+
+  (define (call-with-values producer consumer)
+    (:= values (as producer Applier (Apply (null))))
+    (as consumer Applier (Apply values)))
+
+  (define (char->integer c)
+    (Sint64 (as c SChar)))
+
+  (define (char-ready? port)
+    (SBool (as port RunePeeker (ReadyRune))))
+
+  (define (char? a)
+    (SBool (IsChar a)))
+
+  (define (close-input-port port)
+    (if1 (bool-not (IsPort port))
+         (error "close-input-port expected port"))
+    (if1 (bool-not (IsInputPort port)) 
+         (error "close-input-port expected input-port"))
+    (close-port port))
+
+  (define (close-output-port port)
+    (if1 (bool-not (IsPort port)) 
+         (error "close-output-port expected port"))
+    (if1 (bool-not (IsOutputPort port))
+         (error "close-output-port expected output-port"))
+    (close-port port))
+
+  (define (close-port a)
+    (call-go error1panic (as a Port (Close)))
+    (void))
+
+  (define (command-line a)
+    (void))
+
+  (define (complex? a)
+    (SBool (IsComplex a)))
+
+  (define (current-error-port . rest)
+    (as gError Applier (Apply (vector->list (SVector rest)))))
+
+  (define (current-input-port . rest)
+    (as gInput Applier (Apply (vector->list (SVector rest)))))
+
+  (define (current-output-port . rest)
+    (as gOutput Applier (Apply (vector->list (SVector rest)))))
+
+  (define (current-jiffy) (void))
+  (define (current-second) (void))
+  (define (denominator q)
+    (as q SRational (Dmtr)))
+
+  (define (display a . portZS)
+    (:= port (index portZS 0))
+    (as port OPort (Write (as (any->go-string a) SString (ToBytes))))
+    (void))
+
+  (define (empty? a)
+    (SBool (IsEmpty a)))
+
+  (define (eof-object)
+    gEOF)
+
+  (define (eof-object? a)
+    (if2 (:= (r ok) (as a SChar)) ok
+         (return (SBool (== r gEOF))))
+    (SBool #f))
+
+  (define (equal? a b)
+    (void))
+
+  (define (eval-rest exp env)
+    (void))
+          
+  (define (eval exp env)
+    (void))
+          
+  (define (exact-integer-sqrt a)
+    (void))
+          
+  (define (exact? a)
+    (void))
+          
+  (define (exit a)
+    (void))
+
+  (define (floor a)
+    (void))
+
+  (define (flush-output-port port)
+    (void))
+
+  (define (get-output-bytevector port)
+    (void))
+
+  (define (get-output-string port)
+    (void))
+
+  (define (hash a)
+    (void))
+          
+  (define (hashtable->list ht)
+    (void))
+
+  (define (hashtable-clear! ht)
+    (void))
+
+  (define (hashtable-contains? ht)
+    (void))
+  (define (hashtable-copy ht)
+    (void))
+  (define (hashtable-delete! ht)
+    (void))
+  (define (hashtable-entries ht)
+    (void))
+  (define (hashtable-equivalence-function ht)
+    (void))
+  (define (hashtable-hash-function ht)
+    (void))
+  (define (hashtable-keys ht)
+    (void))
+  (define (hashtable-mutable? ht)
+    (void))
+  (define (hashtable-ref ht)
+    (void))
+  (define (hashtable-set! ht)
+    (void))
+  (define (hashtable-size ht)
+    (void))
+  (define (hashtable-update! ht)
+    (void))
+  (define (hashtable-values ht)
+    (void))
+  (define (hashtable? ht)
+    (void))
+  (define (inexact=? z)
+    (void))
+  (define (inexact? z)
+    (void))
+
+  (define (input-port? port)
+    (SBool (IsInputPort port)))
+
+  (define (integer->char z)
+    (void))
+  (define (integer? z)
+    (void))
+  (define (interaction-environment z)
+    (void))
+
+  (define (list->string z)
+    (void))
+  (define (make/ z)
+    (void))
+  (define (make-bytevector z)
+    (void))
+  (define (make-equal-hashtable z)
+    (void))
+  (define (make-hashtable z)
+    (void))
+  (define (make-parameter z)
+    (void))
+  (define (negative? x)
+    (void))
+
+  ;(define (newline . opt)
+  ;  (apply (fn write) "\n" opt))
+
+  (define (numerator q)
+    (as q SRational (Nmtr)))
+
+  (define (bytevector-copy! z y)
+    (void))
+  (define (u8-vector->bytevector z)
+    (void))
+
+;  (define (abs x)
+;    (if (negative? x) (- x) x))
+
+;  (define ( z)
+;    (void))
+
+);package

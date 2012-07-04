@@ -1,0 +1,69 @@
+; -*- mode: scheme -*-
+; (ds vector) based on SRFI-43
+(package droscheme
+
+  ;; Conversions
+  (define (reverse-list->vector) (void))
+  (define (reverse-vector->list) (void))
+
+  (define (vector->list* z)
+    #f)
+  (define (list*->vector z)
+    #f)
+
+  (define (list->vector ls)
+    (if1 (IsNull ls)
+         (return (SVector #((slice Any)))))
+    (if1 (bool-not (IsPair ls))
+         (error "list->vector expected list"))
+	(:= (cur vc) (null) #((slice Any)))
+    (for (= cur ls) (IsPair cur) (= cur (cdr cur))
+         (= vc (call-go append vc (cdr cur))))
+    (if1 (bool-not (IsNull cur))
+         (error "list->vector expected null"))
+	(NewVector vc))
+
+  (define (vector->list vs)
+    (:= (vc ls) (as vs SVector) (null))
+    (for (:= i (inline "len(vc) - 1")) (>= i 0) (-- i)
+         (= ls (cons (inline "vc[i]") ls)))
+    ls)
+
+  (define (vector) (void))
+  (define (vector-any) (void))
+  (define (vector-append) (void))
+  (define (vector-binary-search) (void))
+  (define (vector-concatenate) (void))
+  (define (vector-copy!) (void))
+  (define (vector-copy) (void))
+  (define (vector-count) (void))
+  (define (vector-empty?) (void))
+  (define (vector-every) (void))
+  (define (vector-fill!) (void))
+  (define (vector-fold) (void))
+  (define (vector-fold-right) (void))
+  (define (vector-for-each) (void))
+  (define (vector-index) (void))
+  (define (vector-index-right) (void))
+  (define (vector-length) (void))
+  (define (vector-map!) (void))
+  (define (vector-map) (void))
+  (define (make-vector k) (void))
+
+  (define (vector-ref vc k)
+    (as vc SVector (Ref k)))
+
+  (define (vector-reverse!) (void))
+  (define (vector-reverse-copy!) (void))
+  (define (vector-reverse-copy) (void))
+  (define (vector-set!) (void))
+  (define (vector-skip) (void))
+  (define (vector-skip-right) (void))
+  (define (vector-swap!) (void))
+  (define (vector-unfold) (void))
+  (define (vector-unfold-right) (void))
+
+  (define (vector? object)
+    (SBool (IsVector object)))
+
+);package

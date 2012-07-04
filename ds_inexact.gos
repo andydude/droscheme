@@ -1,0 +1,49 @@
+; -*- mode: scheme -*-
+(package droscheme
+
+  (define (inexact->exact x)
+    (void))
+
+  (define (exact->inexact x)
+    (if1 (IsComplex x)
+         (return (Scomplex64 (ToFcmplx x))))
+    (if1 (IsExact x)
+         (return (Sfloat64 (ToFlonum x))))
+    x)
+
+  (define (acos x)
+    (as (exact->inexact x) TrigNum (ArcCos)))
+
+  (define (asin x)
+    (as (exact->inexact x) TrigNum (ArcSin)))
+
+  ;(define (atan1 x y?)
+  ;  (as (exact->inexact x) TrigNum (ArcTan y?)))
+  ;(define (atan2 x y?)
+  ;  (as (exact->inexact x) TrigNum (ArcTan y?)))
+
+  (define (cos x)
+    (as (exact->inexact x) TrigNum (Cos)))
+
+  (define (exp x)
+    (as (exact->inexact x) TrigNum (Exp)))
+
+  ;(define (finite? x)
+  ;  (SBool (as x TrigNum (IsFinite))))
+
+  (define (log x)
+    (as (exact->inexact x) TrigNum (Ln)))
+
+  ;(define (nan? x)
+  ;  (SBool (as x TrigNum (IsNaN))))
+
+  (define (sin x)
+    (as (exact->inexact x) TrigNum (Sin)))
+
+  (define (sqrt x)
+    (as (exact->inexact x) TrigNum (Sqrt)))
+
+  (define (tan x)
+    (as (exact->inexact x) TrigNum (Tan)))
+
+);package

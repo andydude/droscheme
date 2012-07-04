@@ -797,7 +797,7 @@ func DeofZKobjectZS(a Any) Any {
 
 func DequalZS(a Any) Any {
 	var x, y = unlist2(a)
-	return SBool(x.Equal(y))
+	return SBool(x.(Equaler).Equal(y))
 }
 
 func Derror(a Any) Any {
@@ -1328,7 +1328,7 @@ func Dlog(a Any) Any {
 	if IsNull(ya) {
 		return xa.(TrigNum).Ln()
 	}
-	x, y := unify(xa.(Num), unlist1Flonum(ya).(Num))
+	x, y := UnifyNumbers(xa.(Num), unlist1Flonum(ya).(Num))
 	return x.(TrigNum).Log(y)
 }
 
@@ -1524,19 +1524,19 @@ func DnumZQ(a Any) Any {
 }
 
 func DnumZP(a Any) Any {
-	return SBool(RealNum.Cmp(unifyRealNum(a)) == -1)
+	return SBool(RealNum.Cmp(UnifyReals(a)) == -1)
 }
 
 func DnumZR(a Any) Any {
-	return SBool(RealNum.Cmp(unifyRealNum(a)) == 1)
+	return SBool(RealNum.Cmp(UnifyReals(a)) == 1)
 }
 
 func DnumZPZQ(a Any) Any {
-	return SBool(RealNum.Cmp(unifyRealNum(a)) <= 0)
+	return SBool(RealNum.Cmp(UnifyReals(a)) <= 0)
 }
 
 func DnumZRZQ(a Any) Any {
-	return SBool(RealNum.Cmp(unifyRealNum(a)) >= 0)
+	return SBool(RealNum.Cmp(UnifyReals(a)) >= 0)
 }
 
 // (number->string z)
@@ -2295,7 +2295,7 @@ func DsimplestZKrationalZKZRexact(a Any) Any {
 }
 
 func Dsign(a Any) Any {
-	return Sint64(RealNum.Cmp(unifyRealNum(list2(unlist1(a), Sint64(0)))))
+	return Sint64(RealNum.Cmp(UnifyReals(list2(unlist1(a), Sint64(0)))))
 }
 
 func Dsin(a Any) Any {
@@ -2517,12 +2517,12 @@ func DnumberZKtypeZKof(a Any) Any {
 }
 
 func DtypeZKof(a Any) Any {
-	return NewSymbol(typeToString(unlist1(a).GetType()))
+	return NewSymbol(typeToString(unlist1(a).(AnyKinder).GetType()))
 }
 
 func DtypeZQZS(a Any) Any {
 	b, c := unlist2(a)
-	return SBool(b.GetType() == c.GetType())
+	return SBool(b.(AnyKinder).GetType() == c.(AnyKinder).GetType())
 }
 
 // R6RS:u8-list->bytevector

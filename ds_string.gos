@@ -1,0 +1,13 @@
+; -*- mode: scheme -*-
+(package droscheme
+
+  (define (string->vector st)
+    (void))
+
+  (define (string->list st)
+    (vector->list (string->vector st)))
+
+  (define (string->symbol st)
+    #(SSymbol #:name (as st string)))
+
+);package

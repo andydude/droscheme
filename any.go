@@ -81,10 +81,31 @@ const (
  * eqv?, eq?, and other equality functions.
  */
 type Any interface {
-	GetType() int
-	GetHash() uintptr
-	Equal(Any) bool
+//	GetType() int
+//	GetHash() uintptr
+//	Equal(Any) bool
 }
+
+type (
+	AnyKinder interface {
+		GetType() int
+	}
+	Kinder interface {
+		Kind() reflect.Kind
+	}
+	Comparer interface {
+		Compare(Any) int
+	}
+	Equaler interface {
+		Equal(Any) bool
+	}
+	Hasher interface {
+		GetHash() uintptr
+	}
+	Seq interface {
+		Length() int
+	}
+)
 
 /* Matcher
  * 
@@ -130,7 +151,7 @@ type Replacer interface {
 }
 
 func IsType(o Any, tag int) bool {
-	return o.GetType() == tag
+	return o.(AnyKinder).GetType() == tag
 }
 
 func Equal(x, y Any) bool {
@@ -139,7 +160,7 @@ func Equal(x, y Any) bool {
 
 func Hash(o Any) uintptr {
 	//return reflect.ValueOf(&o).Pointer()
-	return o.GetHash()
+	return o.(Hasher).GetHash()
 }
 
 type Error interface {

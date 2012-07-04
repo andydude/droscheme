@@ -455,6 +455,10 @@ func NewString(s []rune) SString {
 	return SString(s)
 }
 
+func (o SString) ToBytes() []byte {
+	return []byte(string([]rune(o)))
+}
+
 func (o SString) GoString() string {
 	return string([]rune(o))
 }
@@ -514,7 +518,7 @@ func (o SSymbol) GetType() int {
 }
 
 func (o SSymbol) GetHash() uintptr {
-	return DsymbolZKZRstring(list1(o)).GetHash()
+	return DsymbolZKZRstring(list1(o)).(Hasher).GetHash()
 }
 
 func (o SSymbol) Equal(a Any) bool {
@@ -1603,7 +1607,7 @@ type SType struct {
 // type functions
 
 func (o SType) Equal(t Any) bool {
-	return o.GetType() == t.GetType()
+	return o.GetType() == t.(AnyKinder).GetType()
 }
 
 func (o SType) GetType() int {
