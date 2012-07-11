@@ -304,10 +304,10 @@ SChar	rune	char?
 SNull   struct	null?
 SPair   struct	pair?
 SBinary []byte	bytevector?
-SString []rune	string?
-SSymbol string	symbol?
-SVector []Any   vector?
-SValues []Any   values?
+String []rune	string?
+Symbol string	symbol?
+Vector []Any   vector?
+Values []Any   values?
 STable  map[Any]Any
 
 *Pair

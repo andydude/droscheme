@@ -25,9 +25,9 @@
     (Scomplex128 (call-go complex x y)))
 
   (define (make-polar scale angle)
-    (if1 (bool-or (IsComplex scale) (IsComplex angle))
+    (if1 (or (complex? scale) (complex? angle))
          (error "make-polar expected real number"))
-    (if1 (bool-or (IsInexact scale) (IsInexact angle))
+    (if1 (or (inexact? scale) (inexact? angle))
          (return (make-inexact-polar scale angle)))
     (make-exact-polar scale angle))
 
@@ -42,9 +42,9 @@
     (Scomplex128 (call-go complex s t)))
 
   (define (make-rectangular x y)
-    (if1 (bool-or (IsComplex x) (IsComplex y))
+    (if1 (or (complex? x) (complex? y))
          (error "make-rectangular expected real number"))
-    (if1 (bool-or (IsInexact x) (IsInexact y))
+    (if1 (or (inexact? x) (inexact? y))
          (return (make-inexact-rectangular x y)))
     (make-exact-rectangular x y))
 

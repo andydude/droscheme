@@ -5,21 +5,10 @@
     (void))
 
   (define (apply proc . args)
-    (as proc Applier (Apply (vector->list (SVector args)))))
+    (as proc Applier (Apply (vector->list (Vector args)))))
 
   (define (not bo)
-    (bool-not (as bo bool)))
-
-  (define (binary-port? a)
-    (SBool (IsBinaryPort a)))
-
-  (define (boolean=? a b)
-    (SBool (bool-and (IsBool a) 
-                     (IsBool b) 
-                     (Equal a b))))
-
-  (define (boolean? a)
-    (SBool (IsBool a)))
+    (not (as bo bool)))
 
   (define (bytevector-copy bv)
     (:= rv (make-bytevector (bytevector-length bv)))
@@ -27,87 +16,50 @@
     rv)
 
   (define (bytevector-length bv)
-    (Sint64 (call-go len (as bv SBinary))))
+    (Sint64 (call-go len (as bv Binary))))
 
   ; nonstandard
   (define-go (bytevector (args (slice Any)) Any)
-    (return (u8-vector->bytevector (SVector args))))
+    (return (u8-vector->bytevector (Vector args))))
 
   (define (bytevector-u8-ref bv k)
-    (as bv SBinary (Ref k)))
+    (as bv Binary (Ref k)))
 
   (define (bytevector-u8-set! bv k v)
-    (as bv SBinary (Set k v)))
+    (as bv Binary (Set k v)))
 
   (define (bytevector->u8-list bv)
     bv)
 
   (define (bytevector->u8-vector ba)
-    (:= bv (as ba SBinary))
+    (:= bv (as ba Binary))
     (:= bl (call-go len bv))
-    (:= rv (as (make-vector (Sint64 bl)) SBinary))
+    (:= rv (as (make-vector (Sint64 bl)) Binary))
     (for (:= i 0) (< i bl) (++ i)
          (= ((index rv i)) (index bv i)))
     rv)
 
-  (define (bytevector? a)
-    (SBool (IsBinary a)))
-
-  (define (call-with-input-file path proc)
-    (call-with-port (open-input-file path) proc))
-
-  ;(define (call-with-port)
-  ;  x)
-
   (define (open-input-file filename) (void))
   (define (open-output-file filename) (void))
-  (define (call-with-port port proc) (void))
 
   (define (call-with-values producer consumer)
     (:= values (as producer Applier (Apply (null))))
     (as consumer Applier (Apply values)))
 
-  (define (char->integer c)
-    (Sint64 (as c SChar)))
-
-  (define (char-ready? port)
-    (SBool (as port RunePeeker (ReadyRune))))
-
-  (define (char? a)
-    (SBool (IsChar a)))
-
-  (define (close-input-port port)
-    (if1 (bool-not (IsPort port))
-         (error "close-input-port expected port"))
-    (if1 (bool-not (IsInputPort port)) 
-         (error "close-input-port expected input-port"))
-    (close-port port))
-
-  (define (close-output-port port)
-    (if1 (bool-not (IsPort port)) 
-         (error "close-output-port expected port"))
-    (if1 (bool-not (IsOutputPort port))
-         (error "close-output-port expected output-port"))
-    (close-port port))
-
-  (define (close-port a)
-    (call-go error1panic (as a Port (Close)))
-    (void))
-
   (define (command-line a)
     (void))
 
-  (define (complex? a)
-    (SBool (IsComplex a)))
+  ;(define (complex? a)
+  ;  (Bool (_complexZS a)))
 
   (define (current-error-port . rest)
-    (as gError Applier (Apply (vector->list (SVector rest)))))
+    (as gError Applier (Apply (vector->list (Vector rest)))))
 
   (define (current-input-port . rest)
-    (as gInput Applier (Apply (vector->list (SVector rest)))))
+    (as gInput Applier (Apply (vector->list (Vector rest)))))
 
   (define (current-output-port . rest)
-    (as gOutput Applier (Apply (vector->list (SVector rest)))))
+    (as gOutput Applier (Apply (vector->list (Vector rest)))))
 
   (define (current-jiffy) (void))
   (define (current-second) (void))
@@ -116,19 +68,19 @@
 
   (define (display a . portZS)
     (:= port (index portZS 0))
-    (as port OPort (Write (as (any->go-string a) SString (ToBytes))))
+    (as port OPort (Write (as (any->go-string a) String (ToBytes))))
     (void))
 
   (define (empty? a)
-    (SBool (IsEmpty a)))
+    (Bool (IsEmpty a)))
 
   (define (eof-object)
     gEOF)
 
   (define (eof-object? a)
-    (if2 (:= (r ok) (as a SChar)) ok
-         (return (SBool (== r gEOF))))
-    (SBool #f))
+    (if2 (:= (r ok) (as a Char)) ok
+         (return (Bool (== r gEOF))))
+    (Bool #f))
 
   (define (equal? a b)
     (void))
@@ -140,9 +92,6 @@
     (void))
           
   (define (exact-integer-sqrt a)
-    (void))
-          
-  (define (exact? a)
     (void))
           
   (define (exit a)
@@ -197,13 +146,13 @@
     (void))
   (define (hashtable? ht)
     (void))
-  (define (inexact=? z)
-    (void))
-  (define (inexact? z)
-    (void))
 
-  (define (input-port? port)
-    (SBool (IsInputPort port)))
+  ;(define (inexact=? z)
+  ;  (void))
+  ;(define (inexact? z)
+  ;  (void))
+  ;(define (input-port? port)
+  ;  (Bool (_inputZKportZS port)))
 
   (define (integer->char z)
     (void))
@@ -243,5 +192,26 @@
 
 ;  (define ( z)
 ;    (void))
+
+;func DnumberZKtypeZKof(a Any) Any {
+;    if ToFixnum(Dlength(list1(a))) == 2 {
+;        x, _ := unlist2Number(a)
+;        return NewSymbol(numberTypeToString(x.(BaseNum).GetNumberType()))
+;    }
+;    return NewSymbol(numberTypeToString(unlist1(a).(BaseNum).GetNumberType()))
+;}
+;  (define-go (number-type-code-of (a Any) int))
+
+  ;(define-go (number-type-of (a Any) string)
+  ;  (return (number-type-code->string (number-type-code-of a))))
+
+;  (define-func (type-of (a Any) string)
+;    (return (type-code->string (type-code-of a))))
+
+;
+;func DtypeZQZS(a Any) Any {
+;    b, c := unlist2(a)
+;    return Bool(b.(AnyKinder).GetType() == c.(AnyKinder).GetType())
+;}
 
 );package

@@ -1,4 +1,13 @@
-; -*- mode: scheme -*-
+;; -*- mode: scheme -*-
+;;
+;; Droscheme - a Scheme implementation
+;; Copyright © 2012 Andrew Robbins
+;;
+;; This program is free software: it is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+;; FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+;; terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
+;;
 (package droscheme
 
   (define (string->vector st)
@@ -8,6 +17,6 @@
     (vector->list (string->vector st)))
 
   (define (string->symbol st)
-    #(SSymbol #:name (as st string)))
+    #(Symbol #:name (as st string)))
 
 );package

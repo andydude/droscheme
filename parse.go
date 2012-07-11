@@ -421,7 +421,7 @@ yydefault:
 	case 3:
 		//line parse.y:93
 		{
-			yyVAL.datum = NewSymbol("#%" + yyS[yypt-0].datum.(SSymbol).name)
+			yyVAL.datum = NewSymbol("#%" + yyS[yypt-0].datum.(Symbol).name)
 	        yylex.(*Lexer).value = yyVAL.datum
 		}
 	case 4:
@@ -568,42 +568,42 @@ yydefault:
 	case 31:
 		//line parse.y:231
 		{
-	        yyVAL.datum = list2(SSymbol{"quote"}, yyS[yypt-0].datum)
+	        yyVAL.datum = list2(Symbol{"quote"}, yyS[yypt-0].datum)
 		}
 	case 32:
 		//line parse.y:235
 		{
-	        yyVAL.datum = list2(SSymbol{"quasiquote"}, yyS[yypt-0].datum)
+	        yyVAL.datum = list2(Symbol{"quasiquote"}, yyS[yypt-0].datum)
 		}
 	case 33:
 		//line parse.y:239
 		{
-	        yyVAL.datum = list2(SSymbol{"unquote"}, yyS[yypt-0].datum)
+	        yyVAL.datum = list2(Symbol{"unquote"}, yyS[yypt-0].datum)
 		}
 	case 34:
 		//line parse.y:243
 		{
-	        yyVAL.datum = list2(SSymbol{"unquote-splicing"}, yyS[yypt-0].datum)
+	        yyVAL.datum = list2(Symbol{"unquote-splicing"}, yyS[yypt-0].datum)
 		}
 	case 35:
 		//line parse.y:247
 		{
-	        yyVAL.datum = list2(SSymbol{"syntax"}, yyS[yypt-0].datum)
+	        yyVAL.datum = list2(Symbol{"syntax"}, yyS[yypt-0].datum)
 		}
 	case 36:
 		//line parse.y:251
 		{
-	        yyVAL.datum = list2(SSymbol{"quasisyntax"}, yyS[yypt-0].datum)
+	        yyVAL.datum = list2(Symbol{"quasisyntax"}, yyS[yypt-0].datum)
 		}
 	case 37:
 		//line parse.y:255
 		{
-	        yyVAL.datum = list2(SSymbol{"unsyntax"}, yyS[yypt-0].datum)
+	        yyVAL.datum = list2(Symbol{"unsyntax"}, yyS[yypt-0].datum)
 		}
 	case 38:
 		//line parse.y:259
 		{
-	        yyVAL.datum = list2(SSymbol{"unsyntax-splicing"}, yyS[yypt-0].datum)
+	        yyVAL.datum = list2(Symbol{"unsyntax-splicing"}, yyS[yypt-0].datum)
 		}
 	case 39:
 		//line parse.y:265

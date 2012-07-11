@@ -5,7 +5,22 @@
 
 (require srfi/13)
 
-;; the first 3 functions were added for guile compatibility
+;; these 2 functions were added for racket compatibility
+
+(define (list-opt ls a b)
+  (if (> (length ls) a)
+      (list-ref ls a)
+      b))
+
+(define (iota count . rest)
+  (define (iota-3 count start step)
+    (if (zero? count) '()
+        (cons start (iota-3 (- count 1) (+ start step) step))))
+  (let ((start (list-opt rest 0 0))
+        (step  (list-opt rest 1 1)))
+    (iota-3 count start step)))
+
+;; these 3 functions were added for guile compatibility
 
 (define (fold-right proc nil ls)
   (if (null? ls) nil
@@ -24,12 +39,10 @@
 (define (char-mangle c)
   (case c
     ((#\!) "ZA")
-    ;((#\ ) "ZB")
     ((#\#) "ZC")
     ((#\$) "ZD")
     ((#\%) "ZE")
     ((#\&) "ZF")
-    ;((#\ ) "ZG")
     ((#\*) "ZH")
     ((#\+) "ZI")
     ((#\,) "ZJ")
@@ -62,7 +75,7 @@
 
 ;; not in racket
 (define (string-null? str)
-  (eqv? str ""))
+  (equal? str ""))
 
 ;; not in racket
 (define (string-split str . rest)
@@ -182,6 +195,9 @@
 (define (emit-adr expr)
   (string-append "&" (emit expr)))
 
+(define (emit-to-bool cond)
+  (string-append (emit cond) ".(bool) "))
+
 (define (emit-body proc rest)
   (string-join (map proc rest) "\n\t"))
 
@@ -191,21 +207,58 @@
 ;(define (emit-isa ob ty)
 ;  (string-append (emit ob) ".(" (emit ty) ")"))
 
+(define (emit-if1 condition . rest)
+  (string-append "if "
+     (emit-to-bool condition) " {\n"
+     (string-join (map emit rest) "\n\t")
+     "\n}\n"))
+
 (define (emit-if2 opt condition . rest)
   (string-append "if "
      (string-append (emit opt) "; ")
-     (emit condition) " {\n"
+     (emit-to-bool condition) " {\n"
      (string-join (map emit rest) "\n\t")
      "\n}\n"))
 
-(define (emit-if1 condition . rest)
-  (string-append "if "
-     (emit condition) " {\n"
-     (string-join (map emit rest) "\n\t")
-     "\n}\n"))
+(define (emit-if condition then . rest)
+  (if (pair? rest)
+      (string-append "func()Any{\nif "  (emit-to-bool condition)
+                     (emit-braces-return emit (list then))
+                     "\nreturn " (emit (car rest))
+                     "\n}()\n")
+      (string-append "func()Any{\nif "  (emit-to-bool condition)
+                     (emit-braces-return emit (list then))
+                     "\nreturn _void()\n}()\n")))
 
 (define (emit-dot . rest)
   (string-join (map emit rest) "."))
+
+(define (emit-null dummy) "_null()")
+
+(define (emit-let-bindings-cars bindings)
+  (string-join (map emit (map car bindings)) ", "))
+
+(define (emit-let-bindings-cadrs bindings)
+  (string-join (map emit (map cadr bindings)) ", "))
+
+(define (emit-let-bind ty bindings . rest)
+  (string-append "func(" (emit-let-bindings-cars bindings) " Any)" (emit ty)
+                 (emit-braces-return emit rest)
+                 "(" (emit-let-bindings-cadrs bindings) ")"))
+
+(define (emit-let-loop ty name bindings . rest)
+  (let ((recur (string-append "_" (emit name))))
+    (string-append "func()Any{\n" "var " 
+                   recur " func(" (emit-let-bindings-cars bindings) " Any)" (emit ty) "\n"
+                   recur " = func(" (emit-let-bindings-cars bindings) " Any)" (emit ty) 
+                   (emit-braces-return emit rest)
+                   "\nreturn " recur "(" (emit-let-bindings-cadrs bindings) ")"
+                   "\n}()\n")))
+
+(define (emit-let frst . rest)
+  (if (list? frst)
+      (apply emit-let-bind 'Any frst rest)
+      (apply emit-let-loop 'Any frst rest)))
 
 (define (emit-as a b . rest)
   (if (null? rest)
@@ -265,19 +318,39 @@
 (define (emit-postellipsis name)
   (string-append (emit name) "..."))
 
-(define (emit-define-go fsig . rest)
-  (string-append
-         "func "
-         (emit-method-signature fsig)
-         (emit-braces emit rest)))
+(define (emit-define-func fsig . rest)
+  (let ((fn (if (symbol? (car fsig))
+                    (car fsig)
+                    (cadr fsig))))
+    (string-append
+     (if (char-upper-case?
+          (string-ref (symbol->string fn) 0))
+         ""
+         (string-append
+          "var "
+          (emit-symbol fn)
+          " = &Proc{\n"
+          "call: " (emit-function-name fn) ",\n"
+          "name:" (emit-string (symbol->string fn)) ",\n}\n"))
+     "func "
+     (emit-method-signature fsig)
+     (emit-braces emit rest))))
+
+;(define (argument-preprelist arg)
+;  (if (vector? arg)
 
 (define (argument-prelist ls)
   (if (null? ls) '()
       (if (pair? ls)
-          (cons `(,(car ls) Any) (argument-prelist (cdr ls)))
+          (if (vector? (car ls))
+              (begin
+                (set-optionals ls)
+                (list `(Rest (preellipsis Any))))
+              (cons `(,(car ls) Any) (argument-prelist (cdr ls))))
           (list `(,ls (preellipsis Any))))))
 
 (define (argument-list ls)
+  (set-optionals '())
   (let ((pre (argument-prelist ls)))
     (if (and (pair? (last pre))
              (pair? (cdr (last pre)))
@@ -288,12 +361,32 @@
         (if (null? pre) '()
             (list (append (map car pre) '(Any)))))))
 
-(define (emit-define fsig . rest)
+(define (emit-define-optional k v)
+  (let* ((idx (number->string k))
+         (rst (string-append "Rest[" idx "]"))
+         (key (vector-ref v 0))
+         (val (vector-ref v 1)))
+  `(:= ,key (if (> (call-go len Rest) ,k)
+                (inline ,rst)
+                ,val))))
+
+;(inline ,(string-append "Rest[" idx "]"))
+;(emit (vector-ref v 0)) "x = " (emit v) (number->string k) ";")))
+
+(define (emit-define-return rt fsig . rest)
   (append-defines (car fsig))
-  (apply emit-define-go 
-         (append (list (car fsig)) (argument-list (cdr fsig)) '(Any))
-         (append (most rest)
-                 (list (cons 'return (list (last rest)))))))
+  (if (pair? fsig)
+      (apply emit-define-func
+             (append (list (car fsig)) (argument-list (cdr fsig)) (list rt))
+             (append (map emit-define-optional (iota (length (*optionals*))) (*optionals*)) (most rest) 
+                     (list (cons 'return (list (last rest))))))
+      "//WHAT?"))
+
+(define (emit-define fsig . rest)
+  (apply emit-define-return 'Any fsig rest))
+
+(define (emit-define-bool fsig . rest)
+  (apply emit-define-return 'bool fsig rest))
 
 (define (emit-for1 c . rest)
   (string-append
@@ -317,8 +410,29 @@
 (define (emit-inline . rest)
   (apply string-append rest))
 
+(define (list->directory libspec)
+  (if (list? libspec)
+      (string-join (map symbol->string libspec) "/")
+      (symbol->string libspec)))
+
+(define (list->underscore libspec)
+  (if (list? libspec)
+      (string-join (map symbol->string libspec) "_")
+      (symbol->string libspec)))
+
+(define (emit-import-spec spec)
+  (if (string? spec)
+      (emit-string spec)
+      (if (list? spec)
+          (emit-string (list->directory spec))
+          (error "import expected string or list"))))
+
 (define (emit-import . rest)
-  (emit-parens "import" emit-string rest))
+  (emit-parens "import" emit-import-spec rest))
+
+(define (emit-export . rest)
+  (*defines* (reverse rest))
+  "") ; must emit a string
 
 (define (emit-interface . rest)
   (string-append "interface" (apply emit-interface-body rest)))
@@ -336,6 +450,10 @@
   (if (null? rest) "\n"
       (string-append " {\n\t" (string-join (map proc rest) "\n\t") "\n}\n")))
 
+(define (emit-braces-return proc rest)
+  (if (null? rest) "\n"
+      (string-append " {\n\t" (string-join (map proc (most rest)) "\n\t") "\n\treturn " (proc (last rest)) "\n}")))
+
 (define (emit-parens kw proc rest)
   (if (= (length rest) 1)
       (string-append kw " " (proc (car rest)) "\n")
@@ -344,23 +462,36 @@
 (define (emit-method-signature fsig)
   (cond
    ((pair? (car fsig))
-      ;; method
-      (let ((rcv (car fsig))
-            (sig (cdr fsig)))
-        (string-append
-         (emit-signature-args (list rcv))
-         " "
-         (emit-signature sig))))
+    ;; method
+    (let ((rcv (car fsig))
+          (sig (cdr fsig)))
+      (string-append
+       (emit-signature-args (list rcv))
+       " "
+       (emit-signature sig))))
    ((symbol? (car fsig))
-      ;; function
-      (emit-signature fsig))))
+    ;; function
+    (emit-signature fsig))))
 
 (define (emit-number n) (number->string n))
 
+(define (emit-package-begin . rest)
+  (if (null? rest)
+      '()
+      (if (pair? rest)
+          (let ((cmd (car rest))
+                (cmds (cdr rest)))
+            (if (eqv? (car cmd) 'begin)
+                (map emit (cdr cmd))
+                (cons (emit cmd) 
+                      (apply emit-package-begin cmds))))
+          (error "emit-package-begin expected list?"))))
+
 (define (emit-package name . rest)
   (apply string-append
-         "package " (emit-symbol name) "\n\n"
-         (append (map emit rest)
+         "package " (list->underscore name) "\n\n"
+         "import . \"ds\"\n\n"
+         (append (apply emit-package-begin rest)
                  (list (emit-defines)))))
 
 (define (emit-ptr t)
@@ -373,10 +504,9 @@
   (let ((fn (car sig))
         (ar (cdr sig)))
     (if (null? ar) "()"
-        (let ((ag (most (cdr sig)))
-              (rs (last (cdr sig))))
+        (let ((ag (most ar))
+              (rs (last ar)))
           (string-append
-           ;(emit-symbol fn)
            (emit-function-name fn)
            (emit-signature-args ag)
            (if (pair? rs)
@@ -389,9 +519,12 @@
                (emit rs)))))))
 
 (define (emit-signature-arg arg)
-  (let ((vs (most arg))
-        (ts (last arg)))
-    (string-append (string-join (map emit vs) ", ") " " (emit ts))))
+  (if (vector? arg)
+      (error "WHAT?!?!?!?!?")
+      (if (pair? arg)
+          (let ((vs (most arg)) (ts (last arg)))
+            (string-append (string-join (map emit vs) ", ") " " (emit ts)))
+          (error "WHAT?!?!?"))))
 
 (define (emit-signature-args sig)
   (string-append "(" (string-join (map emit-signature-arg sig) ", ") ")"))
@@ -524,78 +657,85 @@
        ((symbol? expr) (emit-symbol expr))
        ((keyword? expr) (emit-keyword expr))
        ((vector? expr) (emit-literal expr))
+       ((null? expr) (emit-null expr))
        (else (error "What?!?")))))
 
 (define syntax-table
   (list
-;    (cons '<-          emit-<-         )
-;    (cons '<-!         emit-<-!        )
-;    (cons '<-chan      emit-<-chan     )
-    (cons '+           emit-+          )
-    (cons '++          emit-++         )
-    (cons '--          emit---         )
-    (cons '*           emit-*          )
-    (cons '<           emit-<          )
-    (cons '<=          emit-<=          )
-    (cons '>           emit->           )
-    (cons '>=          emit->=          )
-    (cons '==          emit-==          )
-    (cons '=           emit-=          )
-    (cons '=:          emit-=:         )
-    (cons ':=          emit-:=         )
-    (cons ':=:         emit-:=:        )
-    (cons '::          emit-::         )
-    (cons 'adr         emit-adr        )
-    (cons 'bool-and    emit-and        )
-    (cons 'bool-or     emit-or         )
-    (cons 'array       emit-array      )
-    (cons 'break       emit-break      )
-    (cons 'call        emit-call       )
-    (cons 'call-go     emit-gocall     )
-    (cons 'preellipsis    emit-preellipsis     )
-    (cons 'postellipsis    emit-postellipsis     )
-;    (cons 'case        emit-case       )
-;    (cons 'chan        emit-chan       )
-;    (cons 'chan<-      emit-chan<-     )
-    (cons 'const       emit-const      )
-    (cons 'comment     emit-comment    )
-    (cons 'continue    emit-continue   )
-;    (cons 'default     emit-default    )
-    (cons 'defer       emit-defer      )
-    (cons 'define      emit-define     )
-    (cons 'define-go   emit-define-go  )
-    (cons 'dot         emit-dot        )
-    (cons 'as          emit-as         )
-    (cons 'else        emit-else       )
-    (cons 'fallthrough emit-fallthrough)
-    (cons 'for         emit-for3       )
-    (cons 'for1        emit-for1       )
-    (cons 'func        emit-func       )
-    (cons 'fn          emit-function-name)
-;    (cons 'go          emit-go         )
-    (cons 'goto        emit-goto       )
-    (cons 'if1         emit-if1        )
-    (cons 'if2         emit-if2        )
-;    (cons 'isa         emit-isa        )
-;    (cons 'to          emit-toa        )
-    (cons 'inline      emit-inline     )
-    (cons 'import      emit-import     )
-    (cons 'interface   emit-interface  )
-;    (cons 'map         emit-map        )
-    (cons 'bool-not    emit-not        )
-    (cons 'package     emit-package    )
-    (cons 'ptr         emit-ptr        )
-    (cons 'index       emit-index      )
-;    (cons 'range       emit-range      )
-    (cons 'return      emit-return     )
-;    (cons 'select      emit-select     )
-    (cons 'slice       emit-slice      )
-    (cons 'struct      emit-struct     )
-;    (cons 'switch      emit-switch     )
-    (cons 'type        emit-type       )
-;    (cons 'values      emit-values     )
-;    (cons 'void        emit-void       )
-    (cons 'var         emit-var        )))
+;    (cons '<-             emit-<-         )
+;    (cons '<-!            emit-<-!        )
+;    (cons '<-chan         emit-<-chan     )
+    (cons '+              emit-+          )
+    (cons '++             emit-++         )
+    (cons '--             emit---         )
+    (cons '*              emit-*          )
+    (cons '<              emit-<          )
+    (cons '<=             emit-<=          )
+    (cons '>              emit->           )
+    (cons '>=             emit->=          )
+    (cons '==             emit-==          )
+    (cons '=              emit-=          )
+    (cons '=:             emit-=:         )
+    (cons ':=             emit-:=         )
+    (cons ':=:            emit-:=:        )
+    (cons '::             emit-::         )
+    (cons 'as             emit-as         ) ; a.(b)
+    (cons 'adr            emit-adr        ) ; &a
+    (cons 'and            emit-and        ) ; a && b
+    (cons 'or             emit-or         ) ; a || b
+    (cons 'array          emit-array      ) ; [a]b
+    (cons 'break          emit-break      )
+    (cons 'call           emit-call       )
+    (cons 'call-go        emit-gocall     )
+    (cons 'preellipsis    emit-preellipsis)
+    (cons 'postellipsis    emit-postellipsis)
+;    (cons 'case           emit-case       )
+;    (cons 'chan           emit-chan       )
+;    (cons 'chan<-         emit-chan<-     )
+    (cons 'const          emit-const      )
+    (cons 'comment        emit-comment    )
+    (cons 'continue       emit-continue   )
+;    (cons 'default        emit-default    )
+    (cons 'defer          emit-defer      )
+    (cons 'define         emit-define     )
+    (cons 'define-func    emit-define-func)
+    (cons 'define-bool    emit-define-bool)
+    (cons 'define-type    emit-type       )
+    (cons 'define-library emit-package) ; package
+    (cons 'dot            emit-dot        )
+    (cons 'else           emit-else       )
+    (cons 'fallthrough    emit-fallthrough)
+    (cons 'for            emit-for3       )
+    (cons 'for1           emit-for1       )
+    (cons 'func           emit-func       )
+    (cons 'fn             emit-function-name)
+;    (cons 'go             emit-go         )
+    (cons 'goto           emit-goto       )
+    (cons 'if             emit-if         )
+    (cons 'if1            emit-if1        )
+    (cons 'if2            emit-if2        )
+;    (cons 'isa            emit-isa        )
+;    (cons 'to             emit-toa        )
+    (cons 'inline         emit-inline     )
+    (cons 'import         emit-import     )
+    (cons 'export         emit-export     )
+    (cons 'interface      emit-interface  )
+    (cons 'let            emit-let  )
+;    (cons 'map            emit-map        )
+    (cons 'not            emit-not        )
+    (cons 'package        emit-package    ) ; package
+    (cons 'ptr            emit-ptr        )
+    (cons 'index          emit-index      )
+;    (cons 'range          emit-range      )
+    (cons 'return         emit-return     )
+;    (cons 'select         emit-select     )
+    (cons 'slice          emit-slice      )
+    (cons 'struct         emit-struct     )
+;    (cons 'switch         emit-switch     )
+    (cons 'type           emit-type       )
+;    (cons 'values         emit-values     )
+;    (cons 'void           emit-void       )
+    (cons 'var            emit-var        )))
 
 (define (eval-symbol y)
   (if (symbol? y)
@@ -610,7 +750,7 @@
 
 (define (emit-defines)
   (define (emit-defines-registration def)
-    `(dot env (call-go registerGos (fn ,def))))
+    `(dot env (Add ,def)))
   (define (basename st)
     (if (not (string-index-right st #\/))
         (substring st 0 (- (string-length st) 4))
@@ -618,7 +758,7 @@
               (end (string-length st)))
           (substring st (+ start 1) (- end 4)))))
   (let ((name (basename *input-filename*)))
-    (apply emit-define-go
+    (apply emit-define-func
            (list (string->symbol (string-append "Export_" name))
                  '(env (ptr Env)) '(void))
            (map emit-defines-registration (reverse (*defines*))))))
@@ -626,7 +766,11 @@
 (define (append-defines name)
   (*defines* (cons name (*defines*))))
 
+(define (set-optionals name)
+  (*optionals* name))
+
 (define *defines* (make-parameter '()))
+(define *optionals* (make-parameter '()))
 (define *emit-function* (make-parameter emit))
 (define *input-filename* "/dev/null")
 

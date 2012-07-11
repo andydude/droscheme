@@ -15,19 +15,19 @@ import (
 
 const (
 	TypeCodeAny     = iota
-	TypeCodeType    // go:SType
-	TypeCodeNull    // go:SNull     s:null?       -- Evaler interface
-	TypeCodePair    // go:SPair     s:pair?       -- Evaler interface
-	TypeCodeChar    // go:SChar     s:char?
-	TypeCodeBool    // go:SBool     s:boolean?
-	TypeCodeProc    // go:SProc     s:procedure?  -- Applier interface
-	TypeCodeBinary  // go:SBinary   s:bytevector? -- Seq interface
+	TypeCodeType    // go:Type
+	TypeCodeNull    // go:Null      s:null?       -- Evaler interface
+	TypeCodePair    // go:Pair      s:pair?       -- Evaler interface
+	TypeCodeChar    // go:Char      s:char?
+	TypeCodeBool    // go:Bool      s:boolean?
+	TypeCodeProc    // go:Proc      s:procedure?  -- Applier interface
+	TypeCodeBinary  // go:Binary    s:bytevector? -- Seq interface
 	TypeCodeNumber  // go:Num       s:number?     -- Num interface
 	TypeCodePort    // go:Port      s:port?       -- Port interface
-	TypeCodeString  // go:SString   s:string?     -- Seq interface
-	TypeCodeSymbol  // go:SSymbol   s:symbol?     -- Evaler interface
-	TypeCodeVector  // go:SVector   s:vector?     -- Seq interface
-	TypeCodeTable   // go:STable    s:hashtable?
+	TypeCodeString  // go:String    s:string?     -- Seq interface
+	TypeCodeSymbol  // go:Symbol    s:symbol?     -- Evaler interface
+	TypeCodeVector  // go:Vector    s:vector?     -- Seq interface
+	TypeCodeTable   // go:Table     s:hashtable?
 	TypeCodeRecord  // go:Record                  -- interface
 	TypeCodeLibrary //
 	TypeCodeValues  // multiple return values

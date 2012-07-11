@@ -149,12 +149,12 @@ type Port interface {
 	Closer
 }
 
-func IsPort(o Any) bool {
+func _portZS(o Any) bool {
 	var _, ok = o.(Port)
 	return ok
 }
 
-func IsBinaryPort(o Any) bool {
+func _binaryZKportZS(o Any) bool {
 	var p, ok = o.(Port)
 	if !ok {
 		return false
@@ -166,7 +166,7 @@ func IsBinaryPort(o Any) bool {
 	return true
 }
 
-func IsTextualPort(o Any) bool {
+func _textualZKportZS(o Any) bool {
 	var p, ok = o.(Port)
 	if !ok {
 		return false
@@ -181,7 +181,7 @@ func IsTextualPort(o Any) bool {
 	return true
 }
 
-func IsInputPort(o Any) bool {
+func _inputZKportZS(o Any) bool {
 	var p, ok = o.(Port)
 	if !ok {
 		return false
@@ -193,7 +193,7 @@ func IsInputPort(o Any) bool {
 	return true
 }
 
-func IsOutputPort(o Any) bool {
+func _outputZKportZS(o Any) bool {
 	var p, ok = o.(Port)
 	if !ok {
 		return false
@@ -361,7 +361,7 @@ func (o *FilePort) Closed() bool {
 // bytevector/binary port
 
 type SBytePort struct {
-	it SBinary
+	it Binary
 	code int
 	pos int
 	closed bool
@@ -476,61 +476,61 @@ func (o *SBytePort) UnreadRune() error {
 
 // string/textual port
 
-type SCharPort struct {
-	it SString
+type CharPort struct {
+	it String
 	code int
 	pos int
 	closed bool
 }
 
-func (o *SCharPort) Equal(a Any) bool {
+func (o *CharPort) Equal(a Any) bool {
 	return false
 }
 
-func (o *SCharPort) GetHash() uintptr {
+func (o *CharPort) GetHash() uintptr {
 	return 0
 }
 
-func (o *SCharPort) GetType() int {
+func (o *CharPort) GetType() int {
 	return TypeCodePort
 }
 
-func (o *SCharPort) GetPortType() int {
+func (o *CharPort) GetPortType() int {
 	return o.code
 }
 
-func (o *SCharPort) Closed() bool {
+func (o *CharPort) Closed() bool {
 	return o.closed
 }
 
-func (o *SCharPort) Close() error {
+func (o *CharPort) Close() error {
 	o.closed = true
 	return nil
 }
 
-func (o *SCharPort) Flush() error {
+func (o *CharPort) Flush() error {
 	return nil
 }
 
-func (o *SCharPort) Peek(n int) (b []byte, err error) {
+func (o *CharPort) Peek(n int) (b []byte, err error) {
 	return []byte{}, nil
 }
 
-func (o *SCharPort) PeekByte() (b byte, err error) {
+func (o *CharPort) PeekByte() (b byte, err error) {
 	//fmt.Printf("--- StringPort.PeekByte()\n")
 	b, err = o.ReadByte()
 	err = o.UnreadByte()
 	return
 }
 
-func (o *SCharPort) PeekRune() (r rune, size int, err error) {
+func (o *CharPort) PeekRune() (r rune, size int, err error) {
 	//fmt.Printf("--- StringPort.PeekRune()\n")
 	r, size, err = o.ReadRune()
 	error1panic(o.UnreadRune())
 	return
 }
 
-func (o *SCharPort) Read(p []byte) (n int, err error) {
+func (o *CharPort) Read(p []byte) (n int, err error) {
 	//fmt.Printf("--- StringPort.Read()\n")
 	if o.pos >= len(o.it) {
 		return 0, io.EOF
@@ -548,17 +548,17 @@ func (o *SCharPort) Read(p []byte) (n int, err error) {
 	return
 }
 
-func (o *SCharPort) ReadByte() (c byte, err error) {
+func (o *CharPort) ReadByte() (c byte, err error) {
 	//fmt.Printf("--- StringPort.ReadByte()\n")
 	return 0, newTypeError("u8-read expected binary-port")
 }
 
-func (o *SCharPort) ReadyByte() bool {
+func (o *CharPort) ReadyByte() bool {
 	//fmt.Printf("--- StringPort.ReadyByte()\n")
 	return true
 }
 
-func (o *SCharPort) ReadRune() (r rune, size int, err error) {
+func (o *CharPort) ReadRune() (r rune, size int, err error) {
 	//debug.PrintStack()
 	//fmt.Printf("--- StringPort.ReadRune()\n")
 	if o.pos >= len(o.it) {
@@ -571,16 +571,16 @@ func (o *SCharPort) ReadRune() (r rune, size int, err error) {
 	return
 }
 
-func (o *SCharPort) ReadyRune() bool {
+func (o *CharPort) ReadyRune() bool {
 	//fmt.Printf("--- StringPort.ReadyRune()\n")
 	return true
 }
 
-func (o *SCharPort) ReadRunes(delim rune) (line []rune, err error) {
+func (o *CharPort) ReadRunes(delim rune) (line []rune, err error) {
 	return nil, nil
 }
 
-func (o *SCharPort) ReadLine() (line []rune, err error) {
+func (o *CharPort) ReadLine() (line []rune, err error) {
 	//fmt.Printf("--- StringPort.ReadLine()\n")
 	if o.pos >= len(o.it) {
 		return []rune{}, io.EOF
@@ -593,25 +593,25 @@ func (o *SCharPort) ReadLine() (line []rune, err error) {
 	return buf, nil
 }
 
-func (o *SCharPort) UnreadByte() error {
+func (o *CharPort) UnreadByte() error {
 	//fmt.Printf("--- StringPort.UnreadByte()\n")
 	o.pos--
 	return nil
 }
 
-func (o *SCharPort) UnreadRune() error {
+func (o *CharPort) UnreadRune() error {
 	//fmt.Printf("--- StringPort.UnreadRune()\n")
 	o.pos--
 	return nil
 }
 
-func (o *SCharPort) Write(c []byte) (n int, err error) {
+func (o *CharPort) Write(c []byte) (n int, err error) {
 	//fmt.Printf("--- StringPort.Write()\n")
 	// TODO: recalculate length in bytes
 	return o.WriteRunes([]rune(string(c)))
 }
 
-func (o *SCharPort) WriteRunes(r []rune) (n int, err error) {
+func (o *CharPort) WriteRunes(r []rune) (n int, err error) {
 	o.it = append(o.it, r...)
 	return len(r), nil
 }

@@ -91,7 +91,7 @@ datum:
 	}
 |   KSYMBOL datum
 	{
-		$$ = NewSymbol("#%" + $2.(SSymbol).name)
+		$$ = NewSymbol("#%" + $2.(Symbol).name)
         yylex.(*Lexer).value = $$
 	}
 |	keyword datum
@@ -229,35 +229,35 @@ datums0:
 abbreviation:
 	QUOTE datum
 	{
-        $$ = list2(SSymbol{"quote"}, $2)
+        $$ = list2(Symbol{"quote"}, $2)
 	}
 |	QQUOTE datum
 	{
-        $$ = list2(SSymbol{"quasiquote"}, $2)
+        $$ = list2(Symbol{"quasiquote"}, $2)
 	}
 |	UNQUOTE datum
 	{
-        $$ = list2(SSymbol{"unquote"}, $2)
+        $$ = list2(Symbol{"unquote"}, $2)
 	}
 |	UNQUOTES datum
 	{
-        $$ = list2(SSymbol{"unquote-splicing"}, $2)
+        $$ = list2(Symbol{"unquote-splicing"}, $2)
 	}
 |	SYNTAX datum
 	{
-        $$ = list2(SSymbol{"syntax"}, $2)
+        $$ = list2(Symbol{"syntax"}, $2)
 	}
 |	QSYNTAX datum
 	{
-        $$ = list2(SSymbol{"quasisyntax"}, $2)
+        $$ = list2(Symbol{"quasisyntax"}, $2)
 	}
 |	UNSYNTAX datum
 	{
-        $$ = list2(SSymbol{"unsyntax"}, $2)
+        $$ = list2(Symbol{"unsyntax"}, $2)
 	}
 |	UNSYNTAXS datum
 	{
-        $$ = list2(SSymbol{"unsyntax-splicing"}, $2)
+        $$ = list2(Symbol{"unsyntax-splicing"}, $2)
 	}
 
 vector:

@@ -5,9 +5,9 @@
     (void))
 
   (define (exact->inexact x)
-    (if1 (IsComplex x)
+    (if1 (complex? x)
          (return (Scomplex64 (ToFcmplx x))))
-    (if1 (IsExact x)
+    (if1 (exact? x)
          (return (Sfloat64 (ToFlonum x))))
     x)
 
@@ -29,13 +29,13 @@
     (as (exact->inexact x) TrigNum (Exp)))
 
   ;(define (finite? x)
-  ;  (SBool (as x TrigNum (IsFinite))))
+  ;  (Bool (as x TrigNum (IsFinite))))
 
   (define (log x)
     (as (exact->inexact x) TrigNum (Ln)))
 
   ;(define (nan? x)
-  ;  (SBool (as x TrigNum (IsNaN))))
+  ;  (Bool (as x TrigNum (IsNaN))))
 
   (define (sin x)
     (as (exact->inexact x) TrigNum (Sin)))

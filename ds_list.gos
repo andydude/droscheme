@@ -2,12 +2,15 @@
 ; (ds list) based on SRFI-1
 (package droscheme
 
-  (define-go ((ls (ptr Pair)) Ref (ka Any) Any)
+  (import "fmt")
+  (import (scheme base))
+
+  (define-func ((ls (ptr Pair)) Ref (ka Any) Any)
 	(:= k (ToFixnum ka))
-    (for (:= cur (Any ls)) (IsPair cur) (= (k cur) (inline "k-1") (cdr cur))
+    (for (:= cur (Any ls)) (pair? cur) (= (k cur) (inline "k-1") (cdr cur))
          (if1 (== k 0)
               (return (car cur))))
-	;(if1 (IsPair rest)
+	;(if1 (_pairZS rest)
     ;     (return (void))) ; (car default?)
     (return (void)))
 
@@ -18,11 +21,6 @@
     (void))
 
   (define (list+ z)
-    (void))
-
-  (define (null? z)
-    (void))
-  (define (pair? z)
     (void))
 
   (define (alist-cons) (void))
@@ -36,10 +34,10 @@
   (define (append-reverse) (void))
   (define (append-reverse!) (void))
   (define (assoc) (void))
-  (define (break) (void))
-  (define (break!) (void))
+  ;(define (break) (void))
+  ;(define (break!) (void))
 
-  (define-go (car+cdr (ls Any) 
+  (define-func (car+cdr (ls Any) 
       (values (car Any) (cdr Any)))
     (return (car ls) (cdr ls)))
 
@@ -82,7 +80,7 @@
     (adr #(Pair a b)))
 
   (define (list . rest)
-    (vector->list #(SVector rest)))
+    (vector->list #(Vector rest)))
 
   (define (list-ref ls k . rest)
     (as ls (ptr Pair) (Ref k)))
@@ -96,7 +94,16 @@
     (void))
 
   (define (circular-list) (void))
-  (define (circular-list?) (void))
+
+  (define (circular-list? x)
+    (let lp ((x x) (lag x))
+      (and (pair? x)
+           (let ((x (cdr x)))
+             (and (pair? x)
+                  (let ((x   (cdr x))
+                        (lag (cdr lag)))
+                    (or (eq? x lag) (lp x lag))))))))
+
   (define (concatenate) (void))
   (define (concatenate!) (void))
 
@@ -108,7 +115,18 @@
   (define (delete!) (void))
   (define (delete-duplicates) (void))
   (define (delete-duplicates!) (void))
-  (define (dotted-list?) (void))
+
+  (define (dotted-list? x)
+    (let lp ((x x) (lag x))
+      (if (pair? x)
+          (let ((x (cdr x)))
+            (if (pair? x)
+                (let ((x   (cdr x))
+                      (lag (cdr lag)))
+                  (and (not (eq? x lag)) (lp x lag)))
+                (not (null? x))))
+          (not (null? x)))))
+
   (define (drop) (void))
   (define (drop-right) (void))
   (define (drop-right!) (void))
@@ -127,7 +145,7 @@
   (define (length+) (void))
 
   (define (list-copy ls)
-    (if1 (bool-not (IsPair ls))
+    (if1 (not-pair? ls)
          (return ls))
     (:= (car cdr) (car+cdr ls))
     (cons car (list-copy cdr)))
@@ -160,10 +178,21 @@
   (define (not-pair? x)
     (not (pair? x)))
 
-  (define (null)
-    (call-go list0))
+  (define (null) gNull)
 
-  (define (null-list?) (void))
+  (define-bool (null-list? ls)
+    (if1 (pair? ls) (return #f))
+    (if1 (null? ls) (return #t))
+    (error "null-list?: argument out of domain" ls))
+
+  (define-bool (null? z)
+    (:= (_ ok) (as o (ptr Null)))
+    ok)
+
+  (define-bool (pair? z)
+    (:= (_ ok) (as o (ptr Pair)))
+    ok)
+
   (define (pair-fold) (void))
   (define (pair-fold-right) (void))
   (define (pair-for-each) (void))
@@ -173,7 +202,14 @@
   (define (reduce-right) (void))
   (define (remove) (void))
   (define (remove!) (void))
-  (define (reverse!) (void))
+
+  (define (reverse! ls)
+    (let loop ((ls ls) (ans (null)))
+      (if (null-list? ls) ans
+          (let ((tail (cdr ls)))
+            (set-cdr! ls ans)
+            (loop tail ls)))))
+
   (define (span) (void))
   (define (span!) (void))
   (define (split-at) (void))

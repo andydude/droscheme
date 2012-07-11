@@ -1,21 +1,21 @@
 (define-library (scheme division)
   (export
-    ceiling/
     ceiling-quotient
     ceiling-remainder
-    centered/
+    ceiling/
     centered-quotient
     centered-remainder
-    euclidean/
+    centered/
     euclidean-quotient
     euclidean-remainder
-    floor/
+    euclidean/
     floor-quotient
     floor-remainder
-    round/
+    floor/
     round-quotient
     round-remainder
-    truncate/
+    round/
     truncate-quotient
-    truncate-remainder)
+    truncate-remainder
+    truncate/)
   (import (ds base)))

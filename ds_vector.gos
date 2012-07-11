@@ -12,19 +12,19 @@
     #f)
 
   (define (list->vector ls)
-    (if1 (IsNull ls)
-         (return (SVector #((slice Any)))))
-    (if1 (bool-not (IsPair ls))
+    (if1 (_nullZS ls)
+         (return (Vector #((slice Any)))))
+    (if1 (bool-not (_pairZS ls))
          (error "list->vector expected list"))
 	(:= (cur vc) (null) #((slice Any)))
-    (for (= cur ls) (IsPair cur) (= cur (cdr cur))
+    (for (= cur ls) (_pairZS cur) (= cur (cdr cur))
          (= vc (call-go append vc (cdr cur))))
-    (if1 (bool-not (IsNull cur))
+    (if1 (bool-not (_nullZS cur))
          (error "list->vector expected null"))
 	(NewVector vc))
 
   (define (vector->list vs)
-    (:= (vc ls) (as vs SVector) (null))
+    (:= (vc ls) (as vs Vector) (null))
     (for (:= i (inline "len(vc) - 1")) (>= i 0) (-- i)
          (= ls (cons (inline "vc[i]") ls)))
     ls)
@@ -51,7 +51,7 @@
   (define (make-vector k) (void))
 
   (define (vector-ref vc k)
-    (as vc SVector (Ref k)))
+    (as vc Vector (Ref k)))
 
   (define (vector-reverse!) (void))
   (define (vector-reverse-copy!) (void))
@@ -64,6 +64,6 @@
   (define (vector-unfold-right) (void))
 
   (define (vector? object)
-    (SBool (IsVector object)))
+    (Bool (IsVector object)))
 
 );package

@@ -200,7 +200,7 @@ type InexactNum interface {
 	Prec() int
 }
 
-func IsNumber(a Any) bool {
+func _numberZS(a Any) bool {
 	return IsType(a, TypeCodeNumber)
 }
 
@@ -253,13 +253,13 @@ func ToByte(o Any) byte {
 	return byte(ToFixnum(o))
 }
 
-func IsByte(o Any) bool {
+func _u8ZS(o Any) bool {
     num := ToFixnum(o)
 	return int64(byte(num)) == num
 }
 
 func IsInteger(a Any) bool {
-	if !IsNumber(a) {
+	if !_numberZS(a) {
 		return false
 	}
 	switch a.(Num).GetNumberType() &^ NumberTypeCodeInexact {
@@ -277,8 +277,8 @@ func IsInteger(a Any) bool {
 	return false
 }
 
-func IsRational(a Any) bool {
-	if !IsNumber(a) {
+func _rationalZS(a Any) bool {
+	if !_numberZS(a) {
 		return false
 	}
 	switch a.(Num).GetNumberType() &^ NumberTypeCodeInexact {
@@ -288,8 +288,8 @@ func IsRational(a Any) bool {
 	return false
 }
 
-func IsReal(a Any) bool {
-	if !IsNumber(a) {
+func _realZS(a Any) bool {
+	if !_numberZS(a) {
 		return false
 	}
 	if a.(Num).GetNumberType()&NumberTypeCodeComplex != 0 {
@@ -298,8 +298,8 @@ func IsReal(a Any) bool {
 	return true
 }
 
-func IsExact(a Any) bool {
-	if !IsNumber(a) {
+func _exactZS(a Any) bool {
+	if !_numberZS(a) {
 		return false
 	}
 	if a.(Num).GetNumberType()&NumberTypeCodeInexact == 0 {
@@ -308,8 +308,8 @@ func IsExact(a Any) bool {
 	return false
 }
 
-func IsInexact(a Any) bool {
-	if !IsNumber(a) {
+func _inexactZS(a Any) bool {
+	if !_numberZS(a) {
 		return false
 	}
 	if a.(Num).GetNumberType()&NumberTypeCodeInexact != 0 {
@@ -318,8 +318,8 @@ func IsInexact(a Any) bool {
 	return false
 }
 
-func IsComplex(a Any) bool {
-	if !IsNumber(a) {
+func _complexZS(a Any) bool {
+	if !_numberZS(a) {
 		return false
 	}
 	if a.(Num).GetNumberType()&NumberTypeCodeComplex != 0 {
@@ -340,8 +340,8 @@ func InexactEqual(x, y float64) bool {
 
 func ToFixnum(a Any) int64 {
 	switch a.(type) {
-	case SChar:
-		return int64(a.(SChar))
+	case Char:
+		return int64(a.(Char))
 	case Sint64:
 		return reflect.ValueOf(a).Int()
 	case Sfloat64:

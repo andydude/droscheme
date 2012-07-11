@@ -58,5 +58,5 @@ func Read(port TIPort) (value Any, err error) {
 
 func Load(filename string, env *Env) (value Any, err error) {
 	defer func(){err = panic1error()}()
-	return Kload(Void(), list1(ToString(filename)), env), nil
+	return Kload(_void(), list1(ToString(filename)), env), nil
 }

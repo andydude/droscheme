@@ -14,5 +14,4 @@ SCHEME_SCRIPT="racket -f"
 #SCHEME_SCRIPT="ds -f"
 # END config
 
-cat $DIR/prefix.txt
-$SCHEME_SCRIPT "$DIR/gos2go.ss" "$@" | grep -v '^$' | $GO_FORMAT
+$SCHEME_SCRIPT "$DIR/gos2go.ss" "$@" | $GO_FORMAT | grep -v '^$'

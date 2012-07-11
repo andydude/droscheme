@@ -17,13 +17,10 @@
   ;(define (error msg . irr)
   ;  (raise (apply (fn error-object) msg irr)))
   (define-go (error (msg (interface)) (void))
-    (raise (SString (as msg string))))
+    (raise (String (as msg string))))
 
   (define (raise err)
     (call-go panic err)
     (void))
-
-  (define (void)
-    #(SVoid)))
 
 );package

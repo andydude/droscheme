@@ -51,7 +51,7 @@ type Lexer struct {
 
 //func newReaderForLexer(input string) io.Reader {
 //	port := &SBytePort{
-//		it:   NewBinary([]byte(input)),
+//		it:   Binary([]byte(input)),
 //		code: PortTypeCodeByteIn}
 //
 //	return port
@@ -122,7 +122,7 @@ func (lex *Lexer) emitNum(datum Any) {
 }
 
 func (lex *Lexer) emitId(name string) {
-	lex.emitDatum(ID, SSymbol{name})
+	lex.emitDatum(ID, Symbol{name})
 }
 
 func (lex *Lexer) emit(token int) {
@@ -391,21 +391,21 @@ func (lex *Lexer) lexChar() State {
 	case ch == 'e' && pk == 's': // esc
 	case ch == 'l' && pk == 'i': // linefeed
 		lex.match("inefeed")
-		lex.emitDatum(CHAR, SChar('\n'))
+		lex.emitDatum(CHAR, Char('\n'))
 	case ch == 'n' && pk == 'e': // newline
 		lex.match("ewline")
-		lex.emitDatum(CHAR, SChar('\n'))
+		lex.emitDatum(CHAR, Char('\n'))
 	case ch == 'v' && pk == 't': // vtab
 	case ch == 'p' && pk == 'a': // page
 	case ch == 'r' && pk == 'e': // return
 		lex.match("eturn")
-		lex.emitDatum(CHAR, SChar('\r'))
+		lex.emitDatum(CHAR, Char('\r'))
 	case ch == 's' && pk == 'p': // space
 		lex.match("pace")
-		lex.emitDatum(CHAR, SChar(' '))
+		lex.emitDatum(CHAR, Char(' '))
 	case ch == 't' && pk == 'a': // tab
 		lex.match("ab")
-		lex.emitDatum(CHAR, SChar('\t'))
+		lex.emitDatum(CHAR, Char('\t'))
 	case ch == 'x' && lex.isDigit16():
 		lex.peek()
 		lex.consume()
@@ -415,9 +415,9 @@ func (lex *Lexer) lexChar() State {
 		lex.backup()
 		lex.base = 16
 		ret := lex.getInt().(Sint64)
-		lex.emitDatum(CHAR, SChar(ret))
+		lex.emitDatum(CHAR, Char(ret))
 	default:
-		lex.emitDatum(CHAR, SChar(ch))
+		lex.emitDatum(CHAR, Char(ch))
 	}
 	return (*Lexer).lexToken
 }
@@ -514,12 +514,12 @@ func (lex *Lexer) lexHash() State {
 	case 'F':
 		fallthrough
 	case 'f':
-		lex.emitDatum(BOOL, SBool(false))
+		lex.emitDatum(BOOL, Bool(false))
 		return (*Lexer).lexToken
 	case 'T':
 		fallthrough
 	case 't':
-		lex.emitDatum(BOOL, SBool(true))
+		lex.emitDatum(BOOL, Bool(true))
 		return (*Lexer).lexToken
 	case 'V':
 		fallthrough

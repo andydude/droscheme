@@ -1,4 +1,3 @@
-//
 // Droscheme - a Scheme implementation
 // Copyright © 2012 Andrew Robbins
 //
@@ -6,4 +5,4 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
 // terms of the GNU Lesser General Public License (LGPL): <http://www.gnu.org/licenses/>.
-//
+
