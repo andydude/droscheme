@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Droscheme</title>
+    <link rel="stylesheet" href="/droscheme/stylesheets/styles.css" />
+    <link rel="stylesheet" href="/droscheme/stylesheets/pygment_trac.css" />
+    <link rel="stylesheet" href="/droscheme/pkg/style.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="../javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  </head>
+  <body>
+
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/andydude/droscheme">View On GitHub</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/reference.html">Reference</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/cmd/index.html">Commands</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/index.html">Home</a></li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+<div id="page">
+
+<div id="content">
+
+
+  <div id="plusone"><g:plusone size="small" annotation="none"></g:plusone></div>
+  <h1>Package ds_any_runtime</h1>
+
+
+
+
+<div id="nav"></div>
+
+
+<!--
+	Copyright 2009 The Go Authors. All rights reserved.
+	Use of this source code is governed by a BSD-style
+	license that can be found in the LICENSE file.
+-->
+
+	
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "ds/any/runtime"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#overview">Overview</a></dd>
+			<dd><a href="#index">Index</a></dd>
+			
+			
+			</dl>
+		</div>
+		<h2 id="overview">Overview</h2>
+		<!-- The package's Name is printed as title by the top-level template -->
+		<p>
+Package ds/any/runtime represents the Scheme library (ds any runtime).
+</p>
+<p>
+This package represents the Scheme library (ds any runtime)
+</p>
+
+		
+	
+		<h2 id="index">Index</h2>
+		<!-- Table of contents for API; must be named manual-nav to turn off auto nav. -->
+		<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#constants">Constants</a></dd>
+			
+			
+			
+				
+				<dd><a href="#Equal">func Equal(x, y Any) bool</a></dd>
+			
+				
+				<dd><a href="#Hash">func Hash(o Any) uintptr</a></dd>
+			
+				
+				<dd><a href="#IsType">func IsType(o Any, tag int) bool</a></dd>
+			
+			
+				
+				<dd><a href="#AdvancedMap">type AdvancedMap</a></dd>
+				
+				
+			
+				
+				<dd><a href="#AnyKinder">type AnyKinder</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Binary">type Binary</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Binary.Equal">func (o Binary) Equal(a Any) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Binary.GetHash">func (bv Binary) GetHash() uintptr</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Binary.GetType">func (_ Binary) GetType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Binary.Length">func (bv Binary) Length() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Binary.Match">func (o Binary) Match(syntax Any, env *Env) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Binary.Ref">func (o Binary) Ref(k Any) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Binary.Replace">func (bv Binary) Replace(env *Env) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Binary.Set">func (o Binary) Set(k, v Any) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Binary.String">func (o Binary) String() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Binary.ToVector">func (bv Binary) ToVector() Vector</a></dd>
+				
+			
+				
+				<dd><a href="#CaseLambdaProc">type CaseLambdaProc</a></dd>
+				
+				
+			
+				
+				<dd><a href="#CaseSyntax">type CaseSyntax</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Char">type Char</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Comparer">type Comparer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Equaler">type Equaler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Error">type Error</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ErrorObject">type ErrorObject</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#ErrorObject.Equal">func (o *ErrorObject) Equal(a Any) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#ErrorObject.Error">func (o *ErrorObject) Error() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#ErrorObject.GetErrorObjectType">func (o *ErrorObject) GetErrorObjectType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#ErrorObject.GetHash">func (o *ErrorObject) GetHash() uintptr</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#ErrorObject.GetType">func (o *ErrorObject) GetType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#ErrorObject.Irritants">func (o *ErrorObject) Irritants() Any</a></dd>
+				
+			
+				
+				<dd><a href="#Hasher">type Hasher</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Kinder">type Kinder</a></dd>
+				
+				
+			
+				
+				<dd><a href="#LambdaProc">type LambdaProc</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Map">type Map</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Matcher">type Matcher</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Null">type Null</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Null.Equal">func (_ *Null) Equal(a Any) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Null.Eval">func (o *Null) Eval(env *Env) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Null.GetHash">func (o *Null) GetHash() uintptr</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Null.GetType">func (o *Null) GetType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Null.Match">func (o *Null) Match(syntax Any, env *Env) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Null.Replace">func (o *Null) Replace(env *Env) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Null.String">func (_ *Null) String() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Null.ToVector">func (o *Null) ToVector() Any</a></dd>
+				
+			
+				
+				<dd><a href="#Num">type Num</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Pair">type Pair</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.Equal">func (o *Pair) Equal(a Any) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.Eval">func (o *Pair) Eval(env *Env) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.First">func (o *Pair) First() Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.GetHash">func (o *Pair) GetHash() uintptr</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.GetType">func (o *Pair) GetType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.Match">func (p *Pair) Match(syntax Any, env *Env) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.Ref">func (o *Pair) Ref(key Any) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.RefDefault">func (o *Pair) RefDefault(key, value Any) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.Replace">func (t *Pair) Replace(env *Env) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.Rest">func (o *Pair) Rest() Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.Set">func (o *Pair) Set(key, value Any)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.SetFirst">func (o *Pair) SetFirst(value Any)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.SetRest">func (o *Pair) SetRest(value Any)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.String">func (o *Pair) String() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Pair.ToVector">func (o *Pair) ToVector() Any</a></dd>
+				
+			
+				
+				<dd><a href="#Replacer">type Replacer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RulesSyntax">type RulesSyntax</a></dd>
+				
+				
+			
+				
+				<dd><a href="#STable">type STable</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SType">type SType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Seq">type Seq</a></dd>
+				
+				
+			
+				
+				<dd><a href="#String">type String</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#String.Equal">func (o String) Equal(a Any) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#String.GetHash">func (st String) GetHash() uintptr</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#String.GetType">func (_ String) GetType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#String.GoString">func (st String) GoString() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#String.Match">func (o String) Match(syntax Any, env *Env) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#String.Ref">func (o String) Ref(k Any) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#String.Replace">func (o String) Replace(env *Env) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#String.Set">func (st String) Set(k, v Any) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#String.String">func (o String) String() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#String.ToBytes">func (st String) ToBytes() []byte</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#String.ToVector">func (st String) ToVector() Vector</a></dd>
+				
+			
+				
+				<dd><a href="#Symbol">type Symbol</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#NewSymbol">func NewSymbol(s string) Symbol</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Symbol.Equal">func (o Symbol) Equal(a Any) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Symbol.Eval">func (o Symbol) Eval(env *Env) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Symbol.GetHash">func (o Symbol) GetHash() uintptr</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Symbol.GetType">func (o Symbol) GetType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Symbol.Match">func (o Symbol) Match(syntax Any, env *Env) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Symbol.Replace">func (o Symbol) Replace(env *Env) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Symbol.String">func (sy Symbol) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Values">type Values</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Values.GetType">func (_ Values) GetType() int</a></dd>
+				
+			
+				
+				<dd><a href="#Vector">type Vector</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Vector.Equal">func (o Vector) Equal(a Any) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Vector.Eval">func (vc Vector) Eval(env *Env) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Vector.GetHash">func (o Vector) GetHash() uintptr</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Vector.GetType">func (o Vector) GetType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Vector.Ref">func (o Vector) Ref(k Any) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Vector.Set">func (o Vector) Set(k, v Any) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Vector.String">func (o Vector) String() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Vector.ToBinary">func (vc Vector) ToBinary() Binary</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Vector.ToList">func (o Vector) ToList() Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Vector.ToString">func (vc Vector) ToString() String</a></dd>
+				
+			
+				
+				<dd><a href="#Void">type Void</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Void.Equal">func (_ Void) Equal(a Any) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Void.GetHash">func (_ Void) GetHash() uintptr</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Void.GetType">func (_ Void) GetType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Void.String">func (_ Void) String() string</a></dd>
+				
+			
+			
+		</dl>
+
+		
+
+		
+			<h4>Package files</h4>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/pkg/ds/any/runtime/binary.go">binary.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/doc.go">doc.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/ds_any_runtime.go">ds_any_runtime.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/equal.go">equal.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/error.go">error.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/eval.go">eval.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/export.go">export.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/global.go">global.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/hash.go">hash.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/keyword.go">keyword.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/kind.go">kind.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/lambda.go">lambda.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/list.go">list.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/number.go">number.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/param.go">param.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/proc.go">proc.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/string.go">string.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/symbol.go">symbol.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/types.go">types.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/unsafe.go">unsafe.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/values.go">values.go</a>
+			
+				<a href="/src/pkg/ds/any/runtime/vector.go">vector.go</a>
+			
+			</span>
+			</p>
+		
+	
+		
+			<h2 id="constants">Constants</h2>
+			
+				<pre>const (
+    TypeCodeAny     = iota
+    TypeCodeType    <span class="comment">// go:Type</span>
+    TypeCodeNull    <span class="comment">// go:Null      s:null?       -- Evaler interface</span>
+    TypeCodePair    <span class="comment">// go:Pair      s:pair?       -- Evaler interface</span>
+    TypeCodeChar    <span class="comment">// go:Char      s:char?</span>
+    TypeCodeBool    <span class="comment">// go:Bool      s:boolean?</span>
+    TypeCodeProc    <span class="comment">// go:Proc      s:procedure?  -- Applier interface</span>
+    TypeCodeBinary  <span class="comment">// go:Binary    s:bytevector? -- Seq interface</span>
+    TypeCodeNumber  <span class="comment">// go:Num       s:number?     -- Num interface</span>
+    TypeCodePort    <span class="comment">// go:Port      s:port?       -- Port interface</span>
+    TypeCodeString  <span class="comment">// go:String    s:string?     -- Seq interface</span>
+    TypeCodeSymbol  <span class="comment">// go:Symbol    s:symbol?     -- Evaler interface</span>
+    TypeCodeVector  <span class="comment">// go:Vector    s:vector?     -- Seq interface</span>
+    TypeCodeTable   <span class="comment">// go:Table     s:hashtable?</span>
+    TypeCodeRecord  <span class="comment">// go:Record                  -- interface</span>
+    TypeCodeLibrary <span class="comment">//</span>
+    TypeCodeValues  <span class="comment">// multiple return values</span>
+    TypeCodeSyntax  <span class="comment">//                            -- Transformer interface</span>
+    TypeCodeEnvSpec
+    TypeCodeError
+    TypeCodeLabel
+    TypeCodeVoid
+
+    TypeCodeMax <span class="comment">// maximum</span>
+)</pre>
+				<p>
+TODO: s/TypeCode/Kind/g
+</p>
+
+			
+		
+		
+		
+			
+			
+			<h2 id="Equal">func <a href="/src/pkg/ds/any/runtime/proc.go?s=1987:2012#L96">Equal</a></h2>
+			<pre>func Equal(x, y Any) bool</pre>
+			
+			
+		
+			
+			
+			<h2 id="Hash">func <a href="/src/pkg/ds/any/runtime/proc.go?s=2050:2074#L100">Hash</a></h2>
+			<pre>func Hash(o Any) uintptr</pre>
+			
+			
+		
+			
+			
+			<h2 id="IsType">func <a href="/src/pkg/ds/any/runtime/proc.go?s=1910:1942#L92">IsType</a></h2>
+			<pre>func IsType(o Any, tag int) bool</pre>
+			
+			
+		
+		
+			
+			
+			<h2 id="AdvancedMap">type <a href="/src/pkg/ds/any/runtime/proc.go?s=1793:1844#L81">AdvancedMap</a></h2>
+			<pre>type AdvancedMap interface {
+    Map
+    Add(value Named)
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="AnyKinder">type <a href="/src/pkg/ds/any/runtime/proc.go?s=1458:1498#L60">AnyKinder</a></h2>
+			<pre>type AnyKinder interface {
+    GetType() int
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Binary">type <a href="/src/pkg/ds/any/runtime/types.go?s=583:596#L13">Binary</a></h2>
+			<pre>type Binary []byte</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="Binary.Equal">func (Binary) <a href="/src/pkg/ds/any/runtime/binary.go?s=655:688#L14">Equal</a></h3>
+				<pre>func (o Binary) Equal(a Any) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="Binary.GetHash">func (Binary) <a href="/src/pkg/ds/any/runtime/binary.go?s=561:595#L10">GetHash</a></h3>
+				<pre>func (bv Binary) GetHash() uintptr</pre>
+				
+				
+				
+			
+				
+				<h3 id="Binary.GetType">func (Binary) <a href="/src/pkg/ds/any/runtime/binary.go?s=503:532#L6">GetType</a></h3>
+				<pre>func (_ Binary) GetType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="Binary.Length">func (Binary) <a href="/src/pkg/ds/any/runtime/binary.go?s=1020:1049#L34">Length</a></h3>
+				<pre>func (bv Binary) Length() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="Binary.Match">func (Binary) <a href="/src/pkg/ds/any/runtime/binary.go?s=714:762#L18">Match</a></h3>
+				<pre>func (o Binary) Match(syntax Any, env *Env) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="Binary.Ref">func (Binary) <a href="/src/pkg/ds/any/runtime/binary.go?s=1071:1101#L38">Ref</a></h3>
+				<pre>func (o Binary) Ref(k Any) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Binary.Replace">func (Binary) <a href="/src/pkg/ds/any/runtime/binary.go?s=792:830#L22">Replace</a></h3>
+				<pre>func (bv Binary) Replace(env *Env) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Binary.Set">func (Binary) <a href="/src/pkg/ds/any/runtime/binary.go?s=1133:1166#L42">Set</a></h3>
+				<pre>func (o Binary) Set(k, v Any) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Binary.String">func (Binary) <a href="/src/pkg/ds/any/runtime/binary.go?s=847:878#L26">String</a></h3>
+				<pre>func (o Binary) String() string</pre>
+				
+				
+				
+			
+				
+				<h3 id="Binary.ToVector">func (Binary) <a href="/src/pkg/ds/any/runtime/binary.go?s=1216:1250#L47">ToVector</a></h3>
+				<pre>func (bv Binary) ToVector() Vector</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="CaseLambdaProc">type <a href="/src/pkg/ds/any/runtime/proc.go?s=1275:1342#L46">CaseLambdaProc</a></h2>
+			<pre>type CaseLambdaProc struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="CaseSyntax">type <a href="/src/pkg/ds/any/runtime/proc.go?s=1122:1201#L31">CaseSyntax</a></h2>
+			<pre>type CaseSyntax struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Char">type <a href="/src/pkg/ds/any/runtime/types.go?s=504:513#L6">Char</a></h2>
+			<pre>type Char rune</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Comparer">type <a href="/src/pkg/ds/any/runtime/proc.go?s=1545:1587#L66">Comparer</a></h2>
+			<pre>type Comparer interface {
+    Compare(Any) int
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Equaler">type <a href="/src/pkg/ds/any/runtime/proc.go?s=1589:1629#L69">Equaler</a></h2>
+			<pre>type Equaler interface {
+    Equal(Any) bool
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Error">type <a href="/src/pkg/ds/any/runtime/proc.go?s=2149:2197#L105">Error</a></h2>
+			<pre>type Error interface {
+    error
+    Irritants() Any
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="ErrorObject">type <a href="/src/pkg/ds/any/runtime/error.go?s=513:578#L7">ErrorObject</a></h2>
+			<pre>type ErrorObject struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="ErrorObject.Equal">func (*ErrorObject) <a href="/src/pkg/ds/any/runtime/error.go?s=729:768#L18">Equal</a></h3>
+				<pre>func (o *ErrorObject) Equal(a Any) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="ErrorObject.Error">func (*ErrorObject) <a href="/src/pkg/ds/any/runtime/error.go?s=1076:1112#L38">Error</a></h3>
+				<pre>func (o *ErrorObject) Error() string</pre>
+				
+				
+				
+			
+				
+				<h3 id="ErrorObject.GetErrorObjectType">func (*ErrorObject) <a href="/src/pkg/ds/any/runtime/error.go?s=947:993#L30">GetErrorObjectType</a></h3>
+				<pre>func (o *ErrorObject) GetErrorObjectType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="ErrorObject.GetHash">func (*ErrorObject) <a href="/src/pkg/ds/any/runtime/error.go?s=863:902#L26">GetHash</a></h3>
+				<pre>func (o *ErrorObject) GetHash() uintptr</pre>
+				
+				
+				
+			
+				
+				<h3 id="ErrorObject.GetType">func (*ErrorObject) <a href="/src/pkg/ds/any/runtime/error.go?s=797:832#L22">GetType</a></h3>
+				<pre>func (o *ErrorObject) GetType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="ErrorObject.Irritants">func (*ErrorObject) <a href="/src/pkg/ds/any/runtime/error.go?s=1017:1054#L34">Irritants</a></h3>
+				<pre>func (o *ErrorObject) Irritants() Any</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="Hasher">type <a href="/src/pkg/ds/any/runtime/proc.go?s=1631:1672#L72">Hasher</a></h2>
+			<pre>type Hasher interface {
+    GetHash() uintptr
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Kinder">type <a href="/src/pkg/ds/any/runtime/proc.go?s=1500:1543#L63">Kinder</a></h2>
+			<pre>type Kinder interface {
+    Kind() reflect.Kind
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="LambdaProc">type <a href="/src/pkg/ds/any/runtime/lambda.go?s=495:555#L4">LambdaProc</a></h2>
+			<pre>type LambdaProc struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Map">type <a href="/src/pkg/ds/any/runtime/proc.go?s=1674:1791#L75">Map</a></h2>
+			<pre>type Map interface {
+    Define(key, value Any)
+    Ref(key Any) Any
+    RefDefault(key, value Any) Any
+    Set(key, value Any)
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Matcher">type <a href="/src/pkg/ds/any/runtime/proc.go?s=3168:3228#L148">Matcher</a></h2>
+			<pre>type Matcher interface {
+    Match(syntax Any, env *Env) bool
+}</pre>
+			<p>
+This interface represents the first phase
+of (syntax-rules) transformations. It is
+similar to Equal, except that it takes an
+environment, which is normally empty, and
+is used as an extra return value in which
+pattern variables are bound.
+</p>
+<p>
+The pattern variables are used by the next
+phase, so in order to save energy later, we
+assign any pattern variables found in the
+object that implements this method and then
+store them in env. The same environment is
+also used for literals, which must be given
+to the Match method in the form x=x.
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Null">type <a href="/src/pkg/ds/any/runtime/types.go?s=530:543#L8">Null</a></h2>
+			<pre>type Null struct{}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="Null.Equal">func (*Null) <a href="/src/pkg/ds/any/runtime/list.go?s=616:648#L15">Equal</a></h3>
+				<pre>func (_ *Null) Equal(a Any) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="Null.Eval">func (*Null) <a href="/src/pkg/ds/any/runtime/list.go?s=680:713#L19">Eval</a></h3>
+				<pre>func (o *Null) Eval(env *Env) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Null.GetHash">func (*Null) <a href="/src/pkg/ds/any/runtime/list.go?s=568:600#L11">GetHash</a></h3>
+				<pre>func (o *Null) GetHash() uintptr</pre>
+				
+				
+				
+			
+				
+				<h3 id="Null.GetType">func (*Null) <a href="/src/pkg/ds/any/runtime/list.go?s=513:541#L7">GetType</a></h3>
+				<pre>func (o *Null) GetType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="Null.Match">func (*Null) <a href="/src/pkg/ds/any/runtime/list.go?s=729:776#L23">Match</a></h3>
+				<pre>func (o *Null) Match(syntax Any, env *Env) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="Null.Replace">func (*Null) <a href="/src/pkg/ds/any/runtime/list.go?s=806:842#L27">Replace</a></h3>
+				<pre>func (o *Null) Replace(env *Env) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Null.String">func (*Null) <a href="/src/pkg/ds/any/runtime/list.go?s=858:888#L31">String</a></h3>
+				<pre>func (_ *Null) String() string</pre>
+				
+				
+				
+			
+				
+				<h3 id="Null.ToVector">func (*Null) <a href="/src/pkg/ds/any/runtime/list.go?s=907:936#L35">ToVector</a></h3>
+				<pre>func (o *Null) ToVector() Any</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="Num">type <a href="/src/pkg/ds/any/runtime/number.go?s=473:529#L1">Num</a></h2>
+			<pre>type Num interface {
+    IsExact() bool
+    IsInexact() bool
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Pair">type <a href="/src/pkg/ds/any/runtime/types.go?s=545:581#L9">Pair</a></h2>
+			<pre>type Pair struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="Pair.Equal">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=1150:1182#L50">Equal</a></h3>
+				<pre>func (o *Pair) Equal(a Any) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.Eval">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=1208:1241#L54">Eval</a></h3>
+				<pre>func (o *Pair) Eval(env *Env) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.First">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=3653:3679#L169">First</a></h3>
+				<pre>func (o *Pair) First() Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.GetHash">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=983:1015#L41">GetHash</a></h3>
+				<pre>func (o *Pair) GetHash() uintptr</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.GetType">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=1095:1123#L46">GetType</a></h3>
+				<pre>func (o *Pair) GetType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.Match">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=1429:1476#L64">Match</a></h3>
+				<pre>func (p *Pair) Match(syntax Any, env *Env) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.Ref">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=2803:2834#L123">Ref</a></h3>
+				<pre>func (o *Pair) Ref(key Any) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.RefDefault">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=2875:2920#L127">RefDefault</a></h3>
+				<pre>func (o *Pair) RefDefault(key, value Any) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.Replace">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=2490:2526#L108">Replace</a></h3>
+				<pre>func (t *Pair) Replace(env *Env) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.Rest">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=3699:3724#L173">Rest</a></h3>
+				<pre>func (o *Pair) Rest() Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.Set">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=3089:3123#L138">Set</a></h3>
+				<pre>func (o *Pair) Set(key, value Any)</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.SetFirst">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=3268:3302#L148">SetFirst</a></h3>
+				<pre>func (o *Pair) SetFirst(value Any)</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.SetRest">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=3323:3356#L152">SetRest</a></h3>
+				<pre>func (o *Pair) SetRest(value Any)</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.String">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=3377:3407#L156">String</a></h3>
+				<pre>func (o *Pair) String() string</pre>
+				
+				
+				
+			
+				
+				<h3 id="Pair.ToVector">func (*Pair) <a href="/src/pkg/ds/any/runtime/list.go?s=3467:3496#L160">ToVector</a></h3>
+				<pre>func (o *Pair) ToVector() Any</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="Replacer">type <a href="/src/pkg/ds/any/runtime/proc.go?s=3897:3947#L170">Replacer</a></h2>
+			<pre>type Replacer interface {
+    Replace(env *Env) Any
+}</pre>
+			<p>
+This interface represents the second phase
+of (syntax-rules) transformations. It is
+similar to Eval, except in the way that the
+environment is used. Instead of raising an
+error every time a symbol is unbound, it
+continues silently, and only replaces those
+symbols which are in the environment.
+</p>
+<p>
+The pattern variables are given in env by the
+Match method, in such a way that we can treat
+literals the same as pattern variables, since
+they are of the form x=x (see above). Hence,
+the literals can safely be replaced just like
+the pattern variables. This is the magic
+I was hoping to describe in this comment.
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="RulesSyntax">type <a href="/src/pkg/ds/any/runtime/proc.go?s=1203:1273#L39">RulesSyntax</a></h2>
+			<pre>type RulesSyntax struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="STable">type <a href="/src/pkg/ds/any/runtime/proc.go?s=902:977#L15">STable</a></h2>
+			<pre>type STable struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			<p>
+* The Go specification states that map types can have
+* any key types for which == and != are defined, which
+* includes any type except for function, map, or slice.
+* Droscheme uses ALOT of slice types, and so about 4 of the
+* types that implement Any are slice types, so instead of
+* map[Any]Any we have a map from uintptr (the hash type)
+* to a bucket slice, which we iterate through for equality.
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="SType">type <a href="/src/pkg/ds/any/runtime/proc.go?s=1344:1448#L52">SType</a></h2>
+			<pre>type SType struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Seq">type <a href="/src/pkg/ds/any/runtime/proc.go?s=1846:1906#L85">Seq</a></h2>
+			<pre>type Seq interface {
+    First() Any
+    Length() int
+    Rest() Seq
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="String">type <a href="/src/pkg/ds/any/runtime/types.go?s=598:611#L14">String</a></h2>
+			<pre>type String []rune</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="String.Equal">func (String) <a href="/src/pkg/ds/any/runtime/string.go?s=796:829#L22">Equal</a></h3>
+				<pre>func (o String) Equal(a Any) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="String.GetHash">func (String) <a href="/src/pkg/ds/any/runtime/string.go?s=702:736#L18">GetHash</a></h3>
+				<pre>func (st String) GetHash() uintptr</pre>
+				
+				
+				
+			
+				
+				<h3 id="String.GetType">func (String) <a href="/src/pkg/ds/any/runtime/string.go?s=644:673#L14">GetType</a></h3>
+				<pre>func (_ String) GetType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="String.GoString">func (String) <a href="/src/pkg/ds/any/runtime/string.go?s=577:611#L10">GoString</a></h3>
+				<pre>func (st String) GoString() string</pre>
+				
+				
+				
+			
+				
+				<h3 id="String.Match">func (String) <a href="/src/pkg/ds/any/runtime/string.go?s=915:963#L29">Match</a></h3>
+				<pre>func (o String) Match(syntax Any, env *Env) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="String.Ref">func (String) <a href="/src/pkg/ds/any/runtime/string.go?s=1132:1162#L41">Ref</a></h3>
+				<pre>func (o String) Ref(k Any) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="String.Replace">func (String) <a href="/src/pkg/ds/any/runtime/string.go?s=993:1030#L33">Replace</a></h3>
+				<pre>func (o String) Replace(env *Env) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="String.Set">func (String) <a href="/src/pkg/ds/any/runtime/string.go?s=1193:1227#L45">Set</a></h3>
+				<pre>func (st String) Set(k, v Any) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="String.String">func (String) <a href="/src/pkg/ds/any/runtime/string.go?s=1046:1077#L37">String</a></h3>
+				<pre>func (o String) String() string</pre>
+				
+				
+				
+			
+				
+				<h3 id="String.ToBytes">func (String) <a href="/src/pkg/ds/any/runtime/string.go?s=503:536#L6">ToBytes</a></h3>
+				<pre>func (st String) ToBytes() []byte</pre>
+				
+				
+				
+			
+				
+				<h3 id="String.ToVector">func (String) <a href="/src/pkg/ds/any/runtime/string.go?s=1279:1313#L50">ToVector</a></h3>
+				<pre>func (st String) ToVector() Vector</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="Symbol">type <a href="/src/pkg/ds/any/runtime/types.go?s=641:673#L17">Symbol</a></h2>
+			<pre>type Symbol struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="NewSymbol">func <a href="/src/pkg/ds/any/runtime/symbol.go?s=496:527#L5">NewSymbol</a></h3>
+				<pre>func NewSymbol(s string) Symbol</pre>
+				
+				
+			
+
+			
+				
+				<h3 id="Symbol.Equal">func (Symbol) <a href="/src/pkg/ds/any/runtime/symbol.go?s=738:771#L18">Equal</a></h3>
+				<pre>func (o Symbol) Equal(a Any) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="Symbol.Eval">func (Symbol) <a href="/src/pkg/ds/any/runtime/symbol.go?s=871:905#L25">Eval</a></h3>
+				<pre>func (o Symbol) Eval(env *Env) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Symbol.GetHash">func (Symbol) <a href="/src/pkg/ds/any/runtime/symbol.go?s=621:654#L13">GetHash</a></h3>
+				<pre>func (o Symbol) GetHash() uintptr</pre>
+				
+				
+				
+			
+				
+				<h3 id="Symbol.GetType">func (Symbol) <a href="/src/pkg/ds/any/runtime/symbol.go?s=560:589#L9">GetType</a></h3>
+				<pre>func (o Symbol) GetType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="Symbol.Match">func (Symbol) <a href="/src/pkg/ds/any/runtime/symbol.go?s=1042:1090#L33">Match</a></h3>
+				<pre>func (o Symbol) Match(syntax Any, env *Env) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="Symbol.Replace">func (Symbol) <a href="/src/pkg/ds/any/runtime/symbol.go?s=1434:1471#L47">Replace</a></h3>
+				<pre>func (o Symbol) Replace(env *Env) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Symbol.String">func (Symbol) <a href="/src/pkg/ds/any/runtime/symbol.go?s=1563:1595#L55">String</a></h3>
+				<pre>func (sy Symbol) String() string</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="Values">type <a href="/src/pkg/ds/any/runtime/types.go?s=627:639#L16">Values</a></h2>
+			<pre>type Values []Any</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="Values.GetType">func (Values) <a href="/src/pkg/ds/any/runtime/values.go?s=496:525#L5">GetType</a></h3>
+				<pre>func (_ Values) GetType() int</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="Vector">type <a href="/src/pkg/ds/any/runtime/types.go?s=613:625#L15">Vector</a></h2>
+			<pre>type Vector []Any</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="Vector.Equal">func (Vector) <a href="/src/pkg/ds/any/runtime/vector.go?s=762:795#L19">Equal</a></h3>
+				<pre>func (o Vector) Equal(a Any) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="Vector.Eval">func (Vector) <a href="/src/pkg/ds/any/runtime/vector.go?s=960:995#L31">Eval</a></h3>
+				<pre>func (vc Vector) Eval(env *Env) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Vector.GetHash">func (Vector) <a href="/src/pkg/ds/any/runtime/vector.go?s=681:714#L15">GetHash</a></h3>
+				<pre>func (o Vector) GetHash() uintptr</pre>
+				
+				
+				
+			
+				
+				<h3 id="Vector.GetType">func (Vector) <a href="/src/pkg/ds/any/runtime/vector.go?s=620:649#L11">GetType</a></h3>
+				<pre>func (o Vector) GetType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="Vector.Ref">func (Vector) <a href="/src/pkg/ds/any/runtime/vector.go?s=1135:1165#L39">Ref</a></h3>
+				<pre>func (o Vector) Ref(k Any) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Vector.Set">func (Vector) <a href="/src/pkg/ds/any/runtime/vector.go?s=1193:1226#L43">Set</a></h3>
+				<pre>func (o Vector) Set(k, v Any) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Vector.String">func (Vector) <a href="/src/pkg/ds/any/runtime/vector.go?s=1270:1301#L48">String</a></h3>
+				<pre>func (o Vector) String() string</pre>
+				
+				
+				
+			
+				
+				<h3 id="Vector.ToBinary">func (Vector) <a href="/src/pkg/ds/any/runtime/vector.go?s=824:858#L23">ToBinary</a></h3>
+				<pre>func (vc Vector) ToBinary() Binary</pre>
+				
+				
+				
+			
+				
+				<h3 id="Vector.ToList">func (Vector) <a href="/src/pkg/ds/any/runtime/vector.go?s=495:523#L4">ToList</a></h3>
+				<pre>func (o Vector) ToList() Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Vector.ToString">func (Vector) <a href="/src/pkg/ds/any/runtime/vector.go?s=1375:1409#L53">ToString</a></h3>
+				<pre>func (vc Vector) ToString() String</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="Void">type <a href="/src/pkg/ds/any/runtime/types.go?s=515:528#L7">Void</a></h2>
+			<pre>type Void struct{}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="Void.Equal">func (Void) <a href="/src/pkg/ds/any/runtime/values.go?s=655:686#L17">Equal</a></h3>
+				<pre>func (_ Void) Equal(a Any) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="Void.GetHash">func (Void) <a href="/src/pkg/ds/any/runtime/values.go?s=554:585#L9">GetHash</a></h3>
+				<pre>func (_ Void) GetHash() uintptr</pre>
+				
+				
+				
+			
+				
+				<h3 id="Void.GetType">func (Void) <a href="/src/pkg/ds/any/runtime/values.go?s=601:628#L13">GetType</a></h3>
+				<pre>func (_ Void) GetType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="Void.String">func (Void) <a href="/src/pkg/ds/any/runtime/values.go?s=718:747#L21">String</a></h3>
+				<pre>func (_ Void) String() string</pre>
+				
+				
+				
+			
+		
+		</div>
+	
+
+	
+
+
+
+
+
+
+
+
+
+</div>
+
+</div>
+
+<div id="copyright">
+Build version weekly.2012-03-04 +9353aa1efdf3.
+Except as noted, this content is licensed under a
+Creative Commons Attribution 3.0 License.
+</div>
+
+</body>
+<script type="text/javascript">
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>

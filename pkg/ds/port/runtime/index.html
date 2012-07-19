@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Droscheme</title>
+    <link rel="stylesheet" href="/droscheme/stylesheets/styles.css" />
+    <link rel="stylesheet" href="/droscheme/stylesheets/pygment_trac.css" />
+    <link rel="stylesheet" href="/droscheme/pkg/style.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="../javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  </head>
+  <body>
+
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/andydude/droscheme">View On GitHub</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/reference.html">Reference</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/cmd/index.html">Commands</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/index.html">Home</a></li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+<div id="page">
+
+<div id="content">
+
+
+  <div id="plusone"><g:plusone size="small" annotation="none"></g:plusone></div>
+  <h1>Package ds_port_runtime</h1>
+
+
+
+
+<div id="nav"></div>
+
+
+<!--
+	Copyright 2009 The Go Authors. All rights reserved.
+	Use of this source code is governed by a BSD-style
+	license that can be found in the LICENSE file.
+-->
+
+	
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "ds/port/runtime"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#overview">Overview</a></dd>
+			<dd><a href="#index">Index</a></dd>
+			
+			
+			</dl>
+		</div>
+		<h2 id="overview">Overview</h2>
+		<!-- The package's Name is printed as title by the top-level template -->
+		<p>
+Package ds/port/runtime represents the Scheme library (ds port runtime).
+</p>
+<p>
+Droscheme - a Scheme implementation
+Copyright © 2012 Andrew Robbins, Daniel Connelly
+</p>
+<p>
+This program is free software: it is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.
+</p>
+
+		
+	
+		<h2 id="index">Index</h2>
+		<!-- Table of contents for API; must be named manual-nav to turn off auto nav. -->
+		<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#constants">Constants</a></dd>
+			
+			
+			
+			
+				
+				<dd><a href="#BytePort">type BytePort</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.Close">func (o *BytePort) Close() error</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.Closed">func (o *BytePort) Closed() bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.Equal">func (o *BytePort) Equal(a Any) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.GetHash">func (o *BytePort) GetHash() uintptr</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.GetPortType">func (o *BytePort) GetPortType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.GetType">func (o *BytePort) GetType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.Peek">func (o *BytePort) Peek(n int) (b []byte, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.PeekByte">func (o *BytePort) PeekByte() (b byte, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.PeekRune">func (o *BytePort) PeekRune() (r rune, n int, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.Read">func (o *BytePort) Read(p []byte) (n int, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.ReadByte">func (o *BytePort) ReadByte() (c byte, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.ReadLine">func (o *BytePort) ReadLine() (line []rune, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.ReadRune">func (o *BytePort) ReadRune() (r rune, size int, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.ReadRunes">func (o *BytePort) ReadRunes(delim rune) (line []rune, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.UnreadByte">func (o *BytePort) UnreadByte() error</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#BytePort.UnreadRune">func (o *BytePort) UnreadRune() error</a></dd>
+				
+			
+				
+				<dd><a href="#CharPort">type CharPort</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.Close">func (o *CharPort) Close() error</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.Closed">func (o *CharPort) Closed() bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.Equal">func (o *CharPort) Equal(a Any) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.Flush">func (o *CharPort) Flush() error</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.GetHash">func (o *CharPort) GetHash() uintptr</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.GetPortType">func (o *CharPort) GetPortType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.GetType">func (o *CharPort) GetType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.Peek">func (o *CharPort) Peek(n int) (b []byte, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.PeekByte">func (o *CharPort) PeekByte() (b byte, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.PeekRune">func (o *CharPort) PeekRune() (r rune, size int, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.Read">func (o *CharPort) Read(p []byte) (n int, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.ReadByte">func (o *CharPort) ReadByte() (c byte, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.ReadLine">func (o *CharPort) ReadLine() (line []rune, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.ReadRune">func (o *CharPort) ReadRune() (r rune, size int, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.ReadRunes">func (o *CharPort) ReadRunes(delim rune) (line []rune, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.ReadyByte">func (o *CharPort) ReadyByte() bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.ReadyRune">func (o *CharPort) ReadyRune() bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.UnreadByte">func (o *CharPort) UnreadByte() error</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.UnreadRune">func (o *CharPort) UnreadRune() error</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.Write">func (o *CharPort) Write(c []byte) (n int, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#CharPort.WriteRunes">func (o *CharPort) WriteRunes(r []rune) (n int, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#FilePort">type FilePort</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.Closed">func (o *FilePort) Closed() bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.Equal">func (o *FilePort) Equal(a Any) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.Flush">func (o *FilePort) Flush() error</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.GetHash">func (o *FilePort) GetHash() uintptr</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.GetPortType">func (o *FilePort) GetPortType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.GetType">func (o *FilePort) GetType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.Peek">func (o *FilePort) Peek(n int) (b []byte, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.PeekByte">func (o *FilePort) PeekByte() (b byte, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.PeekRune">func (o *FilePort) PeekRune() (r rune, size int, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.ReadByte">func (o *FilePort) ReadByte() (c byte, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.ReadRune">func (o *FilePort) ReadRune() (r rune, size int, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.ReadRunes">func (o *FilePort) ReadRunes(delim rune) (line []rune, err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.ReadyByte">func (o *FilePort) ReadyByte() bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.ReadyRune">func (o *FilePort) ReadyRune() bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.String">func (o *FilePort) String() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.UnreadByte">func (o *FilePort) UnreadByte() (err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.UnreadRune">func (o *FilePort) UnreadRune() (err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#FilePort.WriteRunes">func (o *FilePort) WriteRunes(r []rune) (n int, err error)</a></dd>
+				
+			
+			
+		</dl>
+
+		
+
+		
+			<h4>Package files</h4>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/pkg/ds/port/runtime/doc.go">doc.go</a>
+			
+				<a href="/src/pkg/ds/port/runtime/ds_port_runtime.go">ds_port_runtime.go</a>
+			
+				<a href="/src/pkg/ds/port/runtime/error.go">error.go</a>
+			
+				<a href="/src/pkg/ds/port/runtime/file.go">file.go</a>
+			
+				<a href="/src/pkg/ds/port/runtime/global.go">global.go</a>
+			
+				<a href="/src/pkg/ds/port/runtime/import.go">import.go</a>
+			
+				<a href="/src/pkg/ds/port/runtime/kind.go">kind.go</a>
+			
+				<a href="/src/pkg/ds/port/runtime/port.go">port.go</a>
+			
+			</span>
+			</p>
+		
+	
+		
+			<h2 id="constants">Constants</h2>
+			
+				<pre>const (
+    PortTypeCodeByte      = iota
+    PortTypeCodeByteIn    <span class="comment">// binary intput port</span>
+    PortTypeCodeByteOut   <span class="comment">// binary output port</span>
+    PortTypeCodeByteInOut <span class="comment">// binary port</span>
+
+    PortTypeCodeChar
+    PortTypeCodeCharIn    <span class="comment">// textual input port</span>
+    PortTypeCodeCharOut   <span class="comment">// textual output port</span>
+    PortTypeCodeCharInOut <span class="comment">// textual port</span>
+
+    PortTypeCodeAny
+    PortTypeCodeAnyIn    <span class="comment">// nonstandard, &lt;-chan Any</span>
+    PortTypeCodeAnyOut   <span class="comment">// nonstandard, chan&lt;- Any</span>
+    PortTypeCodeAnyInOut <span class="comment">// nonstandard, chan Any</span>
+
+    PortTypeCodeMax <span class="comment">// maximum</span>
+)</pre>
+				<p>
+port type codes
+</p>
+
+			
+		
+		
+		
+		
+			
+			
+			<h2 id="BytePort">type <a href="/src/pkg/ds/port/runtime/port.go?s=7569:7651#L357">BytePort</a></h2>
+			<pre>type BytePort struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="BytePort.Close">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=7947:7979#L384">Close</a></h3>
+				<pre>func (o *BytePort) Close() error</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.Closed">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=7892:7924#L380">Closed</a></h3>
+				<pre>func (o *BytePort) Closed() bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.Equal">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=7653:7689#L364">Equal</a></h3>
+				<pre>func (o *BytePort) Equal(a Any) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.GetHash">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=7709:7745#L368">GetHash</a></h3>
+				<pre>func (o *BytePort) GetHash() uintptr</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.GetPortType">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=7835:7871#L376">GetPortType</a></h3>
+				<pre>func (o *BytePort) GetPortType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.GetType">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=7761:7793#L372">GetType</a></h3>
+				<pre>func (o *BytePort) GetType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.Peek">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=8014:8066#L389">Peek</a></h3>
+				<pre>func (o *BytePort) Peek(n int) (b []byte, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.PeekByte">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=8143:8192#L396">PeekByte</a></h3>
+				<pre>func (o *BytePort) PeekByte() (b byte, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.PeekRune">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=8241:8297#L401">PeekRune</a></h3>
+				<pre>func (o *BytePort) PeekRune() (r rune, n int, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.Read">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=8346:8398#L406">Read</a></h3>
+				<pre>func (o *BytePort) Read(p []byte) (n int, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.ReadByte">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=8572:8621#L419">ReadByte</a></h3>
+				<pre>func (o *BytePort) ReadByte() (c byte, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.ReadLine">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=9090:9144#L449">ReadLine</a></h3>
+				<pre>func (o *BytePort) ReadLine() (line []rune, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.ReadRune">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=8719:8778#L429">ReadRune</a></h3>
+				<pre>func (o *BytePort) ReadRune() (r rune, size int, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.ReadRunes">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=9002:9067#L445">ReadRunes</a></h3>
+				<pre>func (o *BytePort) ReadRunes(delim rune) (line []rune, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.UnreadByte">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=9348:9385#L461">UnreadByte</a></h3>
+				<pre>func (o *BytePort) UnreadByte() error</pre>
+				
+				
+				
+			
+				
+				<h3 id="BytePort.UnreadRune">func (*BytePort) <a href="/src/pkg/ds/port/runtime/port.go?s=9412:9449#L466">UnreadRune</a></h3>
+				<pre>func (o *BytePort) UnreadRune() error</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="CharPort">type <a href="/src/pkg/ds/port/runtime/port.go?s=9500:9582#L473">CharPort</a></h2>
+			<pre>type CharPort struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="CharPort.Close">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=9878:9910#L500">Close</a></h3>
+				<pre>func (o *CharPort) Close() error</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.Closed">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=9823:9855#L496">Closed</a></h3>
+				<pre>func (o *CharPort) Closed() bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.Equal">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=9584:9620#L480">Equal</a></h3>
+				<pre>func (o *CharPort) Equal(a Any) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.Flush">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=9945:9977#L505">Flush</a></h3>
+				<pre>func (o *CharPort) Flush() error</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.GetHash">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=9640:9676#L484">GetHash</a></h3>
+				<pre>func (o *CharPort) GetHash() uintptr</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.GetPortType">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=9766:9802#L492">GetPortType</a></h3>
+				<pre>func (o *CharPort) GetPortType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.GetType">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=9692:9724#L488">GetType</a></h3>
+				<pre>func (o *CharPort) GetType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.Peek">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=9995:10047#L509">Peek</a></h3>
+				<pre>func (o *CharPort) Peek(n int) (b []byte, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.PeekByte">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=10075:10124#L513">PeekByte</a></h3>
+				<pre>func (o *CharPort) PeekByte() (b byte, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.PeekRune">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=10228:10287#L520">PeekRune</a></h3>
+				<pre>func (o *CharPort) PeekRune() (r rune, size int, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.Read">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=10430:10482#L530">Read</a></h3>
+				<pre>func (o *CharPort) Read(p []byte) (n int, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.ReadByte">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=10789:10838#L548">ReadByte</a></h3>
+				<pre>func (o *CharPort) ReadByte() (c byte, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.ReadLine">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=11497:11551#L580">ReadLine</a></h3>
+				<pre>func (o *CharPort) ReadLine() (line []rune, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.ReadRune">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=11043:11102#L558">ReadRune</a></h3>
+				<pre>func (o *CharPort) ReadRune() (r rune, size int, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.ReadRunes">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=11409:11474#L576">ReadRunes</a></h3>
+				<pre>func (o *CharPort) ReadRunes(delim rune) (line []rune, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.ReadyByte">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=10943:10978#L553">ReadyByte</a></h3>
+				<pre>func (o *CharPort) ReadyByte() bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.ReadyRune">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=11309:11344#L571">ReadyRune</a></h3>
+				<pre>func (o *CharPort) ReadyRune() bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.UnreadByte">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=11800:11837#L593">UnreadByte</a></h3>
+				<pre>func (o *CharPort) UnreadByte() error</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.UnreadRune">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=11911:11948#L599">UnreadRune</a></h3>
+				<pre>func (o *CharPort) UnreadRune() error</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.Write">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=12022:12075#L605">Write</a></h3>
+				<pre>func (o *CharPort) Write(c []byte) (n int, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="CharPort.WriteRunes">func (*CharPort) <a href="/src/pkg/ds/port/runtime/port.go?s=12201:12259#L611">WriteRunes</a></h3>
+				<pre>func (o *CharPort) WriteRunes(r []rune) (n int, err error)</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="FilePort">type <a href="/src/pkg/ds/port/runtime/file.go?s=109:190#L3">FilePort</a></h2>
+			<pre>type FilePort struct {
+    *os.File
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="FilePort.Closed">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=1923:1955#L105">Closed</a></h3>
+				<pre>func (o *FilePort) Closed() bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.Equal">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=347:383#L17">Equal</a></h3>
+				<pre>func (o *FilePort) Equal(a Any) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.Flush">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=586:618#L33">Flush</a></h3>
+				<pre>func (o *FilePort) Flush() error</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.GetHash">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=477:513#L25">GetHash</a></h3>
+				<pre>func (o *FilePort) GetHash() uintptr</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.GetPortType">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=529:565#L29">GetPortType</a></h3>
+				<pre>func (o *FilePort) GetPortType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.GetType">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=403:435#L21">GetType</a></h3>
+				<pre>func (o *FilePort) GetType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.Peek">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=728:780#L41">Peek</a></h3>
+				<pre>func (o *FilePort) Peek(n int) (b []byte, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.PeekByte">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=808:857#L45">PeekByte</a></h3>
+				<pre>func (o *FilePort) PeekByte() (b byte, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.PeekRune">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=906:965#L50">PeekRune</a></h3>
+				<pre>func (o *FilePort) PeekRune() (r rune, size int, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.ReadByte">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=1077:1126#L59">ReadByte</a></h3>
+				<pre>func (o *FilePort) ReadByte() (c byte, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.ReadRune">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=1299:1358#L73">ReadRune</a></h3>
+				<pre>func (o *FilePort) ReadRune() (r rune, size int, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.ReadRunes">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=1571:1636#L88">ReadRunes</a></h3>
+				<pre>func (o *FilePort) ReadRunes(delim rune) (line []rune, err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.ReadyByte">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=1014:1049#L55">ReadyByte</a></h3>
+				<pre>func (o *FilePort) ReadyByte() bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.ReadyRune">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=1236:1271#L69">ReadyRune</a></h3>
+				<pre>func (o *FilePort) ReadyRune() bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.String">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=641:675#L37">String</a></h3>
+				<pre>func (o *FilePort) String() string</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.UnreadByte">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=1659:1702#L92">UnreadByte</a></h3>
+				<pre>func (o *FilePort) UnreadByte() (err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.UnreadRune">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=1744:1787#L97">UnreadRune</a></h3>
+				<pre>func (o *FilePort) UnreadRune() (err error)</pre>
+				
+				
+				
+			
+				
+				<h3 id="FilePort.WriteRunes">func (*FilePort) <a href="/src/pkg/ds/port/runtime/file.go?s=1824:1882#L101">WriteRunes</a></h3>
+				<pre>func (o *FilePort) WriteRunes(r []rune) (n int, err error)</pre>
+				
+				
+				
+			
+		
+		</div>
+	
+
+	
+
+
+
+
+
+
+
+
+
+</div>
+
+</div>
+
+<div id="copyright">
+Build version weekly.2012-03-04 +9353aa1efdf3.
+Except as noted, this content is licensed under a
+Creative Commons Attribution 3.0 License.
+</div>
+
+</body>
+<script type="text/javascript">
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Droscheme</title>
+    <link rel="stylesheet" href="/droscheme/stylesheets/styles.css" />
+    <link rel="stylesheet" href="/droscheme/stylesheets/pygment_trac.css" />
+    <link rel="stylesheet" href="/droscheme/pkg/style.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="../javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  </head>
+  <body>
+
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/andydude/droscheme">View On GitHub</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/reference.html">Reference</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/cmd/index.html">Commands</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/index.html">Home</a></li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+<div id="page">
+
+<div id="content">
+
+
+  <div id="plusone"><g:plusone size="small" annotation="none"></g:plusone></div>
+  <h1>Package ds_any</h1>
+
+
+
+
+<div id="nav"></div>
+
+
+<!--
+	Copyright 2009 The Go Authors. All rights reserved.
+	Use of this source code is governed by a BSD-style
+	license that can be found in the LICENSE file.
+-->
+
+	
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "ds/any"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#overview">Overview</a></dd>
+			<dd><a href="#index">Index</a></dd>
+			
+			
+				<dd><a href="#subdirectories">Subdirectories</a></dd>
+			
+			</dl>
+		</div>
+		<h2 id="overview">Overview</h2>
+		<!-- The package's Name is printed as title by the top-level template -->
+		<p>
+Package ds/any is for interfacing with Droscheme objects.
+</p>
+<p>
+Bla
+Bluu
+</p>
+<h3 id="Environments">Environments</h3>
+<p>
+This type is used for Scheme environments.
+</p>
+<h3 id="Procedures">Procedures</h3>
+<p>
+This type represents Scheme procedures.
+</p>
+
+		
+	
+		<h2 id="index">Index</h2>
+		<!-- Table of contents for API; must be named manual-nav to turn off auto nav. -->
+		<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#Any">type Any</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Env">type Env</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#NewEnv">func NewEnv() *Env</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Env.Add">func (env *Env) Add(value Named)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Env.Define">func (env *Env) Define(symbol, value Any)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Env.Extend">func (env *Env) Extend() *Env</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Env.Ref">func (env *Env) Ref(symbol Any) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Env.RefDefault">func (env *Env) RefDefault(symbol, value Any) Any</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Env.Set">func (env *Env) Set(symbol, value Any)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Env.Update">func (env *Env) Update(child *Env) *Env</a></dd>
+				
+			
+				
+				<dd><a href="#Evaler">type Evaler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Named">type Named</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PrimProc">type PrimProc</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#NewProc">func NewProc(it Any, name string) *PrimProc</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#PrimProc.IsSyntax">func (pc *PrimProc) IsSyntax() bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#PrimProc.Name">func (pc *PrimProc) Name() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#PrimProc.String">func (pc *PrimProc) String() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#PrimProc.Value">func (pc *PrimProc) Value() Any</a></dd>
+				
+			
+				
+				<dd><a href="#PrimSyntax">type PrimSyntax</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#NewSyntax">func NewSyntax(it Any, name string) *PrimSyntax</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#PrimSyntax.IsSyntax">func (kw *PrimSyntax) IsSyntax() bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#PrimSyntax.Name">func (kw *PrimSyntax) Name() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#PrimSyntax.String">func (kw *PrimSyntax) String() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#PrimSyntax.Value">func (kw *PrimSyntax) Value() Any</a></dd>
+				
+			
+				
+				<dd><a href="#Proc">type Proc</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Syntax">type Syntax</a></dd>
+				
+				
+			
+			
+		</dl>
+
+		
+
+		
+			<h4>Package files</h4>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/pkg/ds/any/any.go">any.go</a>
+			
+				<a href="/src/pkg/ds/any/doc.go">doc.go</a>
+			
+				<a href="/src/pkg/ds/any/env.go">env.go</a>
+			
+				<a href="/src/pkg/ds/any/prim.go">prim.go</a>
+			
+			</span>
+			</p>
+		
+	
+		
+		
+		
+		
+			
+			
+			<h2 id="Any">type <a href="/src/pkg/ds/any/any.go?s=461:481#L4">Any</a></h2>
+			<pre>type Any interface{}</pre>
+			<p>
+Any
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Env">type <a href="/src/pkg/ds/any/env.go?s=547:598#L7">Env</a></h2>
+			<pre>type Env struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="NewEnv">func <a href="/src/pkg/ds/any/env.go?s=600:618#L12">NewEnv</a></h3>
+				<pre>func NewEnv() *Env</pre>
+				
+				
+			
+
+			
+				
+				<h3 id="Env.Add">func (*Env) <a href="/src/pkg/ds/any/env.go?s=736:768#L20">Add</a></h3>
+				<pre>func (env *Env) Add(value Named)</pre>
+				
+				
+				
+			
+				
+				<h3 id="Env.Define">func (*Env) <a href="/src/pkg/ds/any/env.go?s=1555:1596#L47">Define</a></h3>
+				<pre>func (env *Env) Define(symbol, value Any)</pre>
+				
+				
+				
+			
+				
+				<h3 id="Env.Extend">func (*Env) <a href="/src/pkg/ds/any/env.go?s=669:698#L16">Extend</a></h3>
+				<pre>func (env *Env) Extend() *Env</pre>
+				
+				
+				
+			
+				
+				<h3 id="Env.Ref">func (*Env) <a href="/src/pkg/ds/any/env.go?s=1854:1889#L57">Ref</a></h3>
+				<pre>func (env *Env) Ref(symbol Any) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Env.RefDefault">func (*Env) <a href="/src/pkg/ds/any/env.go?s=2040:2089#L66">RefDefault</a></h3>
+				<pre>func (env *Env) RefDefault(symbol, value Any) Any</pre>
+				
+				
+				
+			
+				
+				<h3 id="Env.Set">func (*Env) <a href="/src/pkg/ds/any/env.go?s=2283:2321#L77">Set</a></h3>
+				<pre>func (env *Env) Set(symbol, value Any)</pre>
+				
+				
+				
+			
+				
+				<h3 id="Env.Update">func (*Env) <a href="/src/pkg/ds/any/env.go?s=2565:2604#L90">Update</a></h3>
+				<pre>func (env *Env) Update(child *Env) *Env</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="Evaler">type <a href="/src/pkg/ds/any/any.go?s=499:544#L9">Evaler</a></h2>
+			<pre>type Evaler interface {
+    Eval(env *Env) Any
+}</pre>
+			<p>
+Evaler
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Named">type <a href="/src/pkg/ds/any/any.go?s=834:914#L21">Named</a></h2>
+			<pre>type Named interface {
+    Name() string
+    Value() Any <span class="comment">// of the type func(???)Any</span>
+}</pre>
+			<p>
+This interface represents maplets in environments.
+</p>
+<p>
+In order to lubricate the import and export between
+packages, this allows us to pass a single object to
+the environment which it can then query to find its
+name. After that, it may call Define() on the value.
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="PrimProc">type <a href="/src/pkg/ds/any/prim.go?s=549:642#L6">PrimProc</a></h2>
+			<pre>type PrimProc struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			<p>
+primitive procedure structure type
+</p>
+
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="NewProc">func <a href="/src/pkg/ds/any/prim.go?s=644:687#L11">NewProc</a></h3>
+				<pre>func NewProc(it Any, name string) *PrimProc</pre>
+				
+				
+			
+
+			
+				
+				<h3 id="PrimProc.IsSyntax">func (*PrimProc) <a href="/src/pkg/ds/any/prim.go?s=733:768#L15">IsSyntax</a></h3>
+				<pre>func (pc *PrimProc) IsSyntax() bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="PrimProc.Name">func (*PrimProc) <a href="/src/pkg/ds/any/prim.go?s=788:821#L19">Name</a></h3>
+				<pre>func (pc *PrimProc) Name() string</pre>
+				
+				
+				
+			
+				
+				<h3 id="PrimProc.String">func (*PrimProc) <a href="/src/pkg/ds/any/prim.go?s=843:878#L23">String</a></h3>
+				<pre>func (pc *PrimProc) String() string</pre>
+				
+				
+				
+			
+				
+				<h3 id="PrimProc.Value">func (*PrimProc) <a href="/src/pkg/ds/any/prim.go?s=900:931#L27">Value</a></h3>
+				<pre>func (pc *PrimProc) Value() Any</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="PrimSyntax">type <a href="/src/pkg/ds/any/prim.go?s=988:1121#L32">PrimSyntax</a></h2>
+			<pre>type PrimSyntax struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			<p>
+primitive syntax structure type
+</p>
+
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="NewSyntax">func <a href="/src/pkg/ds/any/prim.go?s=1123:1170#L38">NewSyntax</a></h3>
+				<pre>func NewSyntax(it Any, name string) *PrimSyntax</pre>
+				
+				
+			
+
+			
+				
+				<h3 id="PrimSyntax.IsSyntax">func (*PrimSyntax) <a href="/src/pkg/ds/any/prim.go?s=1218:1255#L42">IsSyntax</a></h3>
+				<pre>func (kw *PrimSyntax) IsSyntax() bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="PrimSyntax.Name">func (*PrimSyntax) <a href="/src/pkg/ds/any/prim.go?s=1274:1309#L46">Name</a></h3>
+				<pre>func (kw *PrimSyntax) Name() string</pre>
+				
+				
+				
+			
+				
+				<h3 id="PrimSyntax.String">func (*PrimSyntax) <a href="/src/pkg/ds/any/prim.go?s=1331:1368#L50">String</a></h3>
+				<pre>func (kw *PrimSyntax) String() string</pre>
+				
+				
+				
+			
+				
+				<h3 id="PrimSyntax.Value">func (*PrimSyntax) <a href="/src/pkg/ds/any/prim.go?s=1390:1423#L54">Value</a></h3>
+				<pre>func (kw *PrimSyntax) Value() Any</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="Proc">type <a href="/src/pkg/ds/any/any.go?s=930:976#L29">Proc</a></h2>
+			<pre>type Proc interface {
+    Apply(args []Any) Any
+}</pre>
+			<p>
+Proc
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Syntax">type <a href="/src/pkg/ds/any/any.go?s=1040:1099#L36">Syntax</a></h2>
+			<pre>type Syntax interface {
+    Transform(env *Env, exp Any) Any
+}</pre>
+			<p>
+Syntax
+</p>
+<p>
+This interface represents macro transformers.
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+		</div>
+	
+
+	
+
+
+
+
+
+
+
+	
+	
+		<h2 id="subdirectories">Subdirectories</h2>
+	
+	<table class="dir">
+	<tr>
+	<th>Name</th>
+	<th>&nbsp;&nbsp;&nbsp;&nbsp;</th>
+	<th style="text-align: left; width: auto">Synopsis</th>
+	</tr>
+	
+		<tr>
+		<td><a href="..">..</a></td>
+		</tr>
+	
+	
+		
+			<tr>
+			<td><a href="char">char</a></td>
+			<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+			<td style="width: auto">Package ds/any/char represents the Scheme library (ds any char).</td>
+			</tr>
+		
+	
+		
+			<tr>
+			<td><a href="runtime">runtime</a></td>
+			<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+			<td style="width: auto">Package ds/any/runtime represents the Scheme library (ds any runtime).</td>
+			</tr>
+		
+	
+		
+			<tr>
+			<td><a href="syntax">syntax</a></td>
+			<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+			<td style="width: auto">Package ds/any/syntax represents the Scheme library (ds any syntax).</td>
+			</tr>
+		
+	
+	</table>
+
+
+
+</div>
+
+</div>
+
+<div id="copyright">
+Build version weekly.2012-03-04 +9353aa1efdf3.
+Except as noted, this content is licensed under a
+Creative Commons Attribution 3.0 License.
+</div>
+
+</body>
+<script type="text/javascript">
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>

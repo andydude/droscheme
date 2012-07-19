@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Droscheme</title>
+    <link rel="stylesheet" href="/droscheme/stylesheets/styles.css" />
+    <link rel="stylesheet" href="/droscheme/stylesheets/pygment_trac.css" />
+    <link rel="stylesheet" href="/droscheme/pkg/style.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="../javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  </head>
+  <body>
+
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/andydude/droscheme">View On GitHub</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/reference.html">Reference</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/cmd/index.html">Commands</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/index.html">Home</a></li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+<div id="page">
+
+<div id="content">
+
+
+  <div id="plusone"><g:plusone size="small" annotation="none"></g:plusone></div>
+  <h1>Package ds_port</h1>
+
+
+
+
+<div id="nav"></div>
+
+
+<!--
+	Copyright 2009 The Go Authors. All rights reserved.
+	Use of this source code is governed by a BSD-style
+	license that can be found in the LICENSE file.
+-->
+
+	
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "ds/port"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#overview">Overview</a></dd>
+			<dd><a href="#index">Index</a></dd>
+			
+			
+				<dd><a href="#subdirectories">Subdirectories</a></dd>
+			
+			</dl>
+		</div>
+		<h2 id="overview">Overview</h2>
+		<!-- The package's Name is printed as title by the top-level template -->
+		<p>
+Package ds/port is for interfacing with Droscheme I/O.
+</p>
+
+		
+	
+		<h2 id="index">Index</h2>
+		<!-- Table of contents for API; must be named manual-nav to turn off auto nav. -->
+		<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#BIPort">type BIPort</a></dd>
+				
+				
+			
+				
+				<dd><a href="#BOPort">type BOPort</a></dd>
+				
+				
+			
+				
+				<dd><a href="#BPort">type BPort</a></dd>
+				
+				
+			
+				
+				<dd><a href="#BytePeeker">type BytePeeker</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Closer">type Closer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Flusher">type Flusher</a></dd>
+				
+				
+			
+				
+				<dd><a href="#IPort">type IPort</a></dd>
+				
+				
+			
+				
+				<dd><a href="#LineReader">type LineReader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#OPort">type OPort</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Peeker">type Peeker</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Port">type Port</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RunePeeker">type RunePeeker</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RunesReader">type RunesReader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RunesWriter">type RunesWriter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StringReader">type StringReader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#TIPort">type TIPort</a></dd>
+				
+				
+			
+				
+				<dd><a href="#TOPort">type TOPort</a></dd>
+				
+				
+			
+				
+				<dd><a href="#TPort">type TPort</a></dd>
+				
+				
+			
+			
+		</dl>
+
+		
+
+		
+			<h4>Package files</h4>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/pkg/ds/port/doc.go">doc.go</a>
+			
+				<a href="/src/pkg/ds/port/types.go">types.go</a>
+			
+			</span>
+			</p>
+		
+	
+		
+		
+		
+		
+			
+			
+			<h2 id="BIPort">type <a href="/src/pkg/ds/port/types.go?s=2404:2475#L82">BIPort</a></h2>
+			<pre>type BIPort interface {
+    io.ByteReader
+    io.Reader
+    BytePeeker
+    Peeker
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="BOPort">type <a href="/src/pkg/ds/port/types.go?s=2477:2513#L89">BOPort</a></h2>
+			<pre>type BOPort interface {
+    io.Writer
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="BPort">type <a href="/src/pkg/ds/port/types.go?s=2622:2662#L103">BPort</a></h2>
+			<pre>type BPort interface {
+    BIPort
+    BOPort
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="BytePeeker">type <a href="/src/pkg/ds/port/types.go?s=1734:1836#L47">BytePeeker</a></h2>
+			<pre>type BytePeeker interface {
+    PeekByte() (c byte, err error)
+    ReadyByte() bool
+    UnreadByte() error
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Closer">type <a href="/src/pkg/ds/port/types.go?s=1510:1561#L32">Closer</a></h2>
+			<pre>type Closer interface {
+    io.Closer
+    Closed() bool
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Flusher">type <a href="/src/pkg/ds/port/types.go?s=1596:1637#L38">Flusher</a></h2>
+			<pre>type Flusher interface {
+    Flush() error
+}</pre>
+			<p>
+implemented by dsbufio.Writer
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="IPort">type <a href="/src/pkg/ds/port/types.go?s=2706:2746#L113">IPort</a></h2>
+			<pre>type IPort interface {
+    BIPort
+    TIPort
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="LineReader">type <a href="/src/pkg/ds/port/types.go?s=1952:2033#L59">LineReader</a></h2>
+			<pre>type LineReader interface {
+    ReadLine() (line []byte, isPrefix bool, err error)
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="OPort">type <a href="/src/pkg/ds/port/types.go?s=2748:2797#L118">OPort</a></h2>
+			<pre>type OPort interface {
+    BOPort
+    TOPort
+    Flusher
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Peeker">type <a href="/src/pkg/ds/port/types.go?s=1672:1732#L43">Peeker</a></h2>
+			<pre>type Peeker interface {
+    Peek(n int) (c []byte, err error)
+}</pre>
+			<p>
+implemented by dsbufio.Reader
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Port">type <a href="/src/pkg/ds/port/types.go?s=2799:2854#L124">Port</a></h2>
+			<pre>type Port interface {
+    Any
+    GetPortType() int
+    Closer
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="RunePeeker">type <a href="/src/pkg/ds/port/types.go?s=1838:1950#L53">RunePeeker</a></h2>
+			<pre>type RunePeeker interface {
+    PeekRune() (r rune, size int, err error)
+    ReadyRune() bool
+    UnreadRune() error
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="RunesReader">type <a href="/src/pkg/ds/port/types.go?s=2117:2195#L67">RunesReader</a></h2>
+			<pre>type RunesReader interface {
+    ReadRunes(delim rune) (line []rune, err error)
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="RunesWriter">type <a href="/src/pkg/ds/port/types.go?s=2226:2297#L72">RunesWriter</a></h2>
+			<pre>type RunesWriter interface {
+    WriteRunes(p []rune) (n int, err error)
+}</pre>
+			<p>
+similar to io.WriteString
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="StringReader">type <a href="/src/pkg/ds/port/types.go?s=2035:2115#L63">StringReader</a></h2>
+			<pre>type StringReader interface {
+    ReadString(delim byte) (line string, err error)
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="TIPort">type <a href="/src/pkg/ds/port/types.go?s=2515:2580#L93">TIPort</a></h2>
+			<pre>type TIPort interface {
+    io.RuneReader
+    RunesReader
+    RunePeeker
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="TOPort">type <a href="/src/pkg/ds/port/types.go?s=2582:2620#L99">TOPort</a></h2>
+			<pre>type TOPort interface {
+    RunesWriter
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="TPort">type <a href="/src/pkg/ds/port/types.go?s=2664:2704#L108">TPort</a></h2>
+			<pre>type TPort interface {
+    TIPort
+    TOPort
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+		</div>
+	
+
+	
+
+
+
+
+
+
+
+	
+	
+		<h2 id="subdirectories">Subdirectories</h2>
+	
+	<table class="dir">
+	<tr>
+	<th>Name</th>
+	<th>&nbsp;&nbsp;&nbsp;&nbsp;</th>
+	<th style="text-align: left; width: auto">Synopsis</th>
+	</tr>
+	
+		<tr>
+		<td><a href="..">..</a></td>
+		</tr>
+	
+	
+		
+			<tr>
+			<td><a href="runtime">runtime</a></td>
+			<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+			<td style="width: auto">Package ds/port/runtime represents the Scheme library (ds port runtime).</td>
+			</tr>
+		
+	
+	</table>
+
+
+
+</div>
+
+</div>
+
+<div id="copyright">
+Build version weekly.2012-03-04 +9353aa1efdf3.
+Except as noted, this content is licensed under a
+Creative Commons Attribution 3.0 License.
+</div>
+
+</body>
+<script type="text/javascript">
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>

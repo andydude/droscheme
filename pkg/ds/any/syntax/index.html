@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Droscheme</title>
+    <link rel="stylesheet" href="/droscheme/stylesheets/styles.css" />
+    <link rel="stylesheet" href="/droscheme/stylesheets/pygment_trac.css" />
+    <link rel="stylesheet" href="/droscheme/pkg/style.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="../javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  </head>
+  <body>
+
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/andydude/droscheme">View On GitHub</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/reference.html">Reference</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/cmd/index.html">Commands</a></li>
+          <li class="downloads"><a href="http://andydude.github.com/droscheme/index.html">Home</a></li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+<div id="page">
+
+<div id="content">
+
+
+  <div id="plusone"><g:plusone size="small" annotation="none"></g:plusone></div>
+  <h1>Package ds_any_syntax</h1>
+
+
+
+
+<div id="nav"></div>
+
+
+<!--
+	Copyright 2009 The Go Authors. All rights reserved.
+	Use of this source code is governed by a BSD-style
+	license that can be found in the LICENSE file.
+-->
+
+	
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "ds/any/syntax"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#overview">Overview</a></dd>
+			<dd><a href="#index">Index</a></dd>
+			
+			
+			</dl>
+		</div>
+		<h2 id="overview">Overview</h2>
+		<!-- The package's Name is printed as title by the top-level template -->
+		<p>
+Package ds/any/syntax represents the Scheme library (ds any syntax).
+</p>
+<p>
+This package represents the Scheme library (ds any syntax)
+</p>
+<p>
+Droscheme - a Scheme implementation
+Copyright © 2012 Andrew Robbins, Daniel Connelly
+</p>
+<p>
+This program is free software: it is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.
+</p>
+<p>
+Droscheme - a Scheme implementation
+Copyright © 2012 Andrew Robbins, Daniel Connelly
+</p>
+<p>
+This program is free software: it is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.
+</p>
+
+		
+	
+		<h2 id="index">Index</h2>
+		<!-- Table of contents for API; must be named manual-nav to turn off auto nav. -->
+		<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#constants">Constants</a></dd>
+			
+			
+			
+			
+				
+				<dd><a href="#GoStringer">type GoStringer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Label">type Label</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Label.Equal">func (o Label) Equal(a Any) bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Label.GetHash">func (o Label) GetHash() uintptr</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Label.GetType">func (o Label) GetType() int</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Label.String">func (o Label) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Lexer">type Lexer</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Lexer.Error">func (lex *Lexer) Error(e string)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Lexer.Lex">func (lex *Lexer) Lex(lval *yySymType) int</a></dd>
+				
+			
+				
+				<dd><a href="#SchemeStringer">type SchemeStringer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#State">type State</a></dd>
+				
+				
+			
+			
+		</dl>
+
+		
+
+		
+			<h4>Package files</h4>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/pkg/ds/any/syntax/core.go">core.go</a>
+			
+				<a href="/src/pkg/ds/any/syntax/doc.go">doc.go</a>
+			
+				<a href="/src/pkg/ds/any/syntax/ds_any_syntax.go">ds_any_syntax.go</a>
+			
+				<a href="/src/pkg/ds/any/syntax/export.go">export.go</a>
+			
+				<a href="/src/pkg/ds/any/syntax/global.go">global.go</a>
+			
+				<a href="/src/pkg/ds/any/syntax/import.go">import.go</a>
+			
+				<a href="/src/pkg/ds/any/syntax/label.go">label.go</a>
+			
+				<a href="/src/pkg/ds/any/syntax/lex.go">lex.go</a>
+			
+				<a href="/src/pkg/ds/any/syntax/parse.go">parse.go</a>
+			
+				<a href="/src/pkg/ds/any/syntax/shell.go">shell.go</a>
+			
+				<a href="/src/pkg/ds/any/syntax/types.go">types.go</a>
+			
+			</span>
+			</p>
+		
+	
+		
+			<h2 id="constants">Constants</h2>
+			
+				<pre>const BOOL = 57347</pre>
+				
+			
+				<pre>const CHAR = 57349</pre>
+				
+			
+				<pre>const COMMENT = 57365</pre>
+				
+			
+				<pre>const ELLIPSIS = 57362</pre>
+				
+			
+				<pre>const ID = 57346</pre>
+				
+			
+				<pre>const KEYWORD = 57364</pre>
+				
+			
+				<pre>const KSYMBOL = 57363</pre>
+				
+			
+				<pre>const LABEL = 57351</pre>
+				
+			
+				<pre>const NUMBER = 57348</pre>
+				
+			
+				<pre>const QQUOTE = 57355</pre>
+				
+			
+				<pre>const QSYNTAX = 57359</pre>
+				
+			
+				<pre>const QUOTE = 57354</pre>
+				
+			
+				<pre>const STRING = 57350</pre>
+				
+			
+				<pre>const SYNTAX = 57358</pre>
+				
+			
+				<pre>const U8VECTORPAREN = 57353</pre>
+				
+			
+				<pre>const UNQUOTE = 57356</pre>
+				
+			
+				<pre>const UNQUOTES = 57357</pre>
+				
+			
+				<pre>const UNSYNTAX = 57360</pre>
+				
+			
+				<pre>const UNSYNTAXS = 57361</pre>
+				
+			
+				<pre>const VECTORPAREN = 57352</pre>
+				
+			
+		
+		
+		
+		
+			
+			
+			<h2 id="GoStringer">type <a href="/src/pkg/ds/any/syntax/types.go?s=124:172#L1">GoStringer</a></h2>
+			<pre>type GoStringer interface {
+    GoString() string
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Label">type <a href="/src/pkg/ds/any/syntax/label.go?s=71:114#L1">Label</a></h2>
+			<pre>type Label struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="Label.Equal">func (Label) <a href="/src/pkg/ds/any/syntax/label.go?s=330:362#L16">Equal</a></h3>
+				<pre>func (o Label) Equal(a Any) bool</pre>
+				
+				
+				
+			
+				
+				<h3 id="Label.GetHash">func (Label) <a href="/src/pkg/ds/any/syntax/label.go?s=205:237#L8">GetHash</a></h3>
+				<pre>func (o Label) GetHash() uintptr</pre>
+				
+				
+				
+			
+				
+				<h3 id="Label.GetType">func (Label) <a href="/src/pkg/ds/any/syntax/label.go?s=256:284#L12">GetType</a></h3>
+				<pre>func (o Label) GetType() int</pre>
+				
+				
+				
+			
+				
+				<h3 id="Label.String">func (Label) <a href="/src/pkg/ds/any/syntax/label.go?s=385:415#L20">String</a></h3>
+				<pre>func (o Label) String() string</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="Lexer">type <a href="/src/pkg/ds/any/syntax/lex.go?s=797:1101#L24">Lexer</a></h2>
+			<pre>type Lexer struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+				
+				<h3 id="Lexer.Error">func (*Lexer) <a href="/src/pkg/ds/any/syntax/parse.y?s=1183:1216#L278">Error</a></h3>
+				<pre>func (lex *Lexer) Error(e string)</pre>
+				
+				
+				
+			
+				
+				<h3 id="Lexer.Lex">func (*Lexer) <a href="/src/pkg/ds/any/syntax/parse.y?s=1044:1086#L271">Lex</a></h3>
+				<pre>func (lex *Lexer) Lex(lval *yySymType) int</pre>
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="SchemeStringer">type <a href="/src/pkg/ds/any/syntax/types.go?s=174:230#L4">SchemeStringer</a></h2>
+			<pre>type SchemeStringer interface {
+    SchemeString() string
+}</pre>
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="State">type <a href="/src/pkg/ds/any/syntax/lex.go?s=767:796#L23">State</a></h2>
+			<pre>type State func(*Lexer) State</pre>
+			<p>
+[AJR] Yes, I watched Rob Pike
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+		</div>
+	
+
+	
+
+
+
+
+
+
+
+
+
+</div>
+
+</div>
+
+<div id="copyright">
+Build version weekly.2012-03-04 +9353aa1efdf3.
+Except as noted, this content is licensed under a
+Creative Commons Attribution 3.0 License.
+</div>
+
+</body>
+<script type="text/javascript">
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>
