@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Droscheme</title>
+    <link rel="stylesheet" href="/droscheme/css/drosera.css">
+    <!--link rel="stylesheet" href="stylesheets/pygment_trac.css"-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="/droscheme/js/drosera.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <div class="drobar">
+      <ul>
+        <li><a href="/droscheme/"><small>Droscheme</small></a></li>
+        <li><a href="/droscheme/cmd/">Commands</a></li>
+        <li><a href="/droscheme/lib/">Libraries</a></li>
+        <li><a href="/droscheme/pkg/">Packages</a></li>
+      </ul>
+      <div class="right">
+        <ul>
+          <li><a href="https://github.com/andydude/droscheme/zipball/master">ZIP</a></li>
+          <li><a href="https://github.com/andydude/droscheme/tarball/master">TAR</a></li>
+          <li><a href="http://github.com/andydude/droscheme"><small>GitHub</small></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="wrapper">
+      <header>
+        <h1>Droscheme</h1>
+        <p>Scheme implemented in Go.</p>
+      </header>
+      <section>
+        <h1>Commands</h1>
+        <p>Droscheme - a Scheme implementation</p>
+
+        <h3><tt>dsi</tt></h3>
+
+        <p>
+The <tt>dsi</tt> command is the Droscheme interpreter.
+        </p>
+        <ul>
+          <li>Read the <a href="http://www.r6rs.org/">R6RS report on Scheme</a>.</li>
+          <li>Read the <a href="dsi.html">command documentation</a>.</li>
+          <li>Browse the <a href="https://github.com/andydude/droscheme/tree/master/cmd">source code</a>.</li>
+        </ul>
+
+        <h3><tt>gosc</tt></h3>
+
+        <p>
+The <tt>gosc</tt> command is the Gos =&gt; Go compiler.
+It is currently only intended to build the standard libraries for the interpreter.
+It is not recommended to use <tt>gosc</tt> for other purposes. 
+This command is mostly written in Scheme. The <tt>i2s</tt> subcommand is written in Guile. The <tt>gos2go</tt> subcommand is written in Racket. The <tt>go2gos</tt> subcommand is written in Go.
+        </p>
+        <ul>
+          <li>Read the <a href="gos.html">Gos language specification</a>.</li>
+          <li>Read the <a href="gosc.html">gosc documentation</a>.</li>
+          <li>Read the <a href="gos2go.html">gos2go documentation</a>.</li>
+          <li>Read the <a href="go2gos.html">go2gos documentation</a>.</li>
+          <li>Browse the <a href="https://github.com/andydude/droscheme/tree/master/cmd">source code</a>.</li>
+        </ul>
+        <p>
+Eventually, this logic will be migrated to Droscheme, which shouldn't be too hard since both Guile and Racket are Schemes, and the other command is written in Go, which is the target language. If or when this rewrite is done, then this command will be renamed to '<tt>dsc</tt>'.
+        </p>
+      </section>
+
+      <footer>
+        <p>&copy; 2012 Andrew Robbins</p>
+      </footer>
+    </div>
+  </body>
+</html>
