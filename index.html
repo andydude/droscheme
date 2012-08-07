@@ -1,60 +1,79 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>Droscheme</title>
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <link rel="stylesheet" href="/droscheme/css/drosera.css">
+    <!--link rel="stylesheet" href="stylesheets/pygment_trac.css"-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="javascripts/respond.js"></script>
+    <script src="/droscheme/js/drosera.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
     <!--[if lt IE 8]>
     <link rel="stylesheet" href="stylesheets/ie.css">
     <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/andydude/droscheme">View On GitHub</a></li>
-          <li class="downloads"><a href="http://andydude.github.com/droscheme/reference.html">Reference</a></li>
-          <li class="downloads"><a href="https://github.com/andydude/droscheme/zipball/master">ZIP</a></li>
-          <li class="downloads"><a href="https://github.com/andydude/droscheme/tarball/master">TAR</a></li>
-          <li class="title">DOWNLOADS</li>
-        </nav>
-      </div><!-- end header -->
-
+    <div class="drobar">
+      <ul>
+        <li><a href="/droscheme/"><small>Droscheme</small></a></li>
+        <li><a href="/droscheme/cmd/">Commands</a></li>
+        <li><a href="/droscheme/lib/">Libraries</a></li>
+        <li><a href="/droscheme/pkg/">Packages</a></li>
+      </ul>
+      <div class="right">
+        <ul>
+          <li><a href="https://github.com/andydude/droscheme/zipball/master">ZIP</a></li>
+          <li><a href="https://github.com/andydude/droscheme/tarball/master">TAR</a></li>
+          <li><a href="http://github.com/andydude/droscheme"><small>GitHub</small></a></li>
+        </ul>
+      </div>
+    </div>
     <div class="wrapper">
-
+      <header>
+        <h1>Droscheme</h1>
+        <p>Scheme implemented in Go.</p>
+        <ul>
+          <li><a href="/droscheme/cmd/">Use <strong>Commands</Strong></a></li>
+          <li><a href="/droscheme/lib/">Scheme <strong>Libraries</strong></a></li>
+          <li><a href="/droscheme/pkg/ds/">Go <strong>Packages</strong></a></li>
+        </ul>
+      </header>
       <section>
-        <div id="title">
-          <h1>Droscheme</h1>
-          <p>Droscheme - a Scheme implementation</p>
-          <hr>
-          <span class="credits left">Project maintained by <a href="https://github.com/andydude">andydude</a></span>
-          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by Matt Graham</span>
-        </div>
+        <h1>Welcome</h1>
+        <p>Droscheme - a Scheme implementation</p>
 
         <h3>Welcome to Droscheme</h3>
+        
+        <p>
+Droscheme is a Go implementation of the Scheme programming language.
+It aims to be fully compliant to R5RS, R6RS and R7RS-small (draft) standards. 
+The goals of Droscheme are to provide a complete numerical tower, a complete 
+I/O port system including binary and textual ports, and to experiment with 
+nonstandard numbers and ports.</p>
 
-<p>Droscheme is a variant of the algorithmic language Scheme, which is written in Go. It aims to be fully compliant to R5RS, R6RS and R7RS-small (draft) standards. The goals of Droscheme are to provide a complete numerical tower, a complete I/O port system including binary and textual ports,
-and to experiment with nonstandard numbers and ports.</p>
+        <p>
+There are two Droscheme tools: the interpreter (<tt>dsi</tt>) and the compiler (<tt>dsc</tt>). The interpreter is available today from here, or the GitHub downloads. The compiler is a work in progress, and it only suitable for compiling the standard library for the interpreter. We hope to fix this soon, and provide a fully functional environment that is seamless accross both tools.</p>
 
-<h3>Standard Compliance</h3>
+        <h3>Standard Compliance</h3>
 
-<p>It is currently mostly compliant to R5RS and mostly compliant to R7RS-small, but nowhere near R6RS compliant. The current implementation of 
+        <p>
+It is currently mostly compliant to R5RS and mostly compliant to R7RS-small, 
+but nowhere near R6RS compliant. The current implementation of 
 <tt>call/cc</tt> (<tt>call-with-current-continuation</tt>) is the same as that of
 <tt>call/ec</tt> (<tt>call-with-escape-continuation</tt>).
-There is no difference between non-tail-calls and tail-calls; neither are explicitly optimized, so tail call optimization is not implemented, unless the Go compiler you're using supports it.
-</p>
+There is no difference between non-tail-calls and tail-calls; 
+neither are explicitly optimized, so tail call optimization is not implemented, 
+unless the Go compiler you're using supports it. The <tt>gc</tt> compiler is said to have partial tail-call optimization, and the <tt>gccgo</tt> compiler claims to have <i>full tail-call optimization</i>.</p>
+
       </section>
 
+      <footer>
+        <p>&copy; 2012 Andrew Robbins</p>
+      </footer>
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
-    
   </body>
 </html>

@@ -1,21 +1,26 @@
-body {
-background-color: #295A42;
-margin: 0 2em 0 2em;
+.tocset,
+.tocview,
+.tocsub,
+tr, td {
+color: #777 !important;
+background-color: transparent;
+padding: 0px;
+margin: 0px;
 }
 
 .maincolumn {
-background-color: transparent;
-padding: 2em;
+  background-color: transparent;
+  width:500px;
+  float:left;
+  padding-bottom:50px;
+  margin-left: 10px;
 }
-
-.tocset {
-margin: 1em 0 0 0;
-}
+/*margin: 1em 0 0 0;*/
 
 .tocview,
 .tocsub {
-background-color: #94C5AD;
-border-radius: 6px;
+/*background-color: #94C5AD;*/
+/*border-radius: 6px;*/
 padding: 0 0.5em 0 0.5em;
 }
 
@@ -29,7 +34,7 @@ text-decoration: none;
 color: black; 
 }
 .tocviewsublistonly {
-border-left: 1px solid #639C7B; 
+/*border-left: 1px solid #639C7B; */
 }
 
 .SAuthorListBox { 
@@ -41,7 +46,7 @@ display:block;
 }
 
 table {
-background-color: #333;
+background-color: #CCC;
 border-radius: 4px;
 padding: 6px;
 }
@@ -53,11 +58,7 @@ padding-left: 10px !important;
 }
 
 a, a:hover,
-p, p:hover { color: #F0E7D5; }
-
-.stt {
-color: white;
-}
+p, p:hover { color: #777; }
 
 .tocview {
   display: none;
@@ -65,13 +66,13 @@ color: white;
 
 .tocsub,
 .tocsub a {
-  color: #BE9;
+  color: #393 !important;
 }
 
 .tocsub {
-  border-top: 1px solid #453;
-  border-left: 1px solid #453;
-  background-color: #384032;
+/*  border-top: 1px solid #453;
+  border-left: 1px solid #453;*/
+/*  background-color: #384032;*/
 }
 /*  background-color: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #93bd20), color-stop(100%, #659e10));
   background: -webkit-linear-gradient(#93bd20, #659e10);
@@ -81,19 +82,54 @@ color: white;
   background: linear-gradient(#93bd20, #659e10);
 }*/
 
-.tocsub table {
-  background: transparent;
-  padding: 0px !important;
+h1,
+h1 > a {
+  color: black !important;
+  font-weight: bold;
 }
 
-h1, h2, h3, h4, h5, h6, 
-h1 > a, h2 > a, h3 > a, h4 > a { 
-  color: #e8e8e8 !important;
+h2, h3, h4, h5, h6, 
+h2 > a, h3 > a, h4 > a { 
+  color: #444 !important;
+  margin: 0 0 20px;
+  font-weight: bold;
+}
+
+div table tr,
+div table td {
+  padding: 0px;
+}
+div table {
+display: block;
+padding: 8px 15px !important;
+background: #F8F8F8 !important;
+border-radius: 5px !important;
+border: 1px solid #E5E5E5 !important;
+overflow-x: auto !important;
 }
 .versionbox { display: none !important; }
 
-.wrapper {
-margin-top: 4em; 
-position: relative; 
-right: 190px; 
+/*margin-top: 4em; */
+/*position: relative; */
+
+div table.tocsublist { 
+  display: block;
+  padding: 5px 15px !important;
+}
+
+.tocset {
+  float:top;
+  position:relative;
+  right: 40px;
+  z-index: -1 !important;
+}
+
+table td { 
+}
+table td {
+  margin: 0;
+  line-height: 1.2;
+}
+.stt {
+  font-size: 12px;
 }

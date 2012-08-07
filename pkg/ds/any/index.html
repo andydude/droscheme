@@ -4,37 +4,37 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>Droscheme</title>
-    <link rel="stylesheet" href="/droscheme/stylesheets/styles.css" />
-    <link rel="stylesheet" href="/droscheme/stylesheets/pygment_trac.css" />
-    <link rel="stylesheet" href="/droscheme/pkg/style.css" />
+    <link rel="stylesheet" href="/droscheme/css/drosera.css">
+    <link rel="stylesheet" href="/droscheme/pkg/style.css">
+    <!--link rel="stylesheet" href="stylesheets/pygment_trac.css"-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="../javascripts/respond.js"></script>
+    <script src="/droscheme/js/drosera.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
     <!--[if lt IE 8]>
     <link rel="stylesheet" href="stylesheets/ie.css">
     <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
-
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/andydude/droscheme">View On GitHub</a></li>
-          <li class="downloads"><a href="http://andydude.github.com/droscheme/reference.html">Reference</a></li>
-          <li class="downloads"><a href="http://andydude.github.com/droscheme/cmd/index.html">Commands</a></li>
-          <li class="downloads"><a href="http://andydude.github.com/droscheme/index.html">Home</a></li>
-        </nav>
-      </div><!-- end header -->
-
+    <div class="drobar">
+      <ul>
+        <li><a href="/droscheme/"><small>Droscheme</small></a></li>
+        <li><a href="/droscheme/cmd/">Commands</a></li>
+        <li><a href="/droscheme/lib/">Libraries</a></li>
+        <li><a href="/droscheme/pkg/">Packages</a></li>
+      </ul>
+      <div class="right">
+        <ul>
+          <li><a href="https://github.com/andydude/droscheme/zipball/master">ZIP</a></li>
+          <li><a href="https://github.com/andydude/droscheme/tarball/master">TAR</a></li>
+          <li><a href="http://github.com/andydude/droscheme"><small>GitHub</small></a></li>
+        </ul>
+      </div>
+    </div>
     <div class="wrapper">
-<div id="page">
-
-<div id="content">
-
-
-  <div id="plusone"><g:plusone size="small" annotation="none"></g:plusone></div>
+      <header>
   <h1>Package ds_any</h1>
 
 
@@ -63,6 +63,8 @@
 			
 			</dl>
 		</div>
+      </header>
+      <section>
 		<h2 id="overview">Overview</h2>
 		<!-- The package's Name is printed as title by the top-level template -->
 		<p>
@@ -107,6 +109,12 @@ This type represents Scheme procedures.
 					<dd>&nbsp; &nbsp; <a href="#Env.Add">func (env *Env) Add(value Named)</a></dd>
 				
 					
+					<dd>&nbsp; &nbsp; <a href="#Env.AddProc">func (env *Env) AddProc(value Any, name string)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#Env.AddValue">func (env *Env) AddValue(value Any, name string)</a></dd>
+				
+					
 					<dd>&nbsp; &nbsp; <a href="#Env.Define">func (env *Env) Define(symbol, value Any)</a></dd>
 				
 					
@@ -116,7 +124,7 @@ This type represents Scheme procedures.
 					<dd>&nbsp; &nbsp; <a href="#Env.Ref">func (env *Env) Ref(symbol Any) Any</a></dd>
 				
 					
-					<dd>&nbsp; &nbsp; <a href="#Env.RefDefault">func (env *Env) RefDefault(symbol, value Any) Any</a></dd>
+					<dd>&nbsp; &nbsp; <a href="#Env.Refer">func (env *Env) Refer(symbol, value Any) Any</a></dd>
 				
 					
 					<dd>&nbsp; &nbsp; <a href="#Env.Set">func (env *Env) Set(symbol, value Any)</a></dd>
@@ -143,7 +151,7 @@ This type represents Scheme procedures.
 				
 				
 					
-					<dd>&nbsp; &nbsp; <a href="#PrimProc.IsSyntax">func (pc *PrimProc) IsSyntax() bool</a></dd>
+					<dd>&nbsp; &nbsp; <a href="#PrimProc.Apply">func (pc *PrimProc) Apply(as []Any) Any</a></dd>
 				
 					
 					<dd>&nbsp; &nbsp; <a href="#PrimProc.Name">func (pc *PrimProc) Name() string</a></dd>
@@ -195,13 +203,13 @@ This type represents Scheme procedures.
 			<p>
 			<span style="font-size:90%">
 			
-				<a href="/src/pkg/ds/any/any.go">any.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/any.go">any.go</a>
 			
-				<a href="/src/pkg/ds/any/doc.go">doc.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/doc.go">doc.go</a>
 			
-				<a href="/src/pkg/ds/any/env.go">env.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/env.go">env.go</a>
 			
-				<a href="/src/pkg/ds/any/prim.go">prim.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go">prim.go</a>
 			
 			</span>
 			</p>
@@ -213,7 +221,7 @@ This type represents Scheme procedures.
 		
 			
 			
-			<h2 id="Any">type <a href="/src/pkg/ds/any/any.go?s=461:481#L4">Any</a></h2>
+			<h2 id="Any">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/any.go?s=461:481#L4">Any</a></h2>
 			<pre>type Any interface{}</pre>
 			<p>
 Any
@@ -232,7 +240,7 @@ Any
 		
 			
 			
-			<h2 id="Env">type <a href="/src/pkg/ds/any/env.go?s=547:598#L7">Env</a></h2>
+			<h2 id="Env">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/env.go?s=572:623#L8">Env</a></h2>
 			<pre>type Env struct {
     <span class="comment">// contains filtered or unexported fields</span>
 }</pre>
@@ -246,66 +254,135 @@ Any
 
 			
 				
-				<h3 id="NewEnv">func <a href="/src/pkg/ds/any/env.go?s=600:618#L12">NewEnv</a></h3>
+				<h3 id="NewEnv">func <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/env.go?s=658:676#L14">NewEnv</a></h3>
 				<pre>func NewEnv() *Env</pre>
-				
+				<p>
+Make a new empty environment.
+</p>
+
 				
 			
 
 			
 				
-				<h3 id="Env.Add">func (*Env) <a href="/src/pkg/ds/any/env.go?s=736:768#L20">Add</a></h3>
+				<h3 id="Env.Add">func (*Env) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/env.go?s=845:877#L21">Add</a></h3>
 				<pre>func (env *Env) Add(value Named)</pre>
-				
+				<p>
+Set value.Name()=value in current environment frame.
+</p>
+<p>
+This is primarily intended for initialization purposes.
+</p>
+
 				
 				
 			
 				
-				<h3 id="Env.Define">func (*Env) <a href="/src/pkg/ds/any/env.go?s=1555:1596#L47">Define</a></h3>
+				<h3 id="Env.AddProc">func (*Env) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/env.go?s=1041:1088#L28">AddProc</a></h3>
+				<pre>func (env *Env) AddProc(value Any, name string)</pre>
+				<p>
+Set name=NewProc(value, name) in current environment frame.
+</p>
+<p>
+This is primarily intended for initialization purposes.
+</p>
+
+				
+				
+			
+				
+				<h3 id="Env.AddValue">func (*Env) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/env.go?s=1287:1335#L36">AddValue</a></h3>
+				<pre>func (env *Env) AddValue(value Any, name string)</pre>
+				<p>
+Set name=value in current environment frame.
+</p>
+<p>
+This is primarily intended for initialization purposes.
+</p>
+
+				
+				
+			
+				
+				<h3 id="Env.Define">func (*Env) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/env.go?s=2213:2254#L66">Define</a></h3>
 				<pre>func (env *Env) Define(symbol, value Any)</pre>
-				
+				<p>
+Set symbol=value in the current environment frame.
+</p>
+<p>
+The symbol parameter must be a string.
+</p>
+
 				
 				
 			
 				
-				<h3 id="Env.Extend">func (*Env) <a href="/src/pkg/ds/any/env.go?s=669:698#L16">Extend</a></h3>
+				<h3 id="Env.Extend">func (*Env) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/env.go?s=2445:2474#L75">Extend</a></h3>
 				<pre>func (env *Env) Extend() *Env</pre>
-				
+				<p>
+Make a new environment whose parent is this environment.
+</p>
+
 				
 				
 			
 				
-				<h3 id="Env.Ref">func (*Env) <a href="/src/pkg/ds/any/env.go?s=1854:1889#L57">Ref</a></h3>
+				<h3 id="Env.Ref">func (*Env) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/env.go?s=2612:2647#L82">Ref</a></h3>
 				<pre>func (env *Env) Ref(symbol Any) Any</pre>
-				
+				<p>
+Get the symbol from this or any parent environment.
+</p>
+<p>
+The symbol parameter must be a string.
+</p>
+
 				
 				
 			
 				
-				<h3 id="Env.RefDefault">func (*Env) <a href="/src/pkg/ds/any/env.go?s=2040:2089#L66">RefDefault</a></h3>
-				<pre>func (env *Env) RefDefault(symbol, value Any) Any</pre>
-				
+				<h3 id="Env.Refer">func (*Env) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/env.go?s=3007:3051#L99">Refer</a></h3>
+				<pre>func (env *Env) Refer(symbol, value Any) Any</pre>
+				<p>
+Get the symbol from this or any parent environment,
+with a devault value if not found.
+</p>
+<p>
+The symbol parameter must be a string.
+</p>
+
 				
 				
 			
 				
-				<h3 id="Env.Set">func (*Env) <a href="/src/pkg/ds/any/env.go?s=2283:2321#L77">Set</a></h3>
+				<h3 id="Env.Set">func (*Env) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/env.go?s=3501:3539#L117">Set</a></h3>
 				<pre>func (env *Env) Set(symbol, value Any)</pre>
-				
+				<p>
+Set symbol=value in the environment frame in which it is bound.
+If the symbol is not bound, then we throw an exception.
+</p>
+<p>
+The symbol parameter must be a string.
+</p>
+
 				
 				
 			
 				
-				<h3 id="Env.Update">func (*Env) <a href="/src/pkg/ds/any/env.go?s=2565:2604#L90">Update</a></h3>
+				<h3 id="Env.Update">func (*Env) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/env.go?s=4060:4099#L137">Update</a></h3>
 				<pre>func (env *Env) Update(child *Env) *Env</pre>
-				
+				<p>
+Make a new environment whose parent is this environment, where
+the environment frame is populated with bindings from the most
+recent environment frame associated with the child parameter.
+</p>
+
 				
 				
 			
 		
 			
 			
-			<h2 id="Evaler">type <a href="/src/pkg/ds/any/any.go?s=499:544#L9">Evaler</a></h2>
+			<h2 id="Evaler">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/any.go?s=499:544#L9">Evaler</a></h2>
 			<pre>type Evaler interface {
     Eval(env *Env) Any
 }</pre>
@@ -326,7 +403,7 @@ Evaler
 		
 			
 			
-			<h2 id="Named">type <a href="/src/pkg/ds/any/any.go?s=834:914#L21">Named</a></h2>
+			<h2 id="Named">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/any.go?s=834:914#L21">Named</a></h2>
 			<pre>type Named interface {
     Name() string
     Value() Any <span class="comment">// of the type func(???)Any</span>
@@ -354,7 +431,7 @@ name. After that, it may call Define() on the value.
 		
 			
 			
-			<h2 id="PrimProc">type <a href="/src/pkg/ds/any/prim.go?s=549:642#L6">PrimProc</a></h2>
+			<h2 id="PrimProc">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go?s=567:660#L8">PrimProc</a></h2>
 			<pre>type PrimProc struct {
     <span class="comment">// contains filtered or unexported fields</span>
 }</pre>
@@ -371,7 +448,7 @@ primitive procedure structure type
 
 			
 				
-				<h3 id="NewProc">func <a href="/src/pkg/ds/any/prim.go?s=644:687#L11">NewProc</a></h3>
+				<h3 id="NewProc">func <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go?s=662:705#L13">NewProc</a></h3>
 				<pre>func NewProc(it Any, name string) *PrimProc</pre>
 				
 				
@@ -379,28 +456,28 @@ primitive procedure structure type
 
 			
 				
-				<h3 id="PrimProc.IsSyntax">func (*PrimProc) <a href="/src/pkg/ds/any/prim.go?s=733:768#L15">IsSyntax</a></h3>
-				<pre>func (pc *PrimProc) IsSyntax() bool</pre>
+				<h3 id="PrimProc.Apply">func (*PrimProc) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go?s=1283:1322#L38">Apply</a></h3>
+				<pre>func (pc *PrimProc) Apply(as []Any) Any</pre>
 				
 				
 				
 			
 				
-				<h3 id="PrimProc.Name">func (*PrimProc) <a href="/src/pkg/ds/any/prim.go?s=788:821#L19">Name</a></h3>
+				<h3 id="PrimProc.Name">func (*PrimProc) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go?s=1548:1581#L49">Name</a></h3>
 				<pre>func (pc *PrimProc) Name() string</pre>
 				
 				
 				
 			
 				
-				<h3 id="PrimProc.String">func (*PrimProc) <a href="/src/pkg/ds/any/prim.go?s=843:878#L23">String</a></h3>
+				<h3 id="PrimProc.String">func (*PrimProc) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go?s=1603:1638#L53">String</a></h3>
 				<pre>func (pc *PrimProc) String() string</pre>
 				
 				
 				
 			
 				
-				<h3 id="PrimProc.Value">func (*PrimProc) <a href="/src/pkg/ds/any/prim.go?s=900:931#L27">Value</a></h3>
+				<h3 id="PrimProc.Value">func (*PrimProc) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go?s=1660:1691#L57">Value</a></h3>
 				<pre>func (pc *PrimProc) Value() Any</pre>
 				
 				
@@ -409,7 +486,7 @@ primitive procedure structure type
 		
 			
 			
-			<h2 id="PrimSyntax">type <a href="/src/pkg/ds/any/prim.go?s=988:1121#L32">PrimSyntax</a></h2>
+			<h2 id="PrimSyntax">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go?s=1748:1881#L62">PrimSyntax</a></h2>
 			<pre>type PrimSyntax struct {
     <span class="comment">// contains filtered or unexported fields</span>
 }</pre>
@@ -426,7 +503,7 @@ primitive syntax structure type
 
 			
 				
-				<h3 id="NewSyntax">func <a href="/src/pkg/ds/any/prim.go?s=1123:1170#L38">NewSyntax</a></h3>
+				<h3 id="NewSyntax">func <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go?s=1883:1930#L68">NewSyntax</a></h3>
 				<pre>func NewSyntax(it Any, name string) *PrimSyntax</pre>
 				
 				
@@ -434,28 +511,28 @@ primitive syntax structure type
 
 			
 				
-				<h3 id="PrimSyntax.IsSyntax">func (*PrimSyntax) <a href="/src/pkg/ds/any/prim.go?s=1218:1255#L42">IsSyntax</a></h3>
+				<h3 id="PrimSyntax.IsSyntax">func (*PrimSyntax) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go?s=1978:2015#L72">IsSyntax</a></h3>
 				<pre>func (kw *PrimSyntax) IsSyntax() bool</pre>
 				
 				
 				
 			
 				
-				<h3 id="PrimSyntax.Name">func (*PrimSyntax) <a href="/src/pkg/ds/any/prim.go?s=1274:1309#L46">Name</a></h3>
+				<h3 id="PrimSyntax.Name">func (*PrimSyntax) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go?s=2034:2069#L76">Name</a></h3>
 				<pre>func (kw *PrimSyntax) Name() string</pre>
 				
 				
 				
 			
 				
-				<h3 id="PrimSyntax.String">func (*PrimSyntax) <a href="/src/pkg/ds/any/prim.go?s=1331:1368#L50">String</a></h3>
+				<h3 id="PrimSyntax.String">func (*PrimSyntax) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go?s=2091:2128#L80">String</a></h3>
 				<pre>func (kw *PrimSyntax) String() string</pre>
 				
 				
 				
 			
 				
-				<h3 id="PrimSyntax.Value">func (*PrimSyntax) <a href="/src/pkg/ds/any/prim.go?s=1390:1423#L54">Value</a></h3>
+				<h3 id="PrimSyntax.Value">func (*PrimSyntax) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/prim.go?s=2150:2183#L84">Value</a></h3>
 				<pre>func (kw *PrimSyntax) Value() Any</pre>
 				
 				
@@ -464,7 +541,7 @@ primitive syntax structure type
 		
 			
 			
-			<h2 id="Proc">type <a href="/src/pkg/ds/any/any.go?s=930:976#L29">Proc</a></h2>
+			<h2 id="Proc">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/any.go?s=930:976#L29">Proc</a></h2>
 			<pre>type Proc interface {
     Apply(args []Any) Any
 }</pre>
@@ -485,7 +562,7 @@ Proc
 		
 			
 			
-			<h2 id="Syntax">type <a href="/src/pkg/ds/any/any.go?s=1040:1099#L36">Syntax</a></h2>
+			<h2 id="Syntax">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/any.go?s=1040:1099#L36">Syntax</a></h2>
 			<pre>type Syntax interface {
     Transform(env *Env, exp Any) Any
 }</pre>
@@ -544,6 +621,22 @@ This interface represents macro transformers.
 	
 		
 			<tr>
+			<td><a href="env">env</a></td>
+			<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+			<td style="width: auto"></td>
+			</tr>
+		
+	
+		
+			<tr>
+			<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="env/scheme-report-7">scheme-report-7</a></td>
+			<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+			<td style="width: auto"></td>
+			</tr>
+		
+	
+		
+			<tr>
 			<td><a href="runtime">runtime</a></td>
 			<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
 			<td style="width: auto">Package ds/any/runtime represents the Scheme library (ds any runtime).</td>
@@ -562,20 +655,10 @@ This interface represents macro transformers.
 
 
 
-</div>
-
-</div>
-
-<div id="copyright">
-Build version weekly.2012-03-04 +9353aa1efdf3.
-Except as noted, this content is licensed under a
-Creative Commons Attribution 3.0 License.
-</div>
-
-</body>
-<script type="text/javascript">
+      </section>
+      <footer>
+        <p>&copy; 2012 Andrew Robbins</p>
+      </footer>
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
-    
   </body>
 </html>

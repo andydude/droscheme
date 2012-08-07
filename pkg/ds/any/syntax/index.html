@@ -4,37 +4,37 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>Droscheme</title>
-    <link rel="stylesheet" href="/droscheme/stylesheets/styles.css" />
-    <link rel="stylesheet" href="/droscheme/stylesheets/pygment_trac.css" />
-    <link rel="stylesheet" href="/droscheme/pkg/style.css" />
+    <link rel="stylesheet" href="/droscheme/css/drosera.css">
+    <link rel="stylesheet" href="/droscheme/pkg/style.css">
+    <!--link rel="stylesheet" href="stylesheets/pygment_trac.css"-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="../javascripts/respond.js"></script>
+    <script src="/droscheme/js/drosera.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
     <!--[if lt IE 8]>
     <link rel="stylesheet" href="stylesheets/ie.css">
     <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
-
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/andydude/droscheme">View On GitHub</a></li>
-          <li class="downloads"><a href="http://andydude.github.com/droscheme/reference.html">Reference</a></li>
-          <li class="downloads"><a href="http://andydude.github.com/droscheme/cmd/index.html">Commands</a></li>
-          <li class="downloads"><a href="http://andydude.github.com/droscheme/index.html">Home</a></li>
-        </nav>
-      </div><!-- end header -->
-
+    <div class="drobar">
+      <ul>
+        <li><a href="/droscheme/"><small>Droscheme</small></a></li>
+        <li><a href="/droscheme/cmd/">Commands</a></li>
+        <li><a href="/droscheme/lib/">Libraries</a></li>
+        <li><a href="/droscheme/pkg/">Packages</a></li>
+      </ul>
+      <div class="right">
+        <ul>
+          <li><a href="https://github.com/andydude/droscheme/zipball/master">ZIP</a></li>
+          <li><a href="https://github.com/andydude/droscheme/tarball/master">TAR</a></li>
+          <li><a href="http://github.com/andydude/droscheme"><small>GitHub</small></a></li>
+        </ul>
+      </div>
+    </div>
     <div class="wrapper">
-<div id="page">
-
-<div id="content">
-
-
-  <div id="plusone"><g:plusone size="small" annotation="none"></g:plusone></div>
+      <header>
   <h1>Package ds_any_syntax</h1>
 
 
@@ -61,6 +61,8 @@
 			
 			</dl>
 		</div>
+      </header>
+      <section>
 		<h2 id="overview">Overview</h2>
 		<!-- The package's Name is printed as title by the top-level template -->
 		<p>
@@ -103,11 +105,6 @@ terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www
 			
 			
 				
-				<dd><a href="#GoStringer">type GoStringer</a></dd>
-				
-				
-			
-				
 				<dd><a href="#Label">type Label</a></dd>
 				
 				
@@ -136,7 +133,12 @@ terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www
 				
 			
 				
-				<dd><a href="#SchemeStringer">type SchemeStringer</a></dd>
+				<dd><a href="#Matcher">type Matcher</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Replacer">type Replacer</a></dd>
 				
 				
 			
@@ -155,27 +157,31 @@ terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www
 			<p>
 			<span style="font-size:90%">
 			
-				<a href="/src/pkg/ds/any/syntax/core.go">core.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/core.go">core.go</a>
 			
-				<a href="/src/pkg/ds/any/syntax/doc.go">doc.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/doc.go">doc.go</a>
 			
-				<a href="/src/pkg/ds/any/syntax/ds_any_syntax.go">ds_any_syntax.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/ds_any_syntax.go">ds_any_syntax.go</a>
 			
-				<a href="/src/pkg/ds/any/syntax/export.go">export.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/export.go">export.go</a>
 			
-				<a href="/src/pkg/ds/any/syntax/global.go">global.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/global.go">global.go</a>
 			
-				<a href="/src/pkg/ds/any/syntax/import.go">import.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/import.go">import.go</a>
 			
-				<a href="/src/pkg/ds/any/syntax/label.go">label.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/import2.go">import2.go</a>
 			
-				<a href="/src/pkg/ds/any/syntax/lex.go">lex.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/label.go">label.go</a>
 			
-				<a href="/src/pkg/ds/any/syntax/parse.go">parse.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/lex.go">lex.go</a>
 			
-				<a href="/src/pkg/ds/any/syntax/shell.go">shell.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/match.go">match.go</a>
 			
-				<a href="/src/pkg/ds/any/syntax/types.go">types.go</a>
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/parse.go">parse.go</a>
+			
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/shell.go">shell.go</a>
+			
+				<a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/types.go">types.go</a>
 			
 			</span>
 			</p>
@@ -250,25 +256,7 @@ terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www
 		
 			
 			
-			<h2 id="GoStringer">type <a href="/src/pkg/ds/any/syntax/types.go?s=124:172#L1">GoStringer</a></h2>
-			<pre>type GoStringer interface {
-    GoString() string
-}</pre>
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-		
-			
-			
-			<h2 id="Label">type <a href="/src/pkg/ds/any/syntax/label.go?s=71:114#L1">Label</a></h2>
+			<h2 id="Label">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/label.go?s=71:114#L1">Label</a></h2>
 			<pre>type Label struct {
     <span class="comment">// contains filtered or unexported fields</span>
 }</pre>
@@ -284,28 +272,28 @@ terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www
 
 			
 				
-				<h3 id="Label.Equal">func (Label) <a href="/src/pkg/ds/any/syntax/label.go?s=330:362#L16">Equal</a></h3>
+				<h3 id="Label.Equal">func (Label) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/label.go?s=330:362#L16">Equal</a></h3>
 				<pre>func (o Label) Equal(a Any) bool</pre>
 				
 				
 				
 			
 				
-				<h3 id="Label.GetHash">func (Label) <a href="/src/pkg/ds/any/syntax/label.go?s=205:237#L8">GetHash</a></h3>
+				<h3 id="Label.GetHash">func (Label) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/label.go?s=205:237#L8">GetHash</a></h3>
 				<pre>func (o Label) GetHash() uintptr</pre>
 				
 				
 				
 			
 				
-				<h3 id="Label.GetType">func (Label) <a href="/src/pkg/ds/any/syntax/label.go?s=256:284#L12">GetType</a></h3>
+				<h3 id="Label.GetType">func (Label) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/label.go?s=256:284#L12">GetType</a></h3>
 				<pre>func (o Label) GetType() int</pre>
 				
 				
 				
 			
 				
-				<h3 id="Label.String">func (Label) <a href="/src/pkg/ds/any/syntax/label.go?s=385:415#L20">String</a></h3>
+				<h3 id="Label.String">func (Label) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/label.go?s=385:415#L20">String</a></h3>
 				<pre>func (o Label) String() string</pre>
 				
 				
@@ -314,7 +302,7 @@ terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www
 		
 			
 			
-			<h2 id="Lexer">type <a href="/src/pkg/ds/any/syntax/lex.go?s=797:1101#L24">Lexer</a></h2>
+			<h2 id="Lexer">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/lex.go?s=797:1101#L24">Lexer</a></h2>
 			<pre>type Lexer struct {
     <span class="comment">// contains filtered or unexported fields</span>
 }</pre>
@@ -330,14 +318,14 @@ terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www
 
 			
 				
-				<h3 id="Lexer.Error">func (*Lexer) <a href="/src/pkg/ds/any/syntax/parse.y?s=1183:1216#L278">Error</a></h3>
+				<h3 id="Lexer.Error">func (*Lexer) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/parse.y?s=1183:1216#L278">Error</a></h3>
 				<pre>func (lex *Lexer) Error(e string)</pre>
 				
 				
 				
 			
 				
-				<h3 id="Lexer.Lex">func (*Lexer) <a href="/src/pkg/ds/any/syntax/parse.y?s=1044:1086#L271">Lex</a></h3>
+				<h3 id="Lexer.Lex">func (*Lexer) <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/parse.y?s=1044:1086#L271">Lex</a></h3>
 				<pre>func (lex *Lexer) Lex(lval *yySymType) int</pre>
 				
 				
@@ -346,11 +334,28 @@ terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www
 		
 			
 			
-			<h2 id="SchemeStringer">type <a href="/src/pkg/ds/any/syntax/types.go?s=174:230#L4">SchemeStringer</a></h2>
-			<pre>type SchemeStringer interface {
-    SchemeString() string
+			<h2 id="Matcher">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/types.go?s=834:894#L25">Matcher</a></h2>
+			<pre>type Matcher interface {
+    Match(syntax Any, env *Env) bool
 }</pre>
-			
+			<p>
+This interface represents the first phase
+of (syntax-rules) transformations. It is
+similar to Equal, except that it takes an
+environment, which is normally empty, and
+is used as an extra return value in which
+pattern variables are bound.
+</p>
+<p>
+The pattern variables are used by the next
+phase, so in order to save energy later, we
+assign any pattern variables found in the
+object that implements this method and then
+store them in env. The same environment is
+also used for literals, which must be given
+to the Match method in the form x=x.
+</p>
+
 
 			
 
@@ -364,7 +369,43 @@ terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www
 		
 			
 			
-			<h2 id="State">type <a href="/src/pkg/ds/any/syntax/lex.go?s=767:796#L23">State</a></h2>
+			<h2 id="Replacer">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/types.go?s=1563:1613#L47">Replacer</a></h2>
+			<pre>type Replacer interface {
+    Replace(env *Env) Any
+}</pre>
+			<p>
+This interface represents the second phase
+of (syntax-rules) transformations. It is
+similar to Eval, except in the way that the
+environment is used. Instead of raising an
+error every time a symbol is unbound, it
+continues silently, and only replaces those
+symbols which are in the environment.
+</p>
+<p>
+The pattern variables are given in env by the
+Match method, in such a way that we can treat
+literals the same as pattern variables, since
+they are of the form x=x (see above). Hence,
+the literals can safely be replaced just like
+the pattern variables. This is the magic
+I was hoping to describe in this comment.
+</p>
+
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="State">type <a href="https://github.com/andydude/droscheme/blob/master/src/ds/any/syntax/lex.go?s=767:796#L23">State</a></h2>
 			<pre>type State func(*Lexer) State</pre>
 			<p>
 [AJR] Yes, I watched Rob Pike
@@ -394,20 +435,10 @@ terms of the GNU Lesser General Public License (LGPLv3): &lt;<a href="http://www
 
 
 
-</div>
-
-</div>
-
-<div id="copyright">
-Build version weekly.2012-03-04 +9353aa1efdf3.
-Except as noted, this content is licensed under a
-Creative Commons Attribution 3.0 License.
-</div>
-
-</body>
-<script type="text/javascript">
+      </section>
+      <footer>
+        <p>&copy; 2012 Andrew Robbins</p>
+      </footer>
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
-    
   </body>
 </html>

@@ -1,7 +1,7 @@
 CAT = cat
 TAC = gtac
 
-all: gos.html
+all: gos.html gosc.html
 
 %.html: %.scrib gos-style.css template-begin.html template-end.html
 	scribble --html $<

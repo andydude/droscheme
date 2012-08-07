@@ -1,3 +1,18 @@
-a {
-  color: #BE9;
+table.dir th:nth-child(2),
+table.dir td:nth-child(2),
+table.dir th:nth-child(3),
+table.dir td:nth-child(3) {
+  display: none;
+}
+
+div#content {
+  width:500px;
+  float:right;
+  padding-bottom:50px;
+}
+
+
+.pkgGopher,
+div#copyright {
+  display: none;
 }

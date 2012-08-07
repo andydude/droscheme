@@ -1,0 +1,86 @@
+@import url("reset.css");
+@import url("minimal.css");
+
+body {
+  background-color: #FFF;
+  background-attachment: fixed;
+  background-image: -webkit-linear-gradient(top, #EEE 0%, #FFF 200px, #FFF 600px, #EEE 800px);
+  background-image: linear-gradient(top, #EEE 0%, #CEC 20px, #DFD 40px, #FFF 300px, #FFF 600px);
+/*
+  background-image: -webkit-linear-gradient(top, #EEE 0%, #CEC 20px, #DFD 40px, #FFF 300px, #FFF 600px, #EEE 800px);
+  background: -moz-linear-gradient(top, #f8f8f8 0%, #dddddd 100%);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(100%,#dddddd));
+  background: -o-linear-gradient(top, #f8f8f8 0%,#dddddd 100%);
+  background: -ms-linear-gradient(top, #f8f8f8 0%,#dddddd 100%);*/
+}
+
+header p {
+  color: #AAA;
+}
+
+footer p {
+  color: #AAA;
+}
+
+a {
+  color: #696;
+}
+a:hover {
+  color: #030;
+}
+
+.drobar {
+  color: #474;
+  font-size: 16px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 30px;
+  width: 100%;
+  background-color: #141;
+  background-image: -webkit-linear-gradient(top, #252 0%, #030 24px, #EEE 28px);
+}
+
+.drobar ul {
+  display: inline;
+  padding: 0 24px;
+}
+
+.drobar li {
+  font-size: 16px;
+  display: inline;
+  padding: 0 4px;
+}
+
+.drobar li small {
+  display: inline;
+  color: #474;
+  font-size: 16px;
+  font-weight: normal;
+}
+
+.drobar .right {
+  float: right;
+}
+
+.drobar a:hover { color: white; }
+.drobar a { color: #CFC; }
+
+@media print, screen and (max-width: 480px) { 
+  body { 
+    padding: 60px 15px;
+  }
+
+  .drobar a,
+  .drobar ul,
+  .drobar li,
+  .drobar li small,
+  .drobar {
+    font-size: 12px;
+    padding-top: 3px;
+    padding-left: 2px;
+  }
+  .drobar .right {
+    display: none;
+  }
+}
