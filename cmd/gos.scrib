@@ -7,7 +7,7 @@
 This is a reference manual for the Gos programming language.
 Gos is an S-expressions syntax for Go, hence the name.
 Most forms are exactly the same as Go with parentheses added,
-however there are changes such as @tt{func} is written @tt{define-func} 
+however there are changes such as @tt{map} is written @tt{map-type} 
 and @tt{if} is written @tt{when} to allow syntactic sugar to be written 
 that matches Scheme more closely.
 
@@ -17,13 +17,13 @@ The purpose of Gos is to write the standard library for Droscheme.
 
 For example, the following Gos code:
 @verbatim{
-(define (square x)
-  (* x x))
+(func hypot (#(x y &float64)) &float64
+  (return (math.Sqrt (+ (* x x) (* y y)))))
 }
 compiles to the Go code:
 @verbatim{
-func _square(x Any) Any {
-  return _ZH(x, x);
+func hypot(x, y float64) float64 {
+  return math.Sqrt(x*x + y*y)
 }
 }
 

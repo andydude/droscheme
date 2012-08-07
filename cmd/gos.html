@@ -651,7 +651,7 @@
                 <p>This is a reference manual for the Gos programming language.
                     Gos is an S-expressions syntax for Go, hence the name.
                     Most forms are exactly the same as Go with parentheses added,
-                    however there are changes such as <span class="stt">func</span> is written <span class="stt">define-func</span>
+                    however there are changes such as <span class="stt">map</span> is written <span class="stt">map-type</span>
                     and <span class="stt">if</span> is written <span class="stt">when</span> to allow syntactic sugar to be written
                     that matches Scheme more closely.
                 </p>
@@ -669,7 +669,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">(define (square x)</span>
+                                        <span class="stt">(func hypot (#(x y &amp;float64)) &amp;float64</span>
                                     </span>
                                 </p>
                             </td>
@@ -678,7 +678,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="hspace">  </span><span class="stt">(* x x))</span>
+                                        <span class="hspace">  </span><span class="stt">(return (math.Sqrt (+ (* x x) (* y y)))))</span>
                                     </span>
                                 </p>
                             </td>
@@ -693,7 +693,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">func _square(x Any) Any {</span>
+                                        <span class="stt">func hypot(x, y float64) float64 {</span>
                                     </span>
                                 </p>
                             </td>
@@ -702,7 +702,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="hspace">  </span><span class="stt">return _ZH(x, x);</span>
+                                        <span class="hspace">  </span><span class="stt">return math.Sqrt(x*x + y*y)</span>
                                     </span>
                                 </p>
                             </td>
