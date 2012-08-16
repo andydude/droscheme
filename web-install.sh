@@ -1,24 +1,24 @@
 #!/bin/bash
 ECHO=/bin/echo
 
-if which go; then
+if which go 2> /dev/null; then
     GO=go
 else
     $ECHO "ERROR: you must have Go version 1 or higher installed!"
     exit 1
 fi
 
-if which guile; then
+if which guile 2> /dev/null; then
     GUILE=guile
 else
     $ECHO "ERROR: you must have Guile version 2 or higher installed!"
     exit 1
 fi
 
-if which wget; then
+if which wget 2> /dev/null; then
     WEBGET="wget --no-check-certificate -O -"
 else
-    if which curl; then
+    if which curl 2> /dev/null; then
         WEBGET="curl -o -"
     else
         $ECHO "ERROR: you must have either wget or curl installed!"
@@ -26,9 +26,9 @@ else
     fi
 fi
 
-if which tar; then
+if which tar 2> /dev/null; then
     TAR=tar
-    if which gzip; then
+    if which gzip 2> /dev/null; then
         GZIP=gzip
     else
         $ECHO "ERROR: you must have both tar and gzip installed!"
@@ -39,7 +39,7 @@ else
     exit 1
 fi
 
-if which git; then
+if which git 2> /dev/null; then
     GIT=git
 else
     $ECHO "ERROR: you must have git installed!"
@@ -63,14 +63,16 @@ fi
 
 GITREPO="git://github.com/andydude/droscheme.git"
 export DROSCHEME_PATH=$HOME/.droscheme
-echo sudo mkdir -p $DROSCHEME_PATH
-sudo mkdir -p $DROSCHEME_PATH
+echo mkdir -p $DROSCHEME_PATH
+mkdir -p $DROSCHEME_PATH
 if test ! -d $DROSCHEME_PATH; then
+    echo git clone $GITREPO $DROSCHEME_PATH
     git clone $GITREPO $DROSCHEME_PATH
 fi
 
 # install
 echo bash $DROSCHEME_PATH/src-install.sh
+bash $DROSCHEME_PATH/src-install.sh
 
 # message
 $ECHO "---"
