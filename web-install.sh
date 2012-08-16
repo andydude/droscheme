@@ -63,9 +63,8 @@ fi
 
 GITREPO="git://github.com/andydude/droscheme.git"
 export DROSCHEME_PATH=/opt/droscheme
-if test ! -d $(dirname $DROSCHEME_PATH); then
-    mkdir -p $(dirname $DROSCHEME_PATH)
-fi
+echo sudo mkdir -p $DROSCHEME_PATH
+sudo mkdir -p $DROSCHEME_PATH
 if test ! -d $DROSCHEME_PATH; then
     git clone $GITREPO $DROSCHEME_PATH
 fi
