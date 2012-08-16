@@ -65,7 +65,8 @@ GITREPO="git://github.com/andydude/droscheme.git"
 export DROSCHEME_PATH=$HOME/.droscheme
 echo mkdir -p $DROSCHEME_PATH
 mkdir -p $DROSCHEME_PATH
-if test ! -d $DROSCHEME_PATH; then
+
+if test ! -e $DROSCHEME_PATH/src-install.sh; then
     echo git clone $GITREPO $DROSCHEME_PATH
     git clone $GITREPO $DROSCHEME_PATH
 fi
