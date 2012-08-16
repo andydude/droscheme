@@ -62,7 +62,7 @@ fi
 #cd $DROSCHEME_PATH
 
 GITREPO="git://github.com/andydude/droscheme.git"
-export DROSCHEME_PATH=/opt/droscheme
+export DROSCHEME_PATH=$HOME/.droscheme
 echo sudo mkdir -p $DROSCHEME_PATH
 sudo mkdir -p $DROSCHEME_PATH
 if test ! -d $DROSCHEME_PATH; then
