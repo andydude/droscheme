@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# gos2go is a simple transpiler from Gos to Go.
+# gos2import is a simple transpiler from Gos to Go.
 #
 # This file is just a script. The main implementation can be
 # found in gos2go.ss. The main documentation can be found at
@@ -8,10 +8,9 @@
 
 # BEGIN config
 DIR="$(dirname $0)"
-GO_FORMAT="gofmt"
 SCHEME_SCRIPT="racket -f $DIR/common.ss -f"
 #SCHEME_SCRIPT="guile -s"
 #SCHEME_SCRIPT="ds -f"
 # END config
 
-$SCHEME_SCRIPT "$DIR/gos2go.ss" "$@" | $GO_FORMAT | grep -v '^$'
+$SCHEME_SCRIPT "$DIR/gos2env.ss" "$@" | grep -v '^$'

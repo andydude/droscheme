@@ -1,0 +1,7 @@
+#!/bin/bash
+if [ x$DROSCHEME_PATH = x'' ]; then
+    export DROSCHEME_PATH="$HOME/.droscheme"
+fi
+LIB_PATH="$1"
+LIB_NAME="$(echo $LIB_PATH | tr '/' '_')"
+cat $DROSCHEME_PATH/$LIB_PATH/$LIB_NAME.env

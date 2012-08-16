@@ -1,0 +1,6 @@
+package ds_test
+import . "ds/any"
+var square = NewProc(_square, "square")
+func _square(x Any) Any {
+	return (x * x)
+}

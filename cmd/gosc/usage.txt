@@ -1,0 +1,10 @@
+USAGE: gos [OPTION] filename.sld
+
+  --help    this help
+  --env     dump environment
+  --export  compile a library's export statements
+  --import  compile a library's import statements
+  --lib		compile a library
+  --main    compile a program
+  --raw     compile a library, but don't gofmt
+  --sugar   translate I-expr to S-expr

@@ -1,0 +1,56 @@
+#!/bin/bash
+DIR="$(dirname $0)"
+ECHO="/bin/echo"
+GO2GOS_DIR="/Users/ajr/Drosera/droscheme-all/src/go2gos"
+
+function compile_go2gos () {
+    $GO2GOS_DIR/go2gos "$1"
+}
+
+function compile_env () {
+    $DIR/gos2env "$1"
+}
+
+function compile_export () {
+    $DIR/gos2export "$1"
+}
+
+function compile_import () {
+    $DIR/gos2import "$1"
+}
+
+function compile_library () {
+    #cat $DIR/prefix.txt
+    $DIR/gos2pkg "$1"
+    cat $DIR/default.env
+    $DIR/gos2go "$1"
+}
+
+function compile_raw () {
+    #cat $DIR/prefix.txt
+    $DIR/gos2pkg "$1"
+    cat $DIR/default.env
+    $DIR/gos2raw "$1"
+}
+
+function compile_program () {
+    $ECHO "ERROR: not implemented"
+}
+
+function compile_sugar () {
+    $DIR/i2s "$1"
+}
+
+case $1 in
+(--go2gos)  compile_go2gos "$2" ;;
+(--raw)     compile_raw "$2" ;;
+(--env)     compile_env "$2" ;;
+(--import)  compile_import "$2" ;;
+(--export)  compile_export "$2" ;;
+(--lib)     compile_library "$2" ;;
+(--main)	compile_program "$2" ;;
+(--sugar)	compile_sugar "$2" ;;
+(--help)	cat $DIR/usage.txt ;;
+(*)			cat $DIR/usage.txt ;;
+esac
+
