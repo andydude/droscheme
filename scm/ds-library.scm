@@ -1,0 +1,120 @@
+
+(define (make-ds-library name exports imports defines . dictionary)
+  `#(droscheme-library ,name ,exports ,imports ,defines
+    ,(list->eqv-hashtable dictionary)))
+
+(define (ds-library-name proc)
+  (vector-ref proc 1))
+
+(define (ds-library-exports proc)
+  (vector-ref proc 2))
+
+(define (ds-library-imports proc)
+  (vector-ref proc 3))
+
+(define (ds-library-defines proc)
+  (vector-ref proc 4))
+
+(define (ds-library-attributes proc)
+  (vector-ref proc 5))
+
+;(define (list->imports spec))
+
+(define (library-keyword? spec)
+  (and (list? spec)
+       (memv (car spec)
+             '(except
+               only
+               prefix
+               remove-prefix
+               rename))))
+
+(define (list->library-name spec)
+  (if (library-keyword? spec)
+      (cadr spec)
+      spec))
+
+(define (list->library-name spec)
+  (if (library-keyword? spec)
+      (cadr spec)
+      spec))
+
+(define (list->ds-library spec)
+  (define (ds-library-export-imports libr)
+    (write (ds-library-name libr))
+    (write (ds-library-imports libr))
+    (newline)
+    (ds-library-imports libr))
+  (define (ds-library-export-defines libr)
+    (define (exported? es)
+      (lambda (def) (member (ds-function-name def) es)))
+    (let* ((ds (ds-library-defines libr))
+           (es (ds-library-exports libr)))
+      (filter (exported? es) ds)))
+  (define (decl-import spec)
+    (ds-library-export-imports (list->ds-library (list->library-name spec))))
+  (define (decl-imports specs)
+    (apply append (map decl-import specs)))
+  (define (decl-define spec)
+    (ds-library-export-defines (list->ds-library (list->library-name spec))))
+  (define (decl-defines specs)
+    (apply append (map decl-define specs)))
+  (define (decl->func decl)
+    (let ((f (let ((kind (car decl)))
+      (cond
+       ((eqv? kind 'define)
+        (define->ds-function decl))
+       ((eqv? kind 'define-func)
+        (define-func->ds-function decl))
+       (else #f)))))
+      (ds-function-attributes-set! f 'library-name spec)
+      f))
+  ;(display "dl")
+  ;(write spec)
+  ;(newline)
+  (parameterize ((*package-path* (list->directory spec))
+                 (*package-name* (list->underscore spec)))
+  ;(write (*package-name*))
+  ;(write (*package-path*))
+  (let* ((path (list->directory spec))
+         (name (list->underscore spec))
+         (filename (string-append (droscheme-path) "/src/" path "/" name ".sld"))
+         (expr (call-with-input-file filename read))
+         (libname (cadr expr))
+         (exports (assoc 'export (cdr expr)))
+         (imports (assoc 'import (cdr expr)))
+         (defines (assoc 'begin (cdr expr))))
+    (make-ds-library libname
+      (if exports (cdr exports) '())
+      (if imports
+          (append (decl-imports (cdr imports))
+                  (if (not imports)
+                      '()
+                      (cdr imports)))
+          '())
+      (if imports
+          (append (decl-defines (cdr imports))
+                  (if (not defines)
+                      '()
+                      (map decl->func (cdr defines))))
+          (if (not defines)
+              '()
+              (map decl->func (cdr defines))))))))
+
+(define (ds-library->gos-import libr)
+  (let* ((funcs (ds-library-defines libr))
+         (decls (map ds-function->gos-import funcs)))
+    decls))
+
+(define (ds-library->go-import libr)
+  (define (decl->func decl)
+    (let ((kind (car decl)))
+      (cond
+       ((eqv? kind 'define)
+        (define->ds-function decl))
+       ((eqv? kind 'define-func)
+        (define-func->ds-function decl))
+       (else #f))))
+  (let* ((funcs (ds-library-defines libr))
+         (decls (map ds-function->go-import funcs)))
+    (string-join decls "\n")))
