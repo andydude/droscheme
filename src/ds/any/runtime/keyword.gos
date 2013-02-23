@@ -1,0 +1,10 @@
+(package
+  ds_any_runtime
+  (import (dot "ds/any"))
+  (func NewKeyword
+        (#(key value Any))
+        Any
+        (return
+          (_list (NewSymbol "#%key")
+                 (_list (NewSymbol "quote") key)
+                 value))))

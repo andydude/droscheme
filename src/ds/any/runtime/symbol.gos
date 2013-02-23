@@ -1,0 +1,68 @@
+(package
+  ds_any_runtime
+  (import (dot "ds/any"))
+  (func NewSymbol
+        (#(s &imm-string))
+        Symbol
+        (return #(Symbol (: name s))))
+  (func #(o Symbol)
+        GetType
+        ()
+        &int
+        (return TypeCodeSymbol))
+  (func #(o Symbol) GetHash () &uintptr (return 0))
+  (func #(o Symbol)
+        Equal
+        (#(a Any))
+        &bool
+        (unless (as (_symbol? a) &bool) (return #f))
+        (return (== o.name (dot (as a Symbol) name))))
+  (func #(o Symbol)
+        Eval
+        (#(env (ptr Env)))
+        Any
+        (:= value (env.Ref o))
+        (when (== value %nil)
+              (_error
+                "variable not bound in environment: "
+                o.name))
+        (return value))
+  (func #(o Symbol)
+        Match
+        (#(syntax Any) #(env (ptr Env)))
+        &bool
+        (when (== o.name "_") (return #t))
+        (when (== o.name "...")
+              (panic "we were supposed to catch ... earlier")
+              (return #f))
+        (when* (:= value (env.Ref o))
+               (and (!= value %nil) (o.Equal value))
+               (return (o.Equal syntax)))
+        (return #t))
+  (func #(o Symbol)
+        Replace
+        (#(env (ptr Env)))
+        Any
+        (:= value (env.Ref o))
+        (when (== value %nil) (return o))
+        (return value))
+  (func #(sy Symbol)
+        String
+        ()
+        &imm-string
+        (return sy.name))
+  (func #(sy Symbol)
+        SchemeString
+        ()
+        &imm-string
+        (return (sy.String)))
+  (func #(sy Symbol)
+        ToString
+        ()
+        String
+        (return (NewString (sy.String))))
+  (func #(sy Symbol)
+        ToVector
+        ()
+        Vector
+        (return ((dot (sy.ToString) ToVector)))))

@@ -1,0 +1,593 @@
+(package
+  ds_any_runtime
+  (import (dot "ds/any"))
+  (import "fmt" "reflect")
+  (var (= apply (NewProc _apply "apply")))
+  (func...
+    _apply
+    (#(proc Any) #(args Any))
+    Any
+    (return
+      ((dot (as proc Proc) Apply) (Vector args))))
+  (var (= boolean? (NewProc _boolean? "boolean?")))
+  (func _boolean?
+        (#(a Any))
+        Any
+        (:= (_ ok) (as a &bool))
+        (return ok))
+  (var (= boolean=? (NewProc _boolean=? "boolean=?")))
+  (func _boolean=?
+        (#(a b Any))
+        Any
+        (return
+          (and (and (as (_boolean? a) &bool)
+                    (as (_boolean? b) &bool))
+               (== (as a &bool) (as b &bool)))))
+  (var (= bytevector (NewProc _bytevector "bytevector")))
+  (func...
+    _bytevector
+    (#(rest Any))
+    Any
+    (return (_u8-vector->bytevector (Vector rest))))
+  (var (= bytevector->u8-list
+          (NewProc
+            _bytevector->u8-list
+            "bytevector->u8-list")))
+  (func _bytevector->u8-list
+        (#(a Any))
+        Any
+        (return
+          (_vector->list (_bytevector->u8-vector a))))
+  (var (= bytevector->u8-vector
+          (NewProc
+            _bytevector->u8-vector
+            "bytevector->u8-vector")))
+  (func _bytevector->u8-vector
+        (#(a Any))
+        Any
+        (:= bv (as a Binary))
+        (:= vc (as (_make-vector (len bv)) Vector))
+        (for (:= i 0)
+             (< i (len bv))
+             (++ i)
+             (= ((index vc i)) (index bv i)))
+        (return vc))
+  (var (= bytevector?
+          (NewProc _bytevector? "bytevector?")))
+  (func _bytevector?
+        (#(a Any))
+        Any
+        (:= (_ ok) (as a Binary))
+        (return ok))
+  (var (= car (NewProc _car "car")))
+  (func _car
+        (#(ls Any))
+        Any
+        (return (dot (as ls (ptr Pair)) car)))
+  (var (= car+cdr (NewProc _car+cdr "car+cdr")))
+  (func _car+cdr
+        (#(ls Any))
+        #(car cdr Any)
+        (return (_car ls) (_cdr ls)))
+  (var (= cdr (NewProc _cdr "cdr")))
+  (func _cdr
+        (#(ls Any))
+        Any
+        (return (dot (as ls (ptr Pair)) cdr)))
+  (var (= char->integer
+          (NewProc _char->integer "char->integer")))
+  (func _char->integer
+        (#(ch Any))
+        Any
+        (return (&int (&rune (as ch Char)))))
+  (var (= char=? (NewProc _char=? "char=?")))
+  (func _char=?
+        (#(a b Any))
+        Any
+        (return (== (as a Char) (as b Char))))
+  (var (= char? (NewProc _char? "char?")))
+  (func _char?
+        (#(a Any))
+        Any
+        (:= (_ ok) (as a Char))
+        (return ok))
+  (var (= cons (NewProc _cons "cons")))
+  (func _cons
+        (#(a b Any))
+        Any
+        (return (adr #(Pair a b))))
+  (var (= eof-object (NewProc _eof-object "eof-object")))
+  (func _eof-object () Any (return gEOF))
+  (var (= eof-object?
+          (NewProc _eof-object? "eof-object?")))
+  (func _eof-object?
+        (#(a Any))
+        Any
+        (when* (:= (ch ok) (as a Char))
+               ok
+               (return (== ch gEOF)))
+        (return #f))
+  (var (= eq? (NewProc _eq? "eq?")))
+  (func _eq? (#(a b Any)) Any (return (_eqv? a b)))
+  (var (= object-equal?
+          (NewProc _object-equal? "object-equal?")))
+  (func _object-equal?
+        (#(a b Any))
+        Any
+        (return (reflect.DeepEqual a b)))
+  (var (= equal? (NewProc _equal? "equal?")))
+  (func _equal?
+        (#(a b Any))
+        Any
+        (when* (:= (c ok) (as a Equaler))
+               ok
+               (return (c.Equal b)))
+        (when* (:= (c ok) (as b Equaler))
+               ok
+               (return (c.Equal a)))
+        (return (_object-equal? a b)))
+  (var (= eqv? (NewProc _eqv? "eqv?")))
+  (func _eqv?
+        (#(a b Any))
+        Any
+        (unless (as (_type=? a b) &bool) (return #f))
+        (when (as (_symbol? a) &bool)
+              (return (_symbol=? a b)))
+        (when (as (_boolean? a) &bool)
+              (return (_boolean=? a b)))
+        (when (as (_inexact? a) &bool)
+              (return (_inexact=? a b)))
+        (when (as (_exact? a) &bool)
+              (return (_exact=? a b)))
+        (when (as (_char? a) &bool)
+              (return (_char=? a b)))
+        (when (as (_null? a) &bool) (return (_null? b)))
+        (when (as (_empty? a) &bool)
+              (return (_empty? b)))
+        (return (_pointer=? a b)))
+  (var (= __error (NewProc _error "error")))
+  (func...
+    _error
+    (#(msg Any) #(irr Any))
+    Any
+    (return
+      (_raise (apply... _error-object msg irr))))
+  (var (= error-object
+          (NewProc _error-object "error-object")))
+  (func...
+    _error-object
+    (#(msg Any) #(irr Any))
+    Any
+    (:= str
+        (as (_->immutable-string msg) &imm-string))
+    (return
+      #(ErrorObject (: msg str) (: it (Vector irr)))))
+  (var (= error-object-irritants
+          (NewProc
+            _error-object-irritants
+            "error-object-irritants")))
+  (func _error-object-irritants
+        (#(a Any))
+        Any
+        (return ((dot (as a Error) Irritants))))
+  (var (= error-object-message
+          (NewProc
+            _error-object-message
+            "error-object-message")))
+  (func _error-object-message
+        (#(a Any))
+        Any
+        (return ((dot (as a Error) Error))))
+  (var (= error-object?
+          (NewProc _error-object? "error-object?")))
+  (func _error-object?
+        (#(a Any))
+        Any
+        (:= (_ ok) (as a Error))
+        (return ok))
+  (var (= exact=? (NewProc _exact=? "exact=?")))
+  (func _exact=?
+        (#(a b Any))
+        Any
+        (return (_object-equal? a b)))
+  (var (= exact? (NewProc _exact? "exact?")))
+  (func _exact?
+        (#(a Any))
+        Any
+        (when* (:= (num ok) (as a Num)) ok (num.IsExact))
+        (return #f))
+  (var (= inexact=? (NewProc _inexact=? "inexact=?")))
+  (func _inexact=?
+        (#(a b Any))
+        Any
+        (return (_object-equal? a b)))
+  (var (= inexact? (NewProc _inexact? "inexact?")))
+  (func _inexact?
+        (#(a Any))
+        Any
+        (when* (:= (num ok) (as a Num))
+               ok
+               (num.IsInexact))
+        (return #f))
+  (var (= integer->char
+          (NewProc _integer->char "integer->char")))
+  (func _integer->char
+        (#(cp Any))
+        Any
+        (return (Char (&rune (as cp &int)))))
+  (var (= last-pair (NewProc _last-pair "last-pair")))
+  (func _last-pair
+        (#(ls Any))
+        Any
+        (:= cur ls)
+        (when (as (_null? cur) &bool) (return (_null)))
+        (while (as (_pair? (_cdr cur)) &bool)
+               (= cur (_cdr cur)))
+        (return cur))
+  (var (= length (NewProc _length "length")))
+  (func _length
+        (#(ls Any))
+        Any
+        (when (as (_null? ls) &bool) (return 0))
+        (when* (:= (_ ok) (as ls (ptr Pair)))
+               ok
+               (return (+ 1 (as (_length (_cdr ls)) &int))))
+        (return (_error "length expected list")))
+  (var (= list* (NewProc _list* "list*")))
+  (func...
+    _list*
+    (#(o Any))
+    Any
+    (:= (most last)
+        (index o 0 (- (len o) 1))
+        ((slice Any) (as (index o (- (len o) 1)) Vector)))
+    (:= vs
+        (append
+          most
+          ((slice Any) (as (_list->vector last) Vector))))
+    (return (_vector->list (Vector vs))))
+  (var (= list+ (NewProc _list+ "list+")))
+  (func...
+    _list+
+    (#(a Any) #(rest Any))
+    Any
+    (:= first
+        ((slice Any) (as (_list->vector a) Vector)))
+    (return
+      (_vector->list
+        (Vector (apply... append first rest)))))
+  (var (= list? (NewProc _list? "list?")))
+  (func _list?
+        (#(a Any))
+        Any
+        (return (_null? (_cdr (_last-pair a)))))
+  (var (= list (NewProc _list "list")))
+  (func...
+    _list
+    (#(o Any))
+    Any
+    (return (_vector->list o)))
+  (var (= list*->vector
+          (NewProc _list*->vector "list*->vector")))
+  (func _list*->vector
+        (#(pr Any))
+        Any
+        (:= vec #((slice Any)))
+        (var #(cur Any))
+        (for (= cur pr)
+             (as (_pair? (_cdr cur)) &bool)
+             (= cur (_cdr cur))
+             (= vec (append vec (_car cur))))
+        (= vec (append vec (_car cur) (_cdr cur)))
+        (return (Vector vec)))
+  (var (= list->string
+          (NewProc _list->string "list->string")))
+  (func _list->string
+        (#(a Any))
+        Any
+        (return (_vector->string (_list->vector a))))
+  (var (= list->vector
+          (NewProc _list->vector "list->vector")))
+  (func _list->vector
+        (#(ls Any))
+        Any
+        (when (as (_null? ls) &bool)
+              (return (Vector #((slice Any)))))
+        (unless
+          (as (_pair? ls) &bool)
+          (_error "list->vector expected list"))
+        (:= (cur vc) (_null) #((slice Any)))
+        (for (= cur ls)
+             (as (_pair? cur) &bool)
+             (= cur (_cdr cur))
+             (= vc (append vc (_car cur))))
+        (unless
+          (as (_null? cur) &bool)
+          (_error "list->vector expected null"))
+        (return (Vector vc)))
+  (var (= make-bytevector
+          (NewProc _make-bytevector "make-bytevector")))
+  (func _make-bytevector
+        (#(k Any))
+        Any
+        (return
+          (Binary (make (slice &byte) (as k &int)))))
+  (var (= make-list (NewProc _make-list "make-list")))
+  (func _make-list
+        (#(k Any))
+        Any
+        (return (_vector->list (_make-vector k))))
+  (var (= make-string
+          (NewProc _make-string "make-string")))
+  (func _make-string
+        (#(k Any))
+        Any
+        (return
+          (String (make (slice &rune) (as k &int)))))
+  (var (= make-vector
+          (NewProc _make-vector "make-vector")))
+  (func _make-vector
+        (#(k Any))
+        Any
+        (return (Vector (make (slice Any) (as k &int)))))
+  (var (= not (NewProc _not "not")))
+  (func _not
+        (#(bl Any))
+        Any
+        (return (not (as bl &bool))))
+  (var (= null (NewProc _null "null")))
+  (func... _null (#(o Any)) Any (return gNull))
+  (var (= null? (NewProc _null? "null?")))
+  (func _null?
+        (#(a Any))
+        Any
+        (:= (_ ok) (as a (ptr Null)))
+        (return ok))
+  (var (= pair? (NewProc _pair? "pair?")))
+  (func _pair?
+        (#(a Any))
+        Any
+        (:= (_ ok) (as a (ptr Pair)))
+        (return ok))
+  (var (= pointer-of (NewProc _pointer-of "pointer-of")))
+  (func _pointer-of
+        (#(a Any))
+        Any
+        (return ((dot (reflect.ValueOf a) Pointer))))
+  (var (= pointer=? (NewProc _pointer=? "pointer=?")))
+  (func _pointer=?
+        (#(a b Any))
+        Any
+        (return
+          (== (as (_pointer-of a) &uintptr)
+              (as (_pointer-of b) &uintptr))))
+  (var (= procedure? (NewProc _procedure? "procedure?")))
+  (func _procedure?
+        (#(a Any))
+        Any
+        (:= (_ ok) (as a Proc))
+        (return ok))
+  (var (= raise (NewProc _raise "raise")))
+  (func _raise
+        (#(err Any))
+        Any
+        (panic err)
+        (return (_void)))
+  (var (= __string (NewProc _string "string")))
+  (func...
+    _string
+    (#(chars Any))
+    Any
+    (return (_vector->string (Vector chars))))
+  (var (= string-hash
+          (NewProc _string-hash "string-hash")))
+  (func _string-hash
+        (#(a Any))
+        Any
+        (return
+          ((dot (NewString (as a &imm-string)) GetHash))))
+  (var (= string->list
+          (NewProc _string->list "string->list")))
+  (func _string->list
+        (#(a Any))
+        Any
+        (return (_vector->list (_string->vector a))))
+  (var (= string->vector
+          (NewProc _string->vector "string->vector")))
+  (func _string->vector
+        (#(a Any))
+        Any
+        (:= st (as a String))
+        (:= vc (as (_make-vector (len st)) Vector))
+        (for (:= i 0)
+             (< i (len st))
+             (++ i)
+             (= ((index vc i)) (index st i)))
+        (return vc))
+  (var (= string? (NewProc _string? "string?")))
+  (func _string?
+        (#(a Any))
+        Any
+        (:= (_ ok) (as a String))
+        (return ok))
+  (var (= symbol=? (NewProc _symbol=? "symbol=?")))
+  (func _symbol=?
+        (#(a b Any))
+        Any
+        (return
+          (== ((dot (as a Symbol) String))
+              ((dot (as b Symbol) String)))))
+  (var (= string->symbol
+          (NewProc _string->symbol "string->symbol")))
+  (func _string->symbol
+        (#(a Any))
+        Any
+        (return ((dot (as a String) ToSymbol))))
+  (var (= symbol->string
+          (NewProc _symbol->string "symbol->string")))
+  (func _symbol->string
+        (#(a Any))
+        Any
+        (return ((dot (as a Symbol) ToString))))
+  (var (= symbol? (NewProc _symbol? "symbol?")))
+  (func _symbol?
+        (#(a Any))
+        Any
+        (:= (_ ok) (as a Symbol))
+        (return ok))
+  (var (= u8-list->bytevector
+          (NewProc
+            _u8-list->bytevector
+            "u8-list->bytevector")))
+  (func _u8-list->bytevector
+        (#(a Any))
+        Any
+        (return
+          (_u8-vector->bytevector (_list->vector a))))
+  (var (= u8-vector->bytevector
+          (NewProc
+            _u8-vector->bytevector
+            "u8-vector->bytevector")))
+  (func _u8-vector->bytevector
+        (#(a Any))
+        Any
+        (:= vc (as a Vector))
+        (:= bv (as (_make-bytevector (len vc)) Binary))
+        (for (:= i 0)
+             (< i (len vc))
+             (++ i)
+             (= ((index bv i)) (as (index vc i) &byte)))
+        (return bv))
+  (var (= vector->list*
+          (NewProc _vector->list* "vector->list*")))
+  (func _vector->list*
+        (#(a Any))
+        Any
+        (:= vc (as a Vector))
+        (when (== (len vc) 0) (return (_null)))
+        (when (== (len vc) 1) (return (index vc 0)))
+        (return
+          (_cons (index vc 0)
+                 (_vector->list* (Vector (index vc 1 #f))))))
+  (var (= vector->string
+          (NewProc _vector->string "vector->string")))
+  (func _vector->string
+        (#(a Any))
+        Any
+        (:= vc (as a Vector))
+        (:= st (as (_make-string (len vc)) String))
+        (for (:= i 0)
+             (< i (len vc))
+             (++ i)
+             (= ((index st i)) (&rune (as (index vc i) Char))))
+        (return st))
+  (var (= vector (NewProc _vector "vector")))
+  (func...
+    _vector
+    (#(o Any))
+    Any
+    (return (Vector o)))
+  (var (= vector->list
+          (NewProc _vector->list "vector->list")))
+  (func _vector->list
+        (#(a Any))
+        Any
+        (:= (vc ls) (as a Vector) (_null))
+        (for (:= i (- (len vc) 1))
+             (>= i 0)
+             (-- i)
+             (= ls (_cons (index vc i) ls)))
+        (return ls))
+  (var (= vector? (NewProc _vector? "vector?")))
+  (func _vector?
+        (#(a Any))
+        Any
+        (:= (_ ok) (as a Vector))
+        (return ok))
+  (var (= void (NewProc _void "void")))
+  (func... _void (#(o Any)) Any (return gVoid))
+  (var (= void? (NewProc _void? "void?")))
+  (func _void?
+        (#(a Any))
+        Any
+        (:= (_ ok) (as a (ptr Void)))
+        (return ok))
+  (var (= u8? (NewProc _u8? "u8?")))
+  (func _u8?
+        (#(a Any))
+        Any
+        (when* (:= (_ ok) (as a &byte)) ok (return #t))
+        (when* (:= (c ok) (as a &int))
+               (and ok (and (<= 0 c) (<= c 255)))
+               (return #t))
+        (return #f))
+  (var (= type=? (NewProc _type=? "type=?")))
+  (func _type=?
+        (#(a b Any))
+        Any
+        (return
+          (== ((dot (as a AnyKinder) GetType))
+              ((dot (as b AnyKinder) GetType)))))
+  (var (= string->immutable-string
+          (NewProc
+            _string->immutable-string
+            "string->immutable-string")))
+  (func _string->immutable-string
+        (#(a Any))
+        Any
+        (when* (:= (s ok) (as a String))
+               ok
+               (return (s.String)))
+        (return (_error "expected string")))
+  (var (= immutable-string->string
+          (NewProc
+            _immutable-string->string
+            "immutable-string->string")))
+  (func _immutable-string->string
+        (#(a Any))
+        Any
+        (when* (:= (s ok) (as a &imm-string))
+               ok
+               (return (NewString s)))
+        (return (_error "expected immutable-string")))
+  (var (= __->go-string
+          (NewProc _->go-string "->go-string")))
+  (func _->go-string
+        (#(a Any))
+        Any
+        (when* (:= (s ok) (as a GoStringer))
+               ok
+               (return (s.GoString)))
+        (return (_error "->scheme-string unknown type")))
+  (var (= __->immutable-string
+          (NewProc
+            _->immutable-string
+            "->immutable-string")))
+  (func _->immutable-string
+        (#(a Any))
+        Any
+        (when* (:= (s ok) (as a &imm-string))
+               ok
+               (return s))
+        (when* (:= (s ok) (as a fmt.Stringer))
+               ok
+               (return (s.String)))
+        (return
+          (_error "->immutable-string unknown type")))
+  (var (= __->scheme-string
+          (NewProc _->scheme-string "->scheme-string")))
+  (func _->scheme-string
+        (#(a Any))
+        Any
+        (when* (:= (s ok) (as a SchemeStringer))
+               ok
+               (return (s.SchemeString)))
+        (return (_error "->scheme-string unknown type")))
+  (var (= __->string (NewProc _->string "->string")))
+  (func _->string
+        (#(a Any))
+        Any
+        (when* (:= (s ok) (as a String)) ok (return s))
+        (return
+          (_immutable-string->string
+            (_->immutable-string a)))))

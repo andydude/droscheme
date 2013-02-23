@@ -1,0 +1,137 @@
+(package
+  ds_any_runtime
+  (import (dot "ds/any"))
+  (func #(_ (ptr Null))
+        GetType
+        ()
+        &int
+        (return TypeCodeNull))
+  (func #(_ (ptr Null))
+        GetHash
+        ()
+        &uintptr
+        (return 0))
+  (func #(_ (ptr Null))
+        Equal
+        (#(a Any))
+        &bool
+        (return (as (_null? a) &bool)))
+  (func #(o (ptr Null))
+        Eval
+        (#(env (ptr Env)))
+        Any
+        (return o))
+  (func #(_ (ptr Null))
+        SchemeString
+        ()
+        &imm-string
+        (return "'()"))
+  (func #(o (ptr Null))
+        ToVector
+        ()
+        Any
+        (return (Vector #((slice Any)))))
+  (func #(o (ptr Pair))
+        GetHash
+        ()
+        &uintptr
+        (return 0))
+  (func #(o (ptr Pair))
+        GetType
+        ()
+        &int
+        (return TypeCodePair))
+  (func #(o (ptr Pair))
+        Equal
+        (#(a Any))
+        &bool
+        (unless*
+          (:= (_ ok) (as a (ptr Pair)))
+          ok
+          (return #f))
+        (return
+          (and (as (_equal? o.car (_car a)) &bool)
+               (as (_equal? o.cdr (_cdr a)) &bool))))
+  (func #(o (ptr Pair))
+        Eval
+        (#(env (ptr Env)))
+        Any
+        (:= v #((slice Any)))
+        (var #(cur Any))
+        (for (= cur o)
+             (as (_pair? cur) &bool)
+             (= cur (dot (as cur (ptr Pair)) cdr))
+             (:= car (dot (as cur (ptr Pair)) car))
+             (= v (append v (_eval car env))))
+        (return (_vector->list (Vector v))))
+  (func #(o (ptr Pair))
+        Ref
+        (#(key Any))
+        Any
+        (return (o.RefDefault key (_void))))
+  (func #(o (ptr Pair))
+        RefDefault
+        (#(key value Any))
+        Any
+        (when* (:= (k ok) (as key &int))
+               ok
+               (when (== k 0) (return o.car))
+               (return
+                 ((dot (as o.cdr Map) RefDefault) key value)))
+        (_error "list-ref expected integer")
+        (return (_void)))
+  (func #(o (ptr Pair))
+        Set
+        (#(key value Any))
+        &void
+        (when* (:= (k ok) (as key &int))
+               ok
+               (when (== k 0) (o.SetFirst value))
+               ((dot (as o.cdr Map) Set) key value))
+        (_error "list-set! expected integer"))
+  (func #(o (ptr Pair))
+        SetFirst
+        (#(value Any))
+        &void
+        (= o.car value))
+  (func #(o (ptr Pair))
+        SetRest
+        (#(value Any))
+        &void
+        (= o.cdr value))
+  (func #(ls (ptr Pair))
+        SchemeString
+        ()
+        &imm-string
+        (when (as (_list? ls) &bool)
+              (:= v (as (_list->vector ls) Vector))
+              (return (index (v.SchemeString) 1 #f)))
+        (:= v (as (_list*->vector ls) Vector))
+        (:= most
+            ((dot (Vector (index v 0 (- (len v) 2)))
+                  SchemeString)))
+        (:= last
+            (as (_->scheme-string (index v (- (len v) 1)))
+                &imm-string))
+        (return
+          (+ (+ (+ (+ "(" (index most 2 (- (len most) 1))) " . ")
+                last)
+             ")")))
+  (func #(o (ptr Pair))
+        ToVector
+        ()
+        Any
+        (var (= ret #((slice Any))))
+        (var #(cur Any))
+        (for (= cur o)
+             (as (_pair? cur) &bool)
+             (= cur (dot (as cur (ptr Pair)) cdr))
+             (= ret
+                (append ret (dot (as cur (ptr Pair)) car))))
+        (return (Vector ret)))
+  (func #(o (ptr Pair))
+        First
+        ()
+        Any
+        (return o.car))
+  (func #(o (ptr Pair)) Rest () Any (return o.cdr)))

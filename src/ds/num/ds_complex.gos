@@ -1,0 +1,54 @@
+; -*- mode: scheme -*-
+(package droscheme
+
+  (import "math")
+
+  (define (angle z)
+    (as z ComplexNum (Angle)))
+
+  (define (imag-part z)
+    (as z ComplexNum (Imag)))
+
+  (define (magnitude z)
+    (as z ComplexNum (Scale)))
+
+  ;; nonstandard
+  (define (make-exact-polar scale angle)
+    (:= (s t) (UnifyAny scale angle))
+    #(SComplexPolar (ToRational s) (ToRational t)))
+
+  ;; nonstandard
+  (define (make-inexact-polar scale angle)
+    (:= (s t) (UnifyFlonums scale angle))
+    (:= x (* s (dot math (Cos t))))
+    (:= y (* s (dot math (Sin t))))
+    (Scomplex128 (call-go complex x y)))
+
+  (define (make-polar scale angle)
+    (if1 (or (complex? scale) (complex? angle))
+         (error "make-polar expected real number"))
+    (if1 (or (inexact? scale) (inexact? angle))
+         (return (make-inexact-polar scale angle)))
+    (make-exact-polar scale angle))
+
+  ;; nonstandard
+  (define (make-exact-rectangular scale angle)
+    (:= (s t) (UnifyAny scale angle))
+    #(SComplex (ToRational s) (ToRational t)))
+
+  ;; nonstandard
+  (define (make-inexact-rectangular scale angle)
+    (:= (s t) (UnifyFlonums scale angle))
+    (Scomplex128 (call-go complex s t)))
+
+  (define (make-rectangular x y)
+    (if1 (or (complex? x) (complex? y))
+         (error "make-rectangular expected real number"))
+    (if1 (or (inexact? x) (inexact? y))
+         (return (make-inexact-rectangular x y)))
+    (make-exact-rectangular x y))
+
+  (define (real-part z)
+    (as z ComplexNum (Real)))
+
+);package

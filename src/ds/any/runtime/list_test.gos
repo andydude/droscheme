@@ -1,0 +1,23 @@
+(package
+  ds_any_runtime
+  (import "testing")
+  (func TestIsList
+        (#(t (ptr testing.T)))
+        &void
+        (:= ls (_cons 42 (_null)))
+        (unless*
+          (:= (_ ok) (as ls (ptr Pair)))
+          ok
+          (t.Fail))
+        (unless (as (_pair? ls) &bool) (t.Fail)))
+  (func TestMakeList
+        (#(t (ptr testing.T)))
+        &void
+        (:= ls (as (_make-list 2) (ptr Pair)))
+        (ls.Set 0 11)
+        (ls.Set 1 12)
+        (when (!= (as (ls.Ref 0) &int) 11) (t.Fail))
+        (when (!= (as (ls.Ref 1) &int) 12) (t.Fail)))
+  (func TestListLength
+        (#(t (ptr testing.T)))
+        &void))

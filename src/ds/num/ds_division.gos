@@ -1,0 +1,5 @@
+; -*- mode: scheme -*-
+; (ds vector) based on SRFI-43
+(package droscheme
+
+);package

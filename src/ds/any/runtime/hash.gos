@@ -1,0 +1,35 @@
+(package
+  ds_any_runtime
+  (import
+    (dot "ds/any")
+    "bytes"
+    "encoding/binary"
+    "hash/crc32")
+  (var (= object-hash
+          (NewProc _object-hash "object-hash")))
+  (func...
+    _object-hash
+    (#(rest Any))
+    Any
+    (when (== (len rest) 1)
+          (return
+            ((dot (as (index rest 0) Hasher) GetHash))))
+    (:= hashport (crc32.NewIEEE))
+    (for (:= i 0)
+         (< i (len rest))
+         (++ i)
+         (:= code
+             (_u32->bytevector (_object-hash (index rest i))))
+         (:= (_ err)
+             (hashport.Write ((slice &byte) (as code Binary))))
+         (when (!= err %nil) (panic err)))
+    (return (&uintptr (hashport.Sum32))))
+  (var (= u32->bytevector
+          (NewProc _u32->bytevector "u32->bytevector")))
+  (func _u32->bytevector
+        (#(a Any))
+        Any
+        (:= buf (new bytes.Buffer))
+        (:= err (binary.Write buf binary.LittleEndian a))
+        (when (!= err %nil) (panic err))
+        (return (Binary (buf.Bytes)))))

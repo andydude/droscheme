@@ -1,0 +1,494 @@
+; -*- mode: scheme -*-
+(define-library (ds any runtime)
+ (import "reflect")
+ (begin
+
+  (define (apply proc . args)
+    (as proc Proc (Apply (Vector args))))
+
+  (define (boolean? a)
+    (:= (_ ok) (as a bool))
+    ok)
+
+  (define (boolean=? a b)
+    (and (as (boolean? a) bool)
+         (as (boolean? b) bool)
+         (== (as a bool) (as b bool))))
+
+  (define (bytevector . rest)
+    (u8-vector->bytevector (Vector rest)))
+
+  (define (bytevector->u8-list a)
+    (vector->list (bytevector->u8-vector a)))
+
+  (define (bytevector->u8-vector a)
+    (:= bv (as a Binary))
+    (:= vc (as (make-vector (call len bv)) Vector))
+    (for (:= i 0) (< i (call len bv)) (++ i)
+         (inline "vc[i] = bv[i]"))
+    vc)
+    
+  (define (bytevector? a)
+    (:= (_ ok) (as a Binary))
+    ok)
+
+  (define (car ls)
+    (as ls (ptr Pair) car))
+
+  (define-func (car+cdr (ls Any) (car cdr Any))
+    (return (car ls) (cdr ls)))
+
+  (define (cdr ls)
+    (as ls (ptr Pair) cdr))
+
+  (define (char->integer ch)
+    (call int (call rune (as ch Char))))
+
+  (define (char=? a b)
+    (== (as a Char) (as b Char)))
+
+  (define (char? a)
+    (:= (_ ok) (as a Char))
+    ok)
+
+  (define (cons a b)
+    (adr #(Pair a b)))
+
+  (define (eof-object)
+    gEOF)
+  
+  (define (eof-object? a)
+    (if2 (:= (ch ok) (as a Char)) ok
+         (return (== ch gEOF)))
+    #f)
+
+  (define (eq? a b)
+    (eqv? a b))
+
+  (define (object-equal? a b)
+    (dot reflect (DeepEqual a b)))
+
+  (define (equal? a b)
+    (if2 (:= (c ok) (as a Equaler)) ok
+         (return (dot c (Equal b))))
+    (if2 (:= (c ok) (as b Equaler)) ok
+         (return (dot c (Equal a))))
+    (object-equal? a b))
+
+  (define (eqv? a b)
+    (if1 (not (type=? a b)) (return #f))
+    (if1 (symbol? a)  (return (symbol=? a b)))
+    (if1 (boolean? a) (return (boolean=? a b)))
+    (if1 (inexact? a) (return (inexact=? a b)))
+    (if1 (exact? a)   (return (exact=? a b)))
+    (if1 (char? a)    (return (char=? a b)))
+    (if1 (null? a)    (return (null? b)))
+    (if1 (empty? a)   (return (empty? b)))
+    (pointer=? a b))
+
+  ;; (error) is in error.go
+
+  (define (error msg . irr)
+    (raise (error-object msg (postellipsis irr))))
+
+  (define (error-object msg . irr)
+    (:= str (as (->immutable-string msg) string))
+    #(ErrorObject #:msg str #:it (Vector irr)))
+
+  (define (error-object-irritants a)
+    (as a Error (Irritants)))
+          
+  (define (error-object-message a)
+    (as a Error (Error)))
+
+  (define (error-object? a)
+    (:= (_ ok) (as a Error))
+    ok)
+
+  (define (exact=? a b)
+    (object-equal? a b))
+
+  (define (exact? a)
+    (if2 (:= (num ok) (as a Num)) ok
+         (dot num (IsExact)))
+    #f)
+
+  (define (inexact=? a b)
+    (object-equal? a b))
+
+  (define (inexact? a)
+    (if2 (:= (num ok) (as a Num)) ok
+         (dot num (IsInexact)))
+    #f)
+
+  (define (integer->char cp)
+    (call Char (call rune (as cp int))))
+
+  (define (last-pair ls)
+    (:= cur ls)
+    (if1 (null? cur) (return (null)))
+    (while (pair? (cdr cur))
+           (= cur (cdr cur)))
+    cur)
+
+  (define (length ls)
+    (if1 (null? ls)
+         (return 0))
+    (if2 (:= (_ ok) (as ls (ptr Pair))) ok
+         (return (+ 1 (as (length (cdr ls)) int))))
+    (error "length expected list"))
+
+  (define (list* . o)
+    (:= (most last) (inline "o[0:len(o) - 1], []Any(o[len(o) - 1].(Vector))"))
+    (:= vs (call append most ((array-slice Any) (as (list->vector last) Vector))))
+    (vector->list (Vector vs)))
+
+  (define (list+ a . rest)
+    (:= first ((array-slice Any) (as (list->vector a) Vector)))
+    (vector->list (Vector (call append first (postellipsis rest)))))
+
+  (define (list? a)
+    (null? (cdr (last-pair a))))
+
+  (define (list . o)
+    (vector->list o))
+
+  (define (list*->vector pr)
+    (:= vec #((array-slice Any)))
+    (define-var (:: cur Any))
+    (for (= cur pr) (pair? (cdr cur)) (= cur (cdr cur))
+         (= vec (call append vec (car cur))))
+    (= vec (call append vec (car cur) (cdr cur)))
+    (Vector vec))
+
+  (define (list->string a)
+    (vector->string (list->vector a)))
+
+  (define (list->vector ls)
+    (if1 (null? ls)
+         (return (Vector #((array-slice Any)))))
+    (if1 (not (pair? ls))
+         (error "list->vector expected list"))
+    (:= (cur vc) (null) #((array-slice Any)))
+    (for (= cur ls) (pair? cur) (= cur (cdr cur))
+         (= vc (call append vc (car cur))))
+    (if1 (not (null? cur))
+         (error "list->vector expected null"))
+    (Vector vc))
+
+  (define (make-bytevector k)
+    (Binary (call make (array-slice byte) (as k int))))
+
+  (define (make-list k)
+    (vector->list (make-vector k)))
+
+  (define (make-string k)
+    (String (call make (array-slice rune) (as k int))))
+
+  (define (make-vector k)
+    (Vector (call make (array-slice Any) (as k int))))
+
+  (define (not bl)
+    (not (as bl bool)))
+
+  (define (null . o)
+    gNull)
+
+  (define (null? a)
+    (:= (_ ok) (as a (ptr Null)))
+    ok)
+
+  (define (pair? a)
+    (:= (_ ok) (as a (ptr Pair)))
+    ok)
+
+  (define (pointer-of a)
+    (dot reflect (ValueOf a) (Pointer)))
+
+  (define (pointer=? a b)
+    (== (as (pointer-of a) uintptr)
+        (as (pointer-of b) uintptr)))
+
+  (define (procedure? a)
+    (:= (_ ok) (as a Proc))
+    ok)
+
+  (define (raise err)
+    (call panic err)
+    (void))
+
+  (define (string-hash a)
+    (dot (NewString (as a string)) (GetHash)))
+
+  (define (string->list a)
+    (vector->list (string->vector a)))
+
+  (define (string->vector a)
+    (:= st (as a String))
+    (:= vc (as (make-vector (call len st)) Vector))
+    (for (:= i 0) (< i (call len st)) (++ i)
+         (inline "vc[i] = st[i]"))
+    vc)
+    
+  (define (string? a)
+    (:= (_ ok) (as a String))
+    ok)
+
+  (define (symbol=? a b)
+    (== (as a Symbol (String))
+        (as b Symbol (String))))
+
+  (define (string->symbol a)
+    (as a String (ToSymbol)))
+
+  (define (symbol->string a)
+    (as a Symbol (ToString)))
+
+  (define (symbol? a)
+    (:= (_ ok) (as a Symbol))
+    ok)
+
+  (define (u8-list->bytevector a)
+    (u8-vector->bytevector (list->vector a)))
+    
+  (define (u8-vector->bytevector a)
+    (:= vc (as a Vector))
+    (:= bv (as (make-bytevector (call len vc)) Binary))
+    (for (:= i 0) (< i (call len vc)) (++ i)
+         (inline "bv[i] = vc[i].(byte)"))
+    bv)
+
+  (define (vector->list* a)
+    (:= vc (as a Vector))
+    (if1 (== (call len vc) 0)
+         (return (null)))
+    (if1 (== (call len vc) 1)
+         (return (index vc 0)))
+    (cons (index vc 0) (vector->list* (Vector (index-slice vc 1)))))
+
+  (define (vector->string a)
+    (:= vc (as a Vector))
+    (:= st (as (make-string (call len vc)) String))
+    (for (:= i 0) (< i (call len vc)) (++ i)
+         (inline "st[i] = rune(vc[i].(Char))"))
+    st)
+    
+  (define (vector . o)
+    (Vector o))
+
+  (define (vector->list a)
+    (:= (vc ls) (as a Vector) (null))
+    (for (:= i (inline "len(vc) - 1")) (>= i 0) (-- i)
+         (= ls (cons (inline "vc[i]") ls)))
+    ls)
+
+  (define (vector? a)
+    (:= (_ ok) (as a Vector))
+    ok)
+
+  (define (void . o)
+    gVoid)
+
+  (define (void? a)
+    (:= (_ ok) (as a (ptr Void)))
+    ok)
+
+  (define (u8? a)
+    (if2 (:= (_ ok) (as a byte)) ok
+         (return #t))
+    (if2 (:= (c ok) (as a int)) (and ok (<= 0 c 255))
+         (return #t))
+    #f)
+
+  (define (type=? a b)
+    (== (as a AnyKinder (GetType))
+        (as b AnyKinder (GetType))))
+
+  (define (string->immutable-string a)
+    (if2 (:= (s ok) (as a String)) ok
+         (return (dot s (String))))
+    (error "expected string"))
+    
+  (define (immutable-string->string a)
+    (if2 (:= (s ok) (as a string)) ok
+         (return (NewString s)))
+    (error "expected immutable-string"))
+
+  (define (->go-string a)
+    (if2 (:= (s ok) (as a GoStringer)) ok
+         (return (dot s (GoString))))
+    (error "->scheme-string unknown type"))
+
+  (define (->immutable-string a)
+    (if2 (:= (s ok) (as a string)) ok
+         (return s))
+    (if2 (:= (s ok) (as a (dot fmt Stringer))) ok
+         (return (dot s (String))))
+    (error "->immutable-string unknown type"))
+
+  (define (->scheme-string a)
+    (if2 (:= (s ok) (as a SchemeStringer)) ok
+         (return (dot s (SchemeString))))
+    (error "->scheme-string unknown type"))
+
+  (define (->string a)
+    (if2 (:= (s ok) (as a String)) ok
+         (return s))
+    (immutable-string->string
+      (->immutable-string a)))
+
+  ;(define (eval exp env)
+  ;  (as exp Evaler (Eval (as env (ptr Env)))))
+  ;(define (symbol=? a b)
+  ;  (string=? (symbol->string a)
+  ;            (symbol->string b)))
+;  (define (open-input-file filename) (void))
+;  (define (open-output-file filename) (void))
+;  (define (call-with-values producer consumer)
+;    (:= values (as producer Proc (Apply (null))))
+;    (as consumer Proc (Apply values)))
+  ;(define command-line (make-parameter (vector)))
+  ;(define (command-line a)
+  ;  (void))
+;  ;(define (complex? a)
+;  ;  (Bool (_complexZS a)))
+;  (define (current-jiffy) (void))
+;  (define (current-second) (void))
+;  (define (denominator q)
+;    (as q SRational (Dmtr)))
+;
+;  (define (display a . portZS)
+;    (:= port (index portZS 0))
+;    (as port OPort (Write (as (any->go-string a) String (ToBytes))))
+;    (void))
+;
+;  (define (empty? a)
+;    (Bool (IsEmpty a)))
+;
+;
+;  (define (equal? a b)
+;    (void))
+;
+;  (define (eval-rest exp env)
+;    (void))
+;
+;  (define (eval exp env)
+;    (void))
+;
+;  (define (exact-integer-sqrt a)
+;    (void))
+;
+;  (define (exit a)
+;    (void))
+;
+;  (define (floor a)
+;    (void))
+;
+;  (define (flush-output-port port)
+;    (void))
+;
+;  (define (get-output-bytevector port)
+;    (void))
+;
+;  (define (get-output-string port)
+;    (void))
+;
+;  (define (hash a)
+;    (void))
+;
+;  (define (hashtable->list ht)
+;    (void))
+;
+;  (define (hashtable-clear! ht)
+;    (void))
+;
+;  (define (hashtable-contains? ht)
+;    (void))
+;  (define (hashtable-copy ht)
+;    (void))
+;  (define (hashtable-delete! ht)
+;    (void))
+;  (define (hashtable-entries ht)
+;    (void))
+;  (define (hashtable-equivalence-function ht)
+;    (void))
+;  (define (hashtable-hash-function ht)
+;    (void))
+;  (define (hashtable-keys ht)
+;    (void))
+;  (define (hashtable-mutable? ht)
+;    (void))
+;  (define (hashtable-ref ht)
+;    (void))
+;  (define (hashtable-set! ht)
+;    (void))
+;  (define (hashtable-size ht)
+;    (void))
+;  (define (hashtable-update! ht)
+;    (void))
+;  (define (hashtable-values ht)
+;    (void))
+;  (define (hashtable? ht)
+;    (void))
+;
+;  ;(define (inexact=? z)
+;  ;  (void))
+;  ;(define (inexact? z)
+;  ;  (void))
+;  ;(define (input-port? port)
+;  ;  (Bool (_inputZKportZS port)))
+;
+;  (define (integer->char z)
+;    (void))
+;  (define (integer? z)
+;    (void))
+;  (define (interaction-environment z)
+;    (void))
+;
+;  (define (list->string z)
+;    (void))
+;  (define (make/ z)
+;    (void))
+;  (define (make-equal-hashtable z)
+;    (void))
+;  (define (make-hashtable z)
+;    (void))
+;  (define (make-parameter z)
+;    (void))
+;  (define (negative? x)
+;    (void))
+;
+;  ;(define (newline . opt)
+;  ;  (apply (fn write) "\n" opt))
+;
+;  (define (numerator q)
+;    (as q SRational (Nmtr)))
+;
+;  (define (bytevector-copy! z y)
+;    (void))
+;  (define (u8-vector->bytevector z)
+;    (void))
+
+;  (define (abs x)
+;    (if (negative? x) (- x) x))
+;
+;func DnumberZKtypeZKof(a Any) Any {
+;    if ToFixnum(Dlength(list1(a))) == 2 {
+;        x, _ := unlist2Number(a)
+;        return NewSymbol(numberTypeToString(x.(BaseNum).GetNumberType()))
+;    }
+;    return NewSymbol(numberTypeToString(unlist1(a).(BaseNum).GetNumberType()))
+;}
+;(define-go (number-type-code-of (a Any) int))
+;(define-go (number-type-of (a Any) string)
+;  (return (number-type-code->string (number-type-code-of a))))
+;  (define-func (type-of (a Any) string)
+;    (return (type-code->string (type-code-of a))))
+;
+;func DtypeZQZS(a Any) Any {
+;    b, c := unlist2(a)
+;    return Bool(b.(AnyKinder).GetType() == c.(AnyKinder).GetType())
+;}
+
+ );begin
+);library

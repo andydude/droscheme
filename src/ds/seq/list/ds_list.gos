@@ -1,0 +1,207 @@
+; -*- mode: scheme -*-
+; (ds list) based on SRFI-1
+(package droscheme
+
+  (import "fmt")
+  (import (scheme base))
+
+  (define-func ((ls (ptr Pair)) Ref (ka Any) Any)
+	(:= k (ToFixnum ka))
+    (for (:= cur (Any ls)) (pair? cur) (= (k cur) (inline "k-1") (cdr cur))
+         (if1 (== k 0)
+              (return (car cur))))
+	;(if1 (_pairZS rest)
+    ;     (return (void))) ; (car default?)
+    (return (void)))
+
+  (define (length a)
+    (as a Seq (Length)))
+
+  (define (list* z)
+    (void))
+
+  (define (list+ z)
+    (void))
+
+  (define (alist-cons) (void))
+  (define (alist-copy) (void))
+  (define (alist-delete) (void))
+  (define (alist-delete!) (void))
+  (define (any) (void))
+  (define (append!) (void))
+  (define (append-map) (void))
+  (define (append-map!) (void))
+  (define (append-reverse) (void))
+  (define (append-reverse!) (void))
+  (define (assoc) (void))
+  ;(define (break) (void))
+  ;(define (break!) (void))
+
+  (define-func (car+cdr (ls Any) 
+      (values (car Any) (cdr Any)))
+    (return (car ls) (cdr ls)))
+
+  (define (car ls)
+    (as ls (ptr Pair) car))
+
+  (define (cdr ls)
+    (as ls (ptr Pair) cdr))
+
+
+  (define (cons a b)
+    (adr #(Pair a b)))
+
+  (define (list . rest)
+    (vector->list #(Vector rest)))
+
+  (define (list-ref ls k . rest)
+    (as ls (ptr Pair) (Ref k)))
+
+  (define (set-car! ls value)
+    (inline "ls.(*Pair).car = value")
+    (void))
+
+  (define (set-cdr! ls value)
+    (inline "ls.(*Pair).cdr = value")
+    (void))
+
+  (define (circular-list) (void))
+
+  (define (circular-list? x)
+    (let lp ((x x) (lag x))
+      (and (pair? x)
+           (let ((x (cdr x)))
+             (and (pair? x)
+                  (let ((x   (cdr x))
+                        (lag (cdr lag)))
+                    (or (eq? x lag) (lp x lag))))))))
+
+  (define (concatenate) (void))
+  (define (concatenate!) (void))
+
+  ;(define (cons* . rest)
+  ;  (apply list* rest))
+
+  (define (count) (void))
+  (define (delete) (void))
+  (define (delete!) (void))
+  (define (delete-duplicates) (void))
+  (define (delete-duplicates!) (void))
+
+  (define (dotted-list? x)
+    (let lp ((x x) (lag x))
+      (if (pair? x)
+          (let ((x (cdr x)))
+            (if (pair? x)
+                (let ((x   (cdr x))
+                      (lag (cdr lag)))
+                  (and (not (eq? x lag)) (lp x lag)))
+                (not (null? x))))
+          (not (null? x)))))
+
+  (define (drop) (void))
+  (define (drop-right) (void))
+  (define (drop-right!) (void))
+  (define (drop-while) (void))
+  (define (every) (void))
+  (define (filter) (void))
+  (define (filter!) (void))
+  (define (filter-map) (void))
+  (define (find) (void))
+  (define (find-tail) (void))
+  (define (fold) (void))
+  (define (fold-right) (void))
+  (define (iota) (void))
+  (define (last) (void))
+  (define (last-pair) (void))
+  (define (length+) (void))
+
+  (define (list-copy ls)
+    (if1 (not-pair? ls)
+         (return ls))
+    (:= (car cdr) (car+cdr ls))
+    (cons car (list-copy cdr)))
+    ;(let loop ((ls ls))
+    ;  (if (pair? ls)
+    ;      (cons (car ls) (loop (cdr ls)))
+    ;      ls)))
+
+  (define (list-index) (void))
+  (define (list-tabulate) (void))
+  (define (list=) (void))
+  (define (lset-adjoin) (void))
+  (define (lset-diff+intersection) (void))
+  (define (lset-diff+intersection!) (void))
+  (define (lset-difference) (void))
+  (define (lset-difference!) (void))
+  (define (lset-intersection) (void))
+  (define (lset-intersection!) (void))
+  (define (lset-union) (void))
+  (define (lset-union!) (void))
+  (define (lset-xor) (void))
+  (define (lset-xor!) (void))
+  (define (lset<=) (void))
+  (define (lset=) (void))
+  (define (make-list) (void))
+  (define (map!) (void))
+  (define (map-in-order) (void))
+  (define (member) (void))
+
+  (define (not-pair? x)
+    (not (pair? x)))
+
+  (define (null) gNull)
+
+  (define-bool (null-list? ls)
+    (if1 (pair? ls) (return #f))
+    (if1 (null? ls) (return #t))
+    (error "null-list?: argument out of domain" ls))
+
+  (define-bool (null? z)
+    (:= (_ ok) (as o (ptr Null)))
+    ok)
+
+  (define-bool (pair? z)
+    (:= (_ ok) (as o (ptr Pair)))
+    ok)
+
+  (define (pair-fold) (void))
+  (define (pair-fold-right) (void))
+  (define (pair-for-each) (void))
+  (define (partition) (void))
+  (define (partition!) (void))
+  (define (reduce) (void))
+  (define (reduce-right) (void))
+  (define (remove) (void))
+  (define (remove!) (void))
+
+  (define (reverse! ls)
+    (let loop ((ls ls) (ans (null)))
+      (if (null-list? ls) ans
+          (let ((tail (cdr ls)))
+            (set-cdr! ls ans)
+            (loop tail ls)))))
+
+  (define (span) (void))
+  (define (span!) (void))
+  (define (split-at) (void))
+  (define (split-at!) (void))
+  (define (take) (void))
+  (define (take!) (void))
+  (define (take-right) (void))
+  (define (take-while) (void))
+  (define (take-while!) (void))
+  (define (unfold) (void))
+  (define (unfold-right) (void))
+  (define (unzip1) (void))
+  (define (unzip2) (void))
+  (define (unzip3) (void))
+  (define (unzip4) (void))
+  (define (unzip5) (void))
+
+  (define (xcons a b)
+    (cons b a))
+
+  (define (zip) (void))
+
+);package

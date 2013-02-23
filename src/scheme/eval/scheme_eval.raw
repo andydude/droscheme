@@ -1,0 +1,30 @@
+// Droscheme - a Scheme implementation
+// Copyright © 2012 Andrew Robbins
+//
+// This program is free software: it is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+// terms of the GNU Lesser General Public License (LGPL): <http://www.gnu.org/licenses/>.
+
+package scheme_eval
+import . "ds/any"
+import "ds/base"
+var environment = NewProc(_environment, "environment")
+func _environment(importZKspecs ...Any)Any {
+	return _void()
+}
+var eval = NewProc(_eval, "eval")
+func _eval(expression, envZKspec Any)Any {
+	return ___evalZKsyntax(envZKspec, expression)
+}
+var nullZKenvironment = NewProc(_nullZKenvironment, "null-environment")
+func _nullZKenvironment(version Any)Any {
+	//_switch(version, _case(7, return _environment(_ds(env, nullZK7))), _case(6, return _environment(_ds(env, nullZK6))), _case(5, return _environment(_ds(env, nullZK5))), _case(4, return _environment(_ds(env, nullZK4))), _case(3, return _environment(_ds(env, nullZK3))), _case(2, return _environment(_ds(env, nullZK2))))
+	return _nullZKenvironment(version)
+}
+var schemeZKreportZKenvironment = NewProc(_schemeZKreportZKenvironment, "scheme-report-environment")
+func _schemeZKreportZKenvironment(version Any)Any {
+	//_switch(version, _case(7, return _environment(_ds(env, schemeZKreportZK7))), _case(6, return _environment(_ds(env, schemeZKreportZK6))), _case(5, return _environment(_ds(env, schemeZKreportZK5))), _case(4, return _environment(_ds(env, schemeZKreportZK4))), _case(3, return _environment(_ds(env, schemeZKreportZK3))), _case(2, return _environment(_ds(env, schemeZKreportZK2))))
+	return _nullZKenvironment(version)
+}
+

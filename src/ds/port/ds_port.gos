@@ -1,0 +1,35 @@
+; -*- mode: scheme -*-
+; (ds port)
+(package droscheme
+
+  (define (call-with-input-file filename proc)
+    (call-with-port (open-input-file filename) proc))
+
+  (define (call-with-port port proc)
+    (if1 (not (port? port))
+         (error "call-with-port expected port"))
+    (defer (close-port port))
+    (as proc Applier (Apply port)))
+
+  (define-bool (char-ready? #(port (current-input-port)))
+    (as port RunePeeker (ReadyRune)))
+
+  (define (close-input-port port)
+    (if1 (not (port? port))
+         (error "close-input-port expected port"))
+    (if1 (not (input-port? port)) 
+         (error "close-input-port expected input-port"))
+    (close-port port))
+
+  (define (close-output-port port)
+    (if1 (not (port? port)) 
+         (error "close-output-port expected port"))
+    (if1 (not (output-port? port))
+         (error "close-output-port expected output-port"))
+    (close-port port))
+
+  (define (close-port a)
+    (call-go error1panic (as a Port (Close)))
+    (void))
+
+);package

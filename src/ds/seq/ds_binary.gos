@@ -1,0 +1,8 @@
+; -*- mode: scheme -*-
+; (ds bytevector)
+(package droscheme
+
+  (define-bool (bytevector? a)
+    (IsType a TypeCodeBinary))
+
+);package

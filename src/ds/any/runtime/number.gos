@@ -1,0 +1,6 @@
+(package
+  ds_any_runtime
+  (type Num
+        (interface
+          #(IsExact (func () &bool))
+          #(IsInexact (func () &bool)))))

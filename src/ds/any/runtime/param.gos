@@ -1,0 +1,68 @@
+(package
+  ds_any_runtime
+  (import (dot "ds/any"))
+  (func NewParameter
+        (#(value Any) #(name &imm-string))
+        (ptr PrimProc)
+        (return
+          (as (_make-parameter value values name)
+              (ptr PrimProc))))
+  (var (= command-line
+          (NewParameter (_vector) "command-line"))
+       (= _command-line
+          (as (command-line.Value) (func (Any) Any)))
+       (= current-error-port
+          (NewParameter (_void) "current-error-port"))
+       (= _current-error-port
+          (as (current-error-port.Value) (func (Any) Any)))
+       (= current-input-port
+          (NewParameter (_void) "current-input-port"))
+       (= _current-input-port
+          (as (current-input-port.Value) (func (Any) Any)))
+       (= current-output-port
+          (NewParameter (_void) "current-output-port"))
+       (= _current-output-port
+          (as (current-output-port.Value) (func (Any) Any))))
+  (var (= make-parameter
+          (NewProc _make-parameter "make-parameter")))
+  (func...
+    _make-parameter
+    (#(init Any) #(Rest Any))
+    Any
+    (:= conv
+        ((func ()
+               Any
+               (when (> (len Rest) 0) (return (index Rest 0)))
+               (return %nil))))
+    (:= name
+        ((func ()
+               Any
+               (when (> (len Rest) 1) (return (index Rest 1)))
+               (return "(make-parameter)"))))
+    (:= pc (as (_pointer-of conv) &uintptr))
+    (when (== gParameters %nil)
+          (= gParameters (make (map-type &uintptr Any) 8)))
+    (var (= param
+            (func (#(rest Any))
+                  Any
+                  (:= cell (index gParameters pc))
+                  (case! (len rest)
+                         ((0) (return cell))
+                         ((1)
+                          (= ((index gParameters pc)) (index rest 0))
+                          (return (_void))))
+                  (return %nil))))
+    (when (!= conv %nil)
+          (= param
+             (func (#(rest Any))
+                   Any
+                   (:= cell (index gParameters pc))
+                   (case! (len rest)
+                          ((0) (return cell))
+                          ((1)
+                           (= ((index gParameters pc))
+                              (_apply conv (index rest 0)))
+                           (return (_void))))
+                   (return %nil))))
+    (param init)
+    (return (NewProc param (as name &imm-string)))))

@@ -1,0 +1,80 @@
+(package
+  ds_any_runtime
+  (import (dot "ds/any"))
+  (const (= TypeCodeAny iota)
+         TypeCodeType
+         TypeCodeNull
+         TypeCodePair
+         TypeCodeChar
+         TypeCodeBool
+         TypeCodeProc
+         TypeCodeBinary
+         TypeCodeNumber
+         TypeCodePort
+         TypeCodeString
+         TypeCodeSymbol
+         TypeCodeVector
+         TypeCodeTable
+         TypeCodeRecord
+         TypeCodeLibrary
+         TypeCodeValues
+         TypeCodeSyntax
+         TypeCodeEnvSpec
+         TypeCodeError
+         TypeCodeLabel
+         TypeCodeVoid
+         TypeCodeMax)
+  (func _kind-of
+        (#(a Any))
+        &int
+        (type! (as a type)
+               ((&int8) (return TypeCodeNumber))
+               ((&int16) (return TypeCodeNumber))
+               ((&int32) (return TypeCodeNumber))
+               ((&int64) (return TypeCodeNumber))
+               ((&uint8) (return TypeCodeNumber))
+               ((&uint16) (return TypeCodeNumber))
+               ((&uint32) (return TypeCodeNumber))
+               ((&uint64) (return TypeCodeNumber))
+               ((&float32) (return TypeCodeNumber))
+               ((&float64) (return TypeCodeNumber))
+               ((&complex64) (return TypeCodeNumber))
+               ((&complex128) (return TypeCodeNumber))
+               ((&bool) (return TypeCodeBool))
+               ((Char) (return TypeCodeChar))
+               (((ptr Void)) (return TypeCodeVoid))
+               (((ptr Null)) (return TypeCodeNull))
+               (((ptr Pair)) (return TypeCodePair))
+               (((ptr Proc)) (return TypeCodeProc))
+               (((ptr LambdaProc)) (return TypeCodeProc))
+               ((Binary) (return TypeCodeBinary))
+               ((String) (return TypeCodeString))
+               ((Symbol) (return TypeCodeSymbol))
+               ((Values) (return TypeCodeValues))
+               ((Vector) (return TypeCodeVector))
+               ((STable) (return TypeCodeTable))
+               (((ptr Env)) (return TypeCodeEnvSpec)))
+        (return ((dot (as a AnyKinder) GetType))))
+  (func _kind->string
+        (#(ak Any))
+        &imm-string
+        (case! (as ak &int)
+               ((TypeCodeBool) (return "boolean"))
+               ((TypeCodeChar) (return "char"))
+               ((TypeCodeNull) (return "null"))
+               ((TypeCodePair) (return "pair"))
+               ((TypeCodeProc) (return "procedure"))
+               ((TypeCodeVoid) (return "void"))
+               ((TypeCodeBinary) (return "bytevector"))
+               ((TypeCodeString) (return "string"))
+               ((TypeCodeSymbol) (return "symbol"))
+               ((TypeCodeValues) (return "values"))
+               ((TypeCodeVector) (return "vector"))
+               ((TypeCodeTable) (return "hashtable"))
+               ((TypeCodeNumber) (return "number"))
+               ((TypeCodePort) (return "port"))
+               ((TypeCodeEnvSpec) (return "environment"))
+               ((TypeCodeSyntax) (return "syntax")))
+        (_error
+          "kind->string expected a recognized type")
+        (return "")))

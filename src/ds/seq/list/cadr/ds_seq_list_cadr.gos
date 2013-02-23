@@ -1,0 +1,211 @@
+(package
+  ds_seq_list_cadr
+  (import "ds/seq/runtime")
+  (var (= _ds_seq_runtime ((dot ds_seq_runtime Export)))
+       (= length
+          (as (index _ds_seq_runtime "length")
+              (func (#(ls &any)) &any)))
+       (= listZHZKZRvector
+          (as (index _ds_seq_runtime "list*->vector")
+              (func (#(z &any)) &any)))
+       (= listZKZRvector
+          (as (index _ds_seq_runtime "list->vector")
+              (func (#(ls &any)) &any)))
+       (= makeZKlist
+          (as (index _ds_seq_runtime "make-list")
+              (func (#(k &any)) &any)))
+       (= makeZKvector
+          (as (index _ds_seq_runtime "make-vector")
+              (func (#(k &any)) &any)))
+       (= seqZKlength
+          (as (index _ds_seq_runtime "seq-length")
+              (func (#(sq &any)) &any)))
+       (= seqZKref
+          (as (index _ds_seq_runtime "seq-ref")
+              (func (#(sq &any) #(k &any) #(dv (void)) ())
+                    &any)))
+       (= seqZKsetZA
+          (as (index _ds_seq_runtime "seq-set!")
+              (func (#(sq &any) #(k &any) #(value &any)) &any)))
+       (= stringZKZRlist
+          (as (index _ds_seq_runtime "string->list")
+              (func (#(st &any)) &any)))
+       (= stringZKZRsymbol
+          (as (index _ds_seq_runtime "string->symbol")
+              (func (#(st &any)) &any)))
+       (= stringZKZRvector
+          (as (index _ds_seq_runtime "string->vector")
+              (func (#(st &any)) &any)))
+       (= values
+          (as (index _ds_seq_runtime "values")
+              (func ((rest (preellipsis &any))) &any)))
+       (= vector
+          (as (index _ds_seq_runtime "vector")
+              (func () &any)))
+       (= vectorZKZRlist
+          (as (index _ds_seq_runtime "vector->list")
+              (func (#(vs &any)) &any)))
+       (= vectorZKZRlistZH
+          (as (index _ds_seq_runtime "vector->list*")
+              (func (#(z &any)) &any)))
+       (= vectorZKref
+          (as (index _ds_seq_runtime "vector-ref")
+              (func (#(vc &any) #(k &any)) &any)))
+       (= vectorZKsetZA
+          (as (index _ds_seq_runtime "vector-set!")
+              (func (#(vc &any) #(k &any) #(value &any)) &any)))
+       (= vectorZS
+          (as (index _ds_seq_runtime "vector?")
+              (func (#(object &any)) &any)))
+       (= void
+          (as (index _ds_seq_runtime "void")
+              (func ((rest (preellipsis &any))) &any)))
+       (= voidZS
+          (as (index _ds_seq_runtime "void?")
+              (func (#(a &any)) &any))))
+  (func Export
+        ()
+        (map: &str &any)
+        (return
+          #((map: &str &any)
+            (: "caar" caar)
+            (: "cadr" cadr)
+            (: "caaar" caaar)
+            (: "caadr" caadr)
+            (: "cadar" cadar)
+            (: "caddr" caddr)
+            (: "caaaar" caaaar)
+            (: "caaadr" caaadr)
+            (: "caadar" caadar)
+            (: "caaddr" caaddr)
+            (: "cadaar" cadaar)
+            (: "cadadr" cadadr)
+            (: "caddar" caddar)
+            (: "cadddr" cadddr)
+            (: "cdaaar" cdaaar)
+            (: "cdaadr" cdaadr)
+            (: "cdadar" cdadar)
+            (: "cdaddr" cdaddr)
+            (: "cddaar" cddaar)
+            (: "cddadr" cddadr)
+            (: "cdddar" cdddar)
+            (: "cddddr" cddddr)
+            (: "cdaar" cdaar)
+            (: "cdadr" cdadr)
+            (: "cddar" cddar)
+            (: "cdddr" cdddr)
+            (: "cdar" cdar)
+            (: "cddr" cddr))))
+  (func caar
+        (#(ls &any))
+        &any
+        (return (car (car ls))))
+  (func cadr
+        (#(ls &any))
+        &any
+        (return (car (cdr ls))))
+  (func caaar
+        (#(ls &any))
+        &any
+        (return (car (cdr (cdr ls)))))
+  (func caadr
+        (#(ls &any))
+        &any
+        (return (car (cdr (cdr ls)))))
+  (func cadar
+        (#(ls &any))
+        &any
+        (return (car (cdr (cdr ls)))))
+  (func caddr
+        (#(ls &any))
+        &any
+        (return (car (cdr (cdr ls)))))
+  (func caaaar
+        (#(ls &any))
+        &any
+        (return (car (car (car (car ls))))))
+  (func caaadr
+        (#(ls &any))
+        &any
+        (return (car (car (car (cdr ls))))))
+  (func caadar
+        (#(ls &any))
+        &any
+        (return (car (car (cdr (car ls))))))
+  (func caaddr
+        (#(ls &any))
+        &any
+        (return (car (car (cdr (cdr ls))))))
+  (func cadaar
+        (#(ls &any))
+        &any
+        (return (car (cdr (car (car ls))))))
+  (func cadadr
+        (#(ls &any))
+        &any
+        (return (car (cdr (car (cdr ls))))))
+  (func caddar
+        (#(ls &any))
+        &any
+        (return (car (cdr (cdr (car ls))))))
+  (func cadddr
+        (#(ls &any))
+        &any
+        (return (car (cdr (cdr (cdr ls))))))
+  (func cdaaar
+        (#(ls &any))
+        &any
+        (return (cdr (car (car (car ls))))))
+  (func cdaadr
+        (#(ls &any))
+        &any
+        (return (cdr (car (car (cdr ls))))))
+  (func cdadar
+        (#(ls &any))
+        &any
+        (return (cdr (car (cdr (car ls))))))
+  (func cdaddr
+        (#(ls &any))
+        &any
+        (return (cdr (car (cdr (cdr ls))))))
+  (func cddaar
+        (#(ls &any))
+        &any
+        (return (cdr (cdr (car (car ls))))))
+  (func cddadr
+        (#(ls &any))
+        &any
+        (return (cdr (cdr (car (cdr ls))))))
+  (func cdddar
+        (#(ls &any))
+        &any
+        (return (cdr (cdr (cdr (car ls))))))
+  (func cddddr
+        (#(ls &any))
+        &any
+        (return (cdr (cdr (cdr (cdr ls))))))
+  (func cdaar
+        (#(ls &any))
+        &any
+        (return (cdr (car (car ls)))))
+  (func cdadr
+        (#(ls &any))
+        &any
+        (return (cdr (car (cdr ls)))))
+  (func cddar
+        (#(ls &any))
+        &any
+        (return (cdr (cdr (car ls)))))
+  (func cdddr
+        (#(ls &any))
+        &any
+        (return (cdr (cdr (cdr ls)))))
+  (func cdar
+        (#(ls &any))
+        &any
+        (return (cdr (car ls))))
+  (func cddr
+        (#(ls &any))
+        &any
+        (return (cdr (cdr ls)))))
+

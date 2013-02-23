@@ -1,0 +1,79 @@
+(package
+  ds_any_runtime
+  (import (dot "ds/any") "fmt")
+  (func #(vc Vector)
+        GetType
+        ()
+        &int
+        (return TypeCodeVector))
+  (func #(vc Vector)
+        GetHash
+        ()
+        &uintptr
+        (return
+          (as (apply... _object-hash ((slice Any) vc))
+              &uintptr)))
+  (func #(vc Vector)
+        Equal
+        (#(a Any))
+        &bool
+        (return (as (_object-equal? vc a) &bool)))
+  (func #(vc Vector)
+        Eval
+        (#(env (ptr Env)))
+        Any
+        (var (= rv (as (_make-vector (len vc)) Vector)))
+        (for (:= i 0)
+             (< i (len vc))
+             (++ i)
+             (= ((index rv i)) (_eval (index vc i) env)))
+        (return rv))
+  (func #(vc Vector)
+        Ref
+        (#(k Any))
+        Any
+        (return (index vc (as k &int))))
+  (func #(vc Vector)
+        Set
+        (#(k v Any))
+        Any
+        (= ((index vc (as k &int))) v)
+        (return (_void)))
+  (func #(vc Vector)
+        SchemeString
+        ()
+        &imm-string
+        (when (== (len vc) 0) (return "#()"))
+        (:= rv #((slice &byte)))
+        (range (:= (_ value) vc)
+               (= rv (append rv #\space))
+               (= rv
+                  (apply...
+                    append
+                    rv
+                    (as (_->scheme-string value) &imm-string))))
+        (return (fmt.Sprintf "#(%s)" (index rv 1 #f))))
+  (func #(vc Vector)
+        ToBinary
+        ()
+        Binary
+        (:= rv (make (slice &byte) (len vc)))
+        (range (:= (k it) vc)
+               (= ((index rv k)) (as it &byte)))
+        (return (Binary rv)))
+  (func #(vc Vector)
+        ToList
+        ()
+        Any
+        (when (== (len vc) 0) (return (_null)))
+        (return
+          (_cons (index vc 0)
+                 ((dot (Vector (index vc 1 #f)) ToList)))))
+  (func #(vc Vector)
+        ToString
+        ()
+        String
+        (:= rv (make (slice &rune) (len vc)))
+        (range (:= (k it) vc)
+               (= ((index rv k)) (as it &rune)))
+        (return (String rv))))
