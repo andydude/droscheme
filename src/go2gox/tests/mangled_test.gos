@@ -1,0 +1,14 @@
+(package
+  main
+  (import "testing")
+  (func my-and/or-func+1? () &void)
+  (func testBasicString
+        (#(t (ptr testing.T)))
+        &void
+        (var (= my-and/or-variable2?
+                (func (#(x y &int)) &int 2)))
+        (my-and/or-variable2?)
+        (var (= my-and/or-variable3?
+                (func (#(x y (map-type &imm-string &rune)))
+                      &int 3)))
+        (my-and/or-variable3?)))
