@@ -105,44 +105,44 @@ func goUnaryOpToSchemeOp(name string) string {
 func goIdToSchemeId(name string) string {
 	var table = map[string]string{
 		// types
-		"bool": "&bool",
-		"byte": "&byte",
-		"complex64": "&complex64",
-		"complex128": "&complex128",
-		"error": "&error",
-		"float32": "&float32",
-		"float64": "&float64",
-		"int": "&int",
-		"int8": "&int8",
-		"int16": "&int16",
-		"int32": "&int32",
-		"int64": "&int64",
-		"rune": "&rune",
-		"string": "&str",
-		"uint": "&uint",
-		"uint8": "&uint8",
-		"uint16": "&uint16",
-		"uint32": "&uint32",
-		"uint64": "&uint64",
-		"uintptr": "&uintptr",
+		"bool": prefix+"bool",
+		"byte": prefix+"byte",
+		"complex64": prefix+"complex64",
+		"complex128": prefix+"complex128",
+		"error": prefix+"error",
+		"float32": prefix+"float32",
+		"float64": prefix+"float64",
+		"int": prefix+"int",
+		"int8": prefix+"int8",
+		"int16": prefix+"int16",
+		"int32": prefix+"int32",
+		"int64": prefix+"int64",
+		"rune": prefix+"rune",
+		"string": prefix+"str",
+		"uint": prefix+"uint",
+		"uint8": prefix+"uint8",
+		"uint16": prefix+"uint16",
+		"uint32": prefix+"uint32",
+		"uint64": prefix+"uint64",
+		"uintptr": prefix+"uintptr",
 		// builtins
-		"append": "%append",
-		"cap": "%cap",
-		"close": "%close",
-		"complex": "%complex",
-		"copy": "%copy",
-		"delete": "%delete",
-		"imag": "%imag",
-		"len": "%len",
-		"panic": "%panic",
-		"print": "%print",
-		"println": "%println",
-		"real": "%real",
-		"recover": "%recover",
+		"append": prefix+"append",
+		"cap": prefix+"cap",
+		"close": prefix+"close",
+		"complex": prefix+"complex",
+		"copy": prefix+"copy",
+		"delete": prefix+"delete",
+		"imag": prefix+"imag",
+		"len": prefix+"len",
+		"panic": prefix+"panic",
+		"print": prefix+"print",
+		"println": prefix+"println",
+		"real": prefix+"real",
+		"recover": prefix+"recover",
 		// objects
 		"true": "#t",
 		"false": "#f",
-		"nil": "%nil",
+		"nil": prefix+"nil",
 	}
 	if table[name] != "" {
 		return table[name]
@@ -182,12 +182,6 @@ func goStringToSchemeString(node *ast.BasicLit) string {
 		v3 := strings.Replace(v2, "`", "\"", -1)
 		return v3
 	}
-	//internalBuf := make([]byte, 1024)
-	//buf := bytes.NewBuffer(internalBuf)
-	//err := printer.Fprint(buf, token.NewFileSet(), node)
-	//if err != nil {
-	//	panic(err)
-	//}
 	return node.Value
 }
 

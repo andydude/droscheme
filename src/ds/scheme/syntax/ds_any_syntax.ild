@@ -1,5 +1,5 @@
 define-library
- ds any syntax
+ ds scheme syntax
  import
   dot (ds port)
  export
