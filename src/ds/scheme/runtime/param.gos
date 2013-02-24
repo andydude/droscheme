@@ -1,0 +1,90 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any"))
+  (go:func
+    NewParameter
+    (#(value Any) #(name go:string))
+    (go:ptr PrimProc)
+    (go:return
+      (go:as (_make-parameter value values name)
+             (go:ptr PrimProc))))
+  (go:var
+    (go:= command-line
+          (NewParameter (_vector) "command-line"))
+    (go:= _command-line
+          (go:as (command-line.Value) (go:func (Any) Any)))
+    (go:= current-error-port
+          (NewParameter (_void) "current-error-port"))
+    (go:= _current-error-port
+          (go:as (current-error-port.Value)
+                 (go:func (Any) Any)))
+    (go:= current-input-port
+          (NewParameter (_void) "current-input-port"))
+    (go:= _current-input-port
+          (go:as (current-input-port.Value)
+                 (go:func (Any) Any)))
+    (go:= current-output-port
+          (NewParameter (_void) "current-output-port"))
+    (go:= _current-output-port
+          (go:as (current-output-port.Value)
+                 (go:func (Any) Any))))
+  (go:var
+    (go:= make-parameter
+          (NewProc _make-parameter "make-parameter")))
+  (go:func...
+    _make-parameter
+    (#(init Any) #(Rest Any))
+    Any
+    (go::= conv
+           ((go:func
+              ()
+              Any
+              (go:when
+                (go:> (go:len Rest) 0)
+                (go:return (go:index Rest 0)))
+              (go:return go:nil))))
+    (go::= name
+           ((go:func
+              ()
+              Any
+              (go:when
+                (go:> (go:len Rest) 1)
+                (go:return (go:index Rest 1)))
+              (go:return "(make-parameter)"))))
+    (go::= pc (go:as (_pointer-of conv) go:uintptr))
+    (go:when
+      (go:== gParameters go:nil)
+      (go:= gParameters
+            (make (go:map: go:uintptr Any) 8)))
+    (go:var
+      (go:= param
+            (go:func
+              (#(rest Any))
+              Any
+              (go::= cell (go:index gParameters pc))
+              (go:case!
+                (go:len rest)
+                ((0) (go:return cell))
+                ((1)
+                 (go:= ((go:index gParameters pc))
+                       (go:index rest 0))
+                 (go:return (_void))))
+              (go:return go:nil))))
+    (go:when
+      (go:!= conv go:nil)
+      (go:= param
+            (go:func
+              (#(rest Any))
+              Any
+              (go::= cell (go:index gParameters pc))
+              (go:case!
+                (go:len rest)
+                ((0) (go:return cell))
+                ((1)
+                 (go:= ((go:index gParameters pc))
+                       (_apply conv (go:index rest 0)))
+                 (go:return (_void))))
+              (go:return go:nil))))
+    (param init)
+    (go:return
+      (NewProc param (go:as name go:string)))))

@@ -1,0 +1,8 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any"))
+  (go:var
+    (go:= gEOF (Char (go:- 1)))
+    (go:= gNull (go:new: Null))
+    (go:= gVoid (go:new: Void))
+    #(gParameters (go:map: go:uintptr Any))))

@@ -1,0 +1,30 @@
+(go:package
+  ds_any_runtime
+  (go:import "testing")
+  (go:func
+    TestIsList
+    (#(t (go:ptr testing.T)))
+    go:&void
+    (go::= ls (_cons 42 (_null)))
+    (go:unless*
+      (go::= (_ ok) (go:as ls (go:ptr Pair)))
+      ok
+      (t.Fail))
+    (go:unless (go:as (_pair? ls) go:bool) (t.Fail)))
+  (go:func
+    TestMakeList
+    (#(t (go:ptr testing.T)))
+    go:&void
+    (go::= ls (go:as (_make-list 2) (go:ptr Pair)))
+    (ls.Set 0 11)
+    (ls.Set 1 12)
+    (go:when
+      (go:!= (go:as (ls.Ref 0) go:int) 11)
+      (t.Fail))
+    (go:when
+      (go:!= (go:as (ls.Ref 1) go:int) 12)
+      (t.Fail)))
+  (go:func
+    TestListLength
+    (#(t (go:ptr testing.T)))
+    go:&void))

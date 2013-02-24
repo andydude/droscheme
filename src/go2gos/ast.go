@@ -118,7 +118,7 @@ func goIdToSchemeId(name string) string {
 		"int32": prefix+"int32",
 		"int64": prefix+"int64",
 		"rune": prefix+"rune",
-		"string": prefix+"str",
+		"string": prefix+"string",
 		"uint": prefix+"uint",
 		"uint8": prefix+"uint8",
 		"uint16": prefix+"uint16",

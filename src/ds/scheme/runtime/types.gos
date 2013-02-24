@@ -1,0 +1,58 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any") "reflect")
+  (go:type
+    Char
+    go:rune
+    Void
+    (go:struct)
+    Null
+    (go:struct)
+    Pair
+    (go:struct #(car Any) #(cdr Any))
+    Binary
+    (go:slice go:byte)
+    String
+    (go:slice go:rune)
+    Vector
+    (go:slice Any)
+    Values
+    (go:slice Any)
+    Symbol
+    (go:struct #(name go:string)))
+  (go:type
+    Error
+    (go:interface
+      (go:func Error () go:string)
+      (go:func Irritants () Any))
+    GoStringer
+    (go:interface (go:func GoString () go:string))
+    SchemeStringer
+    (go:interface
+      (go:func SchemeString () go:string)))
+  (go:type
+    AnyKinder
+    (go:interface (go:func GetType () go:int))
+    Kinder
+    (go:interface (go:func Kind () reflect.Kind))
+    Comparer
+    (go:interface (go:func Compare (Any) go:int))
+    Equaler
+    (go:interface (go:func Equal (Any) go:bool))
+    Hasher
+    (go:interface (go:func GetHash () go:uintptr))
+    Map
+    (go:interface
+      (go:func Define (#(key value Any)) go:&void)
+      (go:func Ref (#(key Any)) Any)
+      (go:func RefDefault (#(key value Any)) Any)
+      (go:func Set (#(key value Any)) go:&void))
+    AdvancedMap
+    (go:interface
+      Map
+      (go:func Add (#(value Named)) go:&void))
+    Seq
+    (go:interface
+      (go:func First () Any)
+      (go:func Length () go:int)
+      (go:func Rest () Seq))))

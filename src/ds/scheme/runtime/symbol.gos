@@ -1,0 +1,90 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any"))
+  (go:func
+    NewSymbol
+    (#(s go:string))
+    Symbol
+    (go:return (go:make: Symbol (go:: name s))))
+  (go:func
+    #(o Symbol)
+    GetType
+    ()
+    go:int
+    (go:return TypeCodeSymbol))
+  (go:func
+    #(o Symbol)
+    GetHash
+    ()
+    go:uintptr
+    (go:return 0))
+  (go:func
+    #(o Symbol)
+    Equal
+    (#(a Any))
+    go:bool
+    (go:unless
+      (go:as (_symbol? a) go:bool)
+      (go:return #f))
+    (go:return
+      (go:== o.name (go:dot (go:as a Symbol) name))))
+  (go:func
+    #(o Symbol)
+    Eval
+    (#(env (go:ptr Env)))
+    Any
+    (go::= value (env.Ref o))
+    (go:when
+      (go:== value go:nil)
+      (_error
+        "variable not bound in environment: "
+        o.name))
+    (go:return value))
+  (go:func
+    #(o Symbol)
+    Match
+    (#(syntax Any) #(env (go:ptr Env)))
+    go:bool
+    (go:when (go:== o.name "_") (go:return #t))
+    (go:when
+      (go:== o.name "...")
+      (go:panic
+        "we were supposed to catch ... earlier")
+      (go:return #f))
+    (go:when*
+      (go::= value (env.Ref o))
+      (go:and (go:!= value go:nil) (o.Equal value))
+      (go:return (o.Equal syntax)))
+    (go:return #t))
+  (go:func
+    #(o Symbol)
+    Replace
+    (#(env (go:ptr Env)))
+    Any
+    (go::= value (env.Ref o))
+    (go:when (go:== value go:nil) (go:return o))
+    (go:return value))
+  (go:func
+    #(sy Symbol)
+    String
+    ()
+    go:string
+    (go:return sy.name))
+  (go:func
+    #(sy Symbol)
+    SchemeString
+    ()
+    go:string
+    (go:return (sy.String)))
+  (go:func
+    #(sy Symbol)
+    ToString
+    ()
+    String
+    (go:return (NewString (sy.String))))
+  (go:func
+    #(sy Symbol)
+    ToVector
+    ()
+    Vector
+    (go:return ((go:dot (sy.ToString) ToVector)))))

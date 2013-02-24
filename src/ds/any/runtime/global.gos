@@ -1,7 +1,0 @@
-(package
-  ds_any_runtime
-  (import (dot "ds/any"))
-  (var (= gEOF (Char (- 1)))
-       (= gNull (adr #(Null)))
-       (= gVoid (adr #(Void)))
-       #(gParameters (map-type &uintptr Any))))

@@ -1,0 +1,2 @@
+#!/bin/bash
+guile $DROSCHEME_PATH/scm/i2s-guile.scm "$@"

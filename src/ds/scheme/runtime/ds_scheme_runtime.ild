@@ -35,7 +35,7 @@ define-library
   (define (car ls)
     (as ls (ptr Pair) car))
 
-  (define-func (car+cdr (ls Any) (car cdr Any))
+  (go:func car+cdr (ls) (car cdr)
     (return (car ls) (cdr ls)))
 
   (define (cdr ls)
@@ -198,6 +198,28 @@ define-library
     (:= (_ ok) (as a (ptr Null)))
     ok)
 
+  (go:func object-hash (obj)
+    _object-hash
+    (#(rest Any))
+    Any
+    (go:when
+      (go:== (go:len rest) 1)
+      (go:return
+        ((go:dot (go:as (go:index rest 0) Hasher) GetHash))))
+    (go::= hashport (crc32.NewIEEE))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:len rest))
+      (go:++ i)
+      (go::= code
+             (_u32->bytevector
+               (_object-hash (go:index rest i))))
+      (go::= (_ err)
+             (hashport.Write
+               ((go:slice go:byte) (go:as code Binary))))
+      (go:when (go:!= err go:nil) (go:panic err)))
+    (go:return (go:uintptr (hashport.Sum32))))
+ 
   (define (pair? a)
     (:= (_ ok) (as a (ptr Pair)))
     ok)
@@ -260,6 +282,13 @@ define-library
     (for (:= i 0) (< i (call len vc)) (++ i)
          (inline "bv[i] = vc[i].(byte)"))
     bv)
+
+  (define (u32->bytevector a)
+    (go::= buf (new bytes.Buffer))
+    (go::= err
+           (binary.Write buf binary.LittleEndian a))
+    (go:when (go:!= err go:nil) (go:panic err))
+    (go:return (Binary (buf.Bytes)))))
 
   (define (vector->list* a)
     (:= vc (as a Vector))

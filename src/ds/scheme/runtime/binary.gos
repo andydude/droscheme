@@ -1,0 +1,114 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any") "fmt" "strconv")
+  (go:func
+    NewBinary
+    (#(s go:string))
+    Binary
+    (go:return (Binary ((go:slice go:byte) s))))
+  (go:func
+    #(bv Binary)
+    First
+    ()
+    Any
+    (go:return (go:int (go:index bv 0))))
+  (go:func
+    #(_ Binary)
+    GetType
+    ()
+    go:int
+    (go:return TypeCodeBinary))
+  (go:func
+    #(bv Binary)
+    GetHash
+    ()
+    go:uintptr
+    (go:return
+      (go:as (go:apply...
+               _object-hash
+               ((go:slice Any) (bv.ToVector)))
+             go:uintptr)))
+  (go:func
+    #(bv Binary)
+    GoString
+    ()
+    go:string
+    (go::= rv (go:make: (go:slice go:byte)))
+    (go:range
+      (:= (_ value) bv)
+      (go:= rv (go:apply... go:append rv ", "))
+      (go:= rv
+            (strconv.AppendInt rv (go:int64 value) 10)))
+    (go:return
+      (fmt.Sprintf
+        "Binary([]Any{%s})"
+        (go:index rv 2 #f))))
+  (go:func
+    #(bv Binary)
+    Length
+    ()
+    go:int
+    (go:return (go:len bv)))
+  (go:func
+    #(bv Binary)
+    RawString
+    ()
+    go:string
+    (go:return (go:string ((go:slice go:byte) bv))))
+  (go:func
+    #(bv Binary)
+    Ref
+    (#(k Any))
+    Any
+    (go:return
+      (go:int (go:index bv (go:as k go:int)))))
+  (go:func
+    #(bv Binary)
+    Rest
+    ()
+    Seq
+    (go:return (Binary (go:index bv 1 #f))))
+  (go:func
+    #(bc Binary)
+    Set
+    (#(k v Any))
+    Any
+    (go:= ((go:index bc (go:as k go:int)))
+          (go:byte (go:as v go:int)))
+    (go:return (_void)))
+  (go:func
+    #(bv Binary)
+    SchemeString
+    ()
+    go:string
+    (go::= word "u8")
+    (go:when
+      (go:== (go:len bv) 0)
+      (go:return (go:+ (go:+ "#" word) "()")))
+    (go::= rv (go:make: (go:slice go:byte)))
+    (go:range
+      (:= (_ value) bv)
+      (go:= rv (go:append rv #\space))
+      (go:= rv
+            (strconv.AppendInt rv (go:int64 value) 10)))
+    (go:return
+      (fmt.Sprintf "#%s(%s)" word (go:index rv 1 #f))))
+  (go:func
+    #(bv Binary)
+    ToString
+    ()
+    String
+    (go:return (NewString (bv.RawString))))
+  (go:func
+    #(bv Binary)
+    ToSymbol
+    ()
+    Symbol
+    (go:return (NewSymbol (bv.RawString))))
+  (go:func
+    #(bv Binary)
+    ToVector
+    ()
+    Vector
+    (go:return
+      (go:as (_bytevector->u8-vector bv) Vector))))

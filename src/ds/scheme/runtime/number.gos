@@ -1,0 +1,7 @@
+(go:package
+  ds_any_runtime
+  (go:type
+    Num
+    (go:interface
+      (go:func IsExact () go:bool)
+      (go:func IsInexact () go:bool))))

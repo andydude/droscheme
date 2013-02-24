@@ -1,0 +1,175 @@
+#!/bin/bash
+GUILE=guile
+
+# Defaults
+OPT_IN=-
+OPT_OUT=-
+OPT_RAW=false
+OPT_DEBUG=false
+COMMAND="$1"; shift
+
+if [ x"$COMMAND" = x"" ]; then
+    COMMAND="help"
+fi
+
+if [ x"$DROSCHEME_PATH" = x"" ]; then
+    DROSCHEME_PATH="$HOME/.droscheme"
+fi
+
+function usage() {
+    echo "Usage of $0 [COMMAND] [OPTIONS] [FILE]"
+    echo ""
+    echo "Commands:"
+    echo "  build"
+    echo "  clean"
+    echo "  go2gos"
+    echo "  gos2go"
+    echo "  i2s"
+    echo "  install"
+    echo "  mangle"
+    echo "  unmangle"
+    echo "  scheme2go"
+    echo "  scheme2gos"
+}
+
+function setopt() {
+    if [ $? != 0 ]; then
+        usage
+        exit 2
+    fi
+    set -- "$@"
+}
+
+# Process options
+setopt $(getopt dri:o: "$@")
+for OPT; do
+    case "$OPT" in
+        -d)
+            OPT_DEBUG=true; OPT_REST="${OPT_REST}-d " shift;;
+        -r)
+            OPT_RAW=true; OPT_REST="${OPT_REST}-r " shift;;
+        -i)
+            OPT_IN="$2"; shift; shift;;
+        -o)
+            OPT_OUT="$2"; shift; shift;;
+        --)
+            shift; break;;
+        *)
+            break;;
+    esac
+done
+
+# Process filenames
+if [ x"$1" != x"" ]; then
+    # Calculate output filename
+    OPT_IN="$1"
+    if [ x"$2" != x"" ]; then
+        # Calculate output filename
+        OPT_OUT="$2"
+    fi
+fi
+
+if [ "$OPT_IN" = "-" ]; then
+    OPT_IN=/dev/stdin
+fi
+
+if [ "$OPT_OUT" = "-" ]; then
+    OPT_OUT=/dev/stdout
+fi
+
+function go2gos() {
+    $DROSCHEME_PATH/bin/go2gos "$@"
+}
+
+function gos2go() {
+    $GUILE -s $DROSCHEME_PATH/scm/gos2go-guile.scm "$@"
+}
+
+function i2s() {
+    echo i2s "$OPT_IN" "$OPT_OUT"
+    $GUILE -s $DROSCHEME_PATH/scm/i2s-guile.scm "$@"
+}
+
+function s2s() {
+    echo i2s "$OPT_IN" "$OPT_OUT"
+    $GUILE -s $DROSCHEME_PATH/scm/s2s-guile.scm "$@"
+}
+
+function scheme2gos() {
+    $GUILE -s $DROSCHEME_PATH/scm/scheme2gos-guile.scm "$@"
+}
+
+function scheme2go() {
+    scheme2gos | gos2go
+}
+
+function build() {
+    echo build "$OPT_IN" "$OPT_OUT"
+    case "$OPT_IN" in
+        *.ild)
+            i2s < "$OPT_IN" > "${OPT_IN%.ild}.sld"
+            OPT_IN="${OPT_IN%.ild}.sld"; build;;
+        *.icm)
+            i2s < "$OPT_IN" > "${OPT_IN%.icm}.scm"
+            OPT_IN="${OPT_IN%.ild}.scm"; build;;
+        *.sld)
+            scheme2gos $OPT_REST < "$OPT_IN" > "${OPT_IN%.sld}.gos"
+            OPT_IN="${OPT_IN%.sld}.gos"; build;;
+        *.scm)
+            scheme2gos $OPT_REST < "$OPT_IN" > "${OPT_IN%.scm}.gos"
+            OPT_IN="${OPT_IN%.scm}.gos"; build;;
+        *.gos)
+            gos2go $OPT_REST < "$OPT_IN" > "${OPT_IN%.gos}.go"
+            ;;
+        *.go)
+            go build
+            ;;
+        *)
+            echo "build requires an input filename with extensions: scm, icm, sld, ild, or gos."
+            ;;
+    esac
+}
+
+function clean() {
+    :
+}
+
+function doc() {
+    :
+}
+
+function install() {
+    :
+}
+
+function install_library() {
+    :
+}
+
+function install_program() {
+    :
+}
+
+function mangle() {
+    :
+}
+
+function unmangle() {
+    :
+}
+
+function run() {
+    :
+}
+
+case $COMMAND in
+
+    go2gos|gos2go|i2s|s2s|scheme2go|scheme2gos)
+        $COMMAND $OPT_REST < "$OPT_IN" > "$OPT_OUT";;
+
+    build|clean|doc|install|run|mangle|unmangle)
+        $COMMAND;;
+
+    *)
+        usage;;
+esac

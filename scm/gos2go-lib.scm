@@ -85,70 +85,70 @@
 
 (define (go-keyword? kw)
   (define *table* '(
-    append
-    bool
-    break
-    byte
-    cap
-    case
-    chan
-    close
-    complex
-    complex128
-    complex64
-    const
-    continue
-    copy
-    default
-    defer
-    delete
-    else
-    error
-    fallthrough
-    false
-    float32
-    float64
-    for
-    func
-    go
-    goto
-    if
-    imag
-    import
-    int
-    int16
-    int32
-    int64
-    int8
-    interface
-    iota
-    len
-    make
-    map
-    new
-    nil
-    package
-    panic
-    print
-    println
-    range
-    real
-    recover
-    return
-    rune
-    select
-    string
-    struct
-    switch
-    true
-    type
-    uint
-    uint16
-    uint32
-    uint64
-    uint8
-    uintptr
-    var))
+    go:append
+    go:bool
+    go:break
+    go:byte
+    go:cap
+    go:case
+    go:chan
+    go:close
+    go:complex
+    go:complex128
+    go:complex64
+    go:const
+    go:continue
+    go:copy
+    go:default
+    go:defer
+    go:delete
+    go:else
+    go:error
+    go:fallthrough
+    go:false
+    go:float32
+    go:float64
+    go:for
+    go:func
+    go:go
+    go:goto
+    go:if
+    go:imag
+    go:import
+    go:int
+    go:int16
+    go:int32
+    go:int64
+    go:int8
+    go:interface
+    go:iota
+    go:len
+    go:make
+    go:map
+    go:new
+    go:nil
+    go:package
+    go:panic
+    go:print
+    go:println
+    go:range
+    go:real
+    go:recover
+    go:return
+    go:rune
+    go:select
+    go:string
+    go:struct
+    go:switch
+    go:true
+    go:type
+    go:uint
+    go:uint16
+    go:uint32
+    go:uint64
+    go:uint8
+    go:uintptr
+    go:var))
   (memv (string->symbol kw) *table*))
 
 ;; Emit functions
@@ -164,49 +164,47 @@
 (define (emit-symbol id)
   (define *table* '(
           ; types
-          ("&any" . "interface{}")
-          ("&bool" . "bool")
-          ("&byte" . "byte")
-          ("&complex64" . "complex64")
-          ("&complex128" . "complex128")
-          ("&error" . "error")
-          ("&float32" . "float32")
-          ("&float64" . "float64")
-          ("&int" . "int")
-          ("&int8" . "int8")
-          ("&int16" . "int16")
-          ("&int32" . "int32")
-          ("&int64" . "int64")
-          ("&rune" . "rune")
-          ("&str" . "string")
-          ("&uint" . "uint")
-          ("&uint8" . "uint8")
-          ("&uint16" . "uint16")
-          ("&uint32" . "uint32")
-          ("&uint64" . "uint64")
-          ("&uintptr" . "uintptr")
-          ("&void" . "")
+          ("go:any" . "interface{}")
+          ("go:bool" . "bool")
+          ("go:byte" . "byte")
+          ("go:complex64" . "complex64")
+          ("go:complex128" . "complex128")
+          ("go:error" . "error")
+          ("go:float32" . "float32")
+          ("go:float64" . "float64")
+          ("go:int" . "int")
+          ("go:int8" . "int8")
+          ("go:int16" . "int16")
+          ("go:int32" . "int32")
+          ("go:int64" . "int64")
+          ("go:rune" . "rune")
+          ("go:string" . "string")
+          ("go:uint" . "uint")
+          ("go:uint8" . "uint8")
+          ("go:uint16" . "uint16")
+          ("go:uint32" . "uint32")
+          ("go:uint64" . "uint64")
+          ("go:uintptr" . "uintptr")
+          ("go:void" . "")
           ; builtins
-          ("%append" . "append")
-          ("%cap" . "cap")
-          ("%close" . "close")
-          ("%complex" . "complex")
-          ("%copy" . "copy")
-          ("%delete" . "delete")
-          ("%imag" . "imag")
-          ("%len" . "len")
-          ("%panic" . "panic")
-          ("%print" . "print")
-          ("%println" . "println")
-          ("%real" . "real")
-          ("%recover" . "recover")
+          ("go:append" . "append")
+          ("go:cap" . "cap")
+          ("go:close" . "close")
+          ("go:complex" . "complex")
+          ("go:copy" . "copy")
+          ("go:delete" . "delete")
+          ("go:imag" . "imag")
+          ("go:len" . "len")
+          ("go:panic" . "panic")
+          ("go:print" . "print")
+          ("go:println" . "println")
+          ("go:real" . "real")
+          ("go:recover" . "recover")
           ; objects
-          ("%nil" . "nil")))
+          ("go:nil" . "nil")))
   (if (symbol? id)
       (let ((s (symbol->string id)))
-        (if (and (or (eqv? (string-ref s 0) #\%)
-                     (eqv? (string-ref s 0) #\&))
-                 (assoc s *table*))
+        (if (assoc s *table*)
             (cdr (assoc s *table*))
             (symbol->mangle id)))
             ;(let ((out (symbol->string id)))
@@ -217,26 +215,27 @@
       (error id)))
 
 (define (emit-op sym)
+  (define (goop->op goop) (list->string (cdddr (string->list goop))))
   (define *table* '(
-          ("bitwise-and" . "&")
-          ("bitwise-and=" . "&=")
-          ("bitwise-but" . "&^")
-          ("bitwise-but=" . "&^=")
-          ("bitwise-or" . "|")
-          ("bitwise-or=" . "|=")
-          ("bitwise-xor" . "^")
-          ("bitwise-xor=" . "^=")
-          ("and" . "&&")
-          ("dot" . ".")
-          ("not" . "!")
-          ("or" . "||")))
+          ("go:bitwise-and" . "&")
+          ("go:bitwise-and=" . "&=")
+          ("go:bitwise-but" . "&^")
+          ("go:bitwise-but=" . "&^=")
+          ("go:bitwise-or" . "|")
+          ("go:bitwise-or=" . "|=")
+          ("go:bitwise-xor" . "^")
+          ("go:bitwise-xor=" . "^=")
+          ("go:and" . "&&")
+          ("go:dot" . ".")
+          ("go:not" . "!")
+          ("go:or" . "||")))
   (cond
    ((string? sym) sym)
    ((symbol? sym)
     (let ((str (symbol->string sym)))
       (if (assoc str *table*)
           (cdr (assoc str *table*))
-          str)))
+          (goop->op str))))
    (else (error "emit-op expected string or symbol, got" sym))))
 
 (define (emit-literal vec)
@@ -388,7 +387,7 @@
   (define (emit-case rest)
     (let ((exprs (car rest))
           (stmts (cdr rest)))
-      (if (eqv? exprs 'else)
+      (if (eqv? exprs 'go:else)
           (string-append "default:\n" (emit-stmts stmts))
           (string-append "case " (emit-exprs exprs) ":\n" (emit-stmts stmts)))))
   (string-append "{\n" (string-join (map emit-case clauses) "\n") "\n}\n"))
@@ -397,7 +396,7 @@
   (define (emit-cond rest)
     (let ((expr (car rest))
           (stmts (cdr rest)))
-      (if (eqv? expr 'else)
+      (if (eqv? expr 'go:else)
           (string-append "default:\n" (emit-stmts stmts))
           (string-append "case " (emit-expr expr) ":\n" (emit-stmts stmts)))))
   (string-append "{\n" (string-join (map emit-cond clauses) "\n") "\n}\n"))
@@ -518,196 +517,199 @@
       (cond ((list? m) (apply join-go m))
             ((string? m) m)
             (else #f)))) ;(error "apply-go unexpected" expr m)))))
-  (define (yes-match key . args) #f);(error "yes-match" args))
-  (define (no-match key . args) #f);(error "no-match" args))
+  (define (yes-match key . args) #f)
+  ;(define (no-match key . args) #f)
+  ;(define (yes-match key . args) (error "yes-match" args))
+  (define (no-match key . args) (error "no-match" args))
   (let ((t (catch 'misc-error 
-                  (lambda () (catch 'match-error do-match no-match))
+                  (lambda () 
+                    (catch 'match-error do-match no-match))
                   yes-match)))
-    (if t t (apply apply-go 'apply expr))))
+    (if t t (apply apply-go 'go:apply expr))))
 
 (define (*rules* . expr)
   (match expr
 
     ;; binary operators
-    (('!= . vals)      (apply emit-binary expr))
-    (('% . vals)       (apply emit-binary expr))
-    (('%= vars . vals) (apply emit-assign expr))
-    (('* . vals)       (apply emit-binary expr))
-    (('*= vars . vals) (apply emit-assign expr))
-    (('+ . vals)       (apply emit-binary expr))
-    (('+= vars . vals) (apply emit-assign expr))
-    (('- . vals)       (apply emit-binary expr))
-    (('-= vars . vals) (apply emit-assign expr))
-    (('/ . vals)       (apply emit-binary expr))
-    (('/= vars . vals) (apply emit-assign expr))
-    ((':= vars . vals) (apply emit-assign expr))
-    (('< . vals)       (apply emit-binary expr))
-    (('<< . vals)      (apply emit-binary expr))
-    (('<<= vars . vals)(apply emit-assign expr))
-    (('<= . vals)      (apply emit-binary expr))
-    (('= vars . vals)  (apply emit-assign expr))
-    (('== . vals)      (apply emit-binary expr))
-    (('> . vals)       (apply emit-binary expr))
-    (('>= . vals)      (apply emit-binary expr))
-    (('>> . vals)      (apply emit-binary expr))
-    (('>>= vars . vals)(apply emit-assign expr))
-    (('and . vals)     (apply emit-binary expr))
-    (('dot . vals)     (apply emit-binary expr))
-    (('or . vals)      (apply emit-binary expr))
+    (('go:!= . vals)      (apply emit-binary expr))
+    (('go:% . vals)       (apply emit-binary expr))
+    (('go:%= vars . vals) (apply emit-assign expr))
+    (('go:* . vals)       (apply emit-binary expr))
+    (('go:*= vars . vals) (apply emit-assign expr))
+    (('go:+ . vals)       (apply emit-binary expr))
+    (('go:+= vars . vals) (apply emit-assign expr))
+    (('go:- . vals)       (apply emit-binary expr))
+    (('go:-= vars . vals) (apply emit-assign expr))
+    (('go:/ . vals)       (apply emit-binary expr))
+    (('go:/= vars . vals) (apply emit-assign expr))
+    (('go::= vars . vals) (apply emit-assign expr))
+    (('go:< . vals)       (apply emit-binary expr))
+    (('go:<< . vals)      (apply emit-binary expr))
+    (('go:<<= vars . vals)(apply emit-assign expr))
+    (('go:<= . vals)      (apply emit-binary expr))
+    (('go:= vars . vals)  (apply emit-assign expr))
+    (('go:== . vals)      (apply emit-binary expr))
+    (('go:> . vals)       (apply emit-binary expr))
+    (('go:>= . vals)      (apply emit-binary expr))
+    (('go:>> . vals)      (apply emit-binary expr))
+    (('go:>>= vars . vals)(apply emit-assign expr))
+    (('go:and . vals)     (apply emit-binary expr))
+    (('go:dot . vals)     (apply emit-binary expr))
+    (('go:or . vals)      (apply emit-binary expr))
 
     ;; bitwise operators
-    (('bitwise-and . vals)       (apply emit-binary expr))
-    (('bitwise-and= vars . vals) (apply emit-assign expr))
-    (('bitwise-but . vals)       (apply emit-binary expr))
-    (('bitwise-but= vars . vals) (apply emit-assign expr))
-    (('bitwise-or . vals)        (apply emit-binary expr))
-    (('bitwise-or= vars . vals)  (apply emit-assign expr))
-    (('bitwise-xor . vals)       (apply emit-binary expr))
-    (('bitwise-xor= vars . vals) (apply emit-assign expr))
+    (('go:bitwise-and . vals)       (apply emit-binary expr))
+    (('go:bitwise-and= vars . vals) (apply emit-assign expr))
+    (('go:bitwise-but . vals)       (apply emit-binary expr))
+    (('go:bitwise-but= vars . vals) (apply emit-assign expr))
+    (('go:bitwise-or . vals)        (apply emit-binary expr))
+    (('go:bitwise-or= vars . vals)  (apply emit-assign expr))
+    (('go:bitwise-xor . vals)       (apply emit-binary expr))
+    (('go:bitwise-xor= vars . vals) (apply emit-assign expr))
 
     ;; other operators
-    (('++ expr) `(,expr "++"))
-    (('-- expr) `(,expr "--"))
-    ((': key value) `(,(emit-expr key) ": " ,(emit-expr value)))
-    (('<- chan) `("<-" ,chan))
-    (('<-! chan expr) `(,chan "<-" ,expr))
-    (('adr expr) `("&" ,expr))
-    (('as . body) (apply emit-as body))
-    (('not expr) `("!" ,expr))
-    (('ptr expr) `("*" ,expr))
-    (('label id . stmts) `(,id ":" ,(emit-stmts stmts)))
+    (('go:++ expr) `(,expr "++"))
+    (('go:-- expr) `(,expr "--"))
+    (('go:: key value) `(,(emit-expr key) ": " ,(emit-expr value)))
+    (('go:<- chan) `("<-" ,chan))
+    (('go:<-! chan expr) `(,chan "<-" ,expr))
+    (('go:adr expr) `("&" ,expr))
+    (('go:as . body) (apply emit-as body))
+    (('go:not expr) `("!" ,expr))
+    (('go:ptr expr) `("*" ,expr))
+    (('go:label id . stmts) `(,id ":" ,(emit-stmts stmts)))
 
     ;; keywords
-    (('apply fn . args)
+    (('go:apply fn . args)
      `(,fn "(" ,(emit-exprs args) ")"))
-    (('apply... fn . args)
+    (('go:apply... fn . args)
      `(,fn "(" ,(emit-exprs args) "...)"))
-    (('array length type)
+    (('go:array length type)
      `("[" ,length "]" ,type))
-    (('values . types)
+    (('go:values . types)
      `("(" ,(emit-params types) ")"))
-    (('array... type)
+    (('go:array... type)
      `("[...]" ,type))
-    (('slice type)
+    (('go:slice type)
      `("[]" ,type))
-    (('struct . fields)
+    (('go:struct . fields)
      `("struct" ,(emit-type-block fields)))
-    (('map: key-type type)
+    (('go:map: key-type type)
      `("map" "[" ,key-type "]" ,type))
-    (('chan type) `("chan" ,type))
-    (('chan<- type) `("<-chan" ,type))
-    (('chan<-! type) `("chan<-" ,type))
-    (('interface . methods)
+    (('go:chan type) `("chan" ,type))
+    (('go:chan<- type) `("<-chan" ,type))
+    (('go:chan<-! type) `("chan<-" ,type))
+    (('go:interface . methods)
      `("interface" ,(emit-type-block methods)))
 
-    (('break . rest) (emit-branch 'break rest))
-    (('continue . rest) (emit-branch 'continue rest))
-    (('fallthrough . rest) (emit-branch 'fallthrough rest))
-    (('goto . rest) (emit-branch 'goto rest))
+    (('go:break . rest) (emit-branch 'break rest))
+    (('go:continue . rest) (emit-branch 'continue rest))
+    (('go:fallthrough . rest) (emit-branch 'fallthrough rest))
+    (('go:goto . rest) (emit-branch 'goto rest))
 
-    (('for a b c . body)
+    (('go:for a b c . body)
      `("for" ,a ";" ,b ";" ,c ,(emit-block body)))
-    (('while c . body)
+    (('go:while c . body)
      `("for" ,c ,(emit-block body)))
-    (('range a . body)
+    (('go:range a . body)
      `("for" ,(emit-range a) ,(emit-block body)))
 
-    (('branch-stmt kw . label)
+    (('go:branch-stmt kw . label)
      `(kw ,@label))
-    (('package name . decls)
+    (('go:package name . decls)
      `("package" ,name "\n" ,(emit-decls decls)))
-    (('return . expr)
+    (('go:return . expr)
      `("return" ,(emit-exprs expr)))
-    (('defer expr)
+    (('go:defer expr)
      `("defer" ,expr))
 
     ;; The "if/else" keywords
-    (('when expr . body)
+    (('go:when expr . body)
      `("if" ,expr ,(emit-else-block body)))
-    (('when* stmt expr . body)
+    (('go:when* stmt expr . body)
      `("if" ,stmt ";" ,expr ,(emit-else-block body)))
-    (('unless expr . body)
+    (('go:unless expr . body)
      `("if !" ,expr ,(emit-else-block body)))
-    (('unless* stmt expr . body)
+    (('go:unless* stmt expr . body)
      `("if" ,stmt "; !" ,expr ,(emit-else-block body)))
 
 
     ;; The "switch/select" keywords
-    (('case! expr . body)
+    (('go:case! expr . body)
      `("switch" ,expr ,(emit-cases body)))
-    (('case!* stmt expr . body)
+    (('go:case!* stmt expr . body)
      `("switch" ,stmt ";" ,expr ,(emit-cases body)))
-    (('comm! . body)
+    (('go:comm! . body)
      `("select" ,(emit-conds body)))
-    (('cond! . body)
+    (('go:cond! . body)
      `("switch" ,(emit-conds body)))
-    (('cond!* stmt . body)
+    (('go:cond!* stmt . body)
      `("switch" stmt ";" ,(emit-conds body)))
-    (('type! expr . body)
+    (('go:type! expr . body)
      `("switch" ,expr ,(emit-cases body)))
-    (('type!* stmt expr . body)
+    (('go:type!* stmt expr . body)
      `("switch" ,stmt ";" ,expr ,(emit-cases body)))
 
-    (('index expr j . ks)
+    (('go:index expr j . ks)
      (let ((offset (lambda (k) (if (not k) "" (emit-expr k)))))
        (if (pair? ks)
            `(,expr "[" ,(offset j) ":" ,(offset (car ks)) "]")
            `(,expr "[" ,(offset j) "]"))))
 
-    (('import . specs)
+    (('go:import . specs)
      (emit-parens "import" emit-imports specs))
-    (('type . specs)
+    (('go:type . specs)
      (emit-type-parens "type" emit-types specs))
-    (('const . specs)
+    (('go:const . specs)
      (emit-parens "const" emit-values specs))
-    (('var . specs)
+    (('go:var . specs)
      (emit-parens "var" emit-values specs))
 
-    (('define-func name sig ret . body)
+    (('go:internal:define-func name sig ret . body)
      (if (*top-context*)
          `("func" ,name ,(emit-sig sig ret) ,(emit-block body)) ; FuncDecl
          `("var" ,name " = func" ,(emit-sig sig ret) ,(emit-block body)))) ; FuncStmt
 
-    (('define-func... name sig ret . body)
+    (('go:internal:define-func... name sig ret . body)
      (if (*top-context*)
          `("func" ,name ,(emit-sig... sig ret) ,(emit-block body)) ; FuncDecl
          `("var" ,name " = func" ,(emit-sig... sig ret) ,(emit-block body)))) ; FuncStmt
 
-    (('define-method-func rec name sig ret . body)
+    (('go:internal:define-method-func rec name sig ret . body)
      `("func (" ,(emit-field rec) ")" ,name 
                 ,(emit-sig sig ret) 
                 ,(emit-block body)))
 
-    (('define-method-func... rec name sig ret . body)
+    (('go:internal:define-method-func... rec name sig ret . body)
      `("func (" ,(emit-field rec) ")" ,name 
                 ,(emit-sig... sig ret) 
                 ,(emit-block body)))
 
-    (('lambda-func sig ret . body)
+    (('go:internal:lambda-func sig ret . body)
      (if (*type-context*)
          `("func" ,(emit-sig sig ret)) ; FuncType
          `("func" ,(emit-sig sig ret) 
                   ,(emit-block body)))) ; FuncExpr
 
-    (('lambda-func... sig ret . body)
+    (('go:internal:lambda-func... sig ret . body)
      (if (*type-context*)
          `("func" ,(emit-sig... sig ret)) ; FuncType
          `("func" ,(emit-sig... sig ret) 
                   ,(emit-block body)))) ; FuncExpr
 
     ;; The glorious "func" type-switch!
-    (('func . rest)
+    (('go:func . rest)
      (cond
-      ((vector? (car rest)) `((define-method-func ,@rest)))
-      ((symbol? (car rest)) `((define-func ,@rest)))
-      ((list? (car rest)) `((lambda-func ,@rest)))
+      ((vector? (car rest)) `((go:internal:define-method-func ,@rest)))
+      ((symbol? (car rest)) `((go:internal:define-func ,@rest)))
+      ((list? (car rest)) `((go:internal:lambda-func ,@rest)))
       (else (error "func expected symbol, vector, or list"))))
 
-    (('func... . rest)
+    (('go:func... . rest)
      (cond
-      ((vector? (car rest)) `((define-method-func... ,@rest)))
-      ((symbol? (car rest)) `((define-func... ,@rest)))
-      ((list? (car rest)) `((lambda-func... ,@rest)))
+      ((vector? (car rest)) `((go:internal:define-method-func... ,@rest)))
+      ((symbol? (car rest)) `((go:internal:define-func... ,@rest)))
+      ((list? (car rest)) `((go:internal:lambda-func... ,@rest)))
       (else (error "func... expected symbol, vector, or list"))))
 
   );match

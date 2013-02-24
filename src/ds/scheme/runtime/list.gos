@@ -1,0 +1,173 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any"))
+  (go:func
+    #(_ (go:ptr Null))
+    GetType
+    ()
+    go:int
+    (go:return TypeCodeNull))
+  (go:func
+    #(_ (go:ptr Null))
+    GetHash
+    ()
+    go:uintptr
+    (go:return 0))
+  (go:func
+    #(_ (go:ptr Null))
+    Equal
+    (#(a Any))
+    go:bool
+    (go:return (go:as (_null? a) go:bool)))
+  (go:func
+    #(o (go:ptr Null))
+    Eval
+    (#(env (go:ptr Env)))
+    Any
+    (go:return o))
+  (go:func
+    #(_ (go:ptr Null))
+    SchemeString
+    ()
+    go:string
+    (go:return "'()"))
+  (go:func
+    #(o (go:ptr Null))
+    ToVector
+    ()
+    Any
+    (go:return (Vector (go:make: (go:slice Any)))))
+  (go:func
+    #(o (go:ptr Pair))
+    GetHash
+    ()
+    go:uintptr
+    (go:return 0))
+  (go:func
+    #(o (go:ptr Pair))
+    GetType
+    ()
+    go:int
+    (go:return TypeCodePair))
+  (go:func
+    #(o (go:ptr Pair))
+    Equal
+    (#(a Any))
+    go:bool
+    (go:unless*
+      (go::= (_ ok) (go:as a (go:ptr Pair)))
+      ok
+      (go:return #f))
+    (go:return
+      (go:and
+        (go:as (_equal? o.car (_car a)) go:bool)
+        (go:as (_equal? o.cdr (_cdr a)) go:bool))))
+  (go:func
+    #(o (go:ptr Pair))
+    Eval
+    (#(env (go:ptr Env)))
+    Any
+    (go::= v (go:make: (go:slice Any)))
+    (go:var #(cur Any))
+    (go:for
+      (go:= cur o)
+      (go:as (_pair? cur) go:bool)
+      (go:= cur (go:dot (go:as cur (go:ptr Pair)) cdr))
+      (go::= car
+             (go:dot (go:as cur (go:ptr Pair)) car))
+      (go:= v (go:append v (_eval car env))))
+    (go:return (_vector->list (Vector v))))
+  (go:func
+    #(o (go:ptr Pair))
+    Ref
+    (#(key Any))
+    Any
+    (go:return (o.RefDefault key (_void))))
+  (go:func
+    #(o (go:ptr Pair))
+    RefDefault
+    (#(key value Any))
+    Any
+    (go:when*
+      (go::= (k ok) (go:as key go:int))
+      ok
+      (go:when (go:== k 0) (go:return o.car))
+      (go:return
+        ((go:dot (go:as o.cdr Map) RefDefault) key value)))
+    (_error "list-ref expected integer")
+    (go:return (_void)))
+  (go:func
+    #(o (go:ptr Pair))
+    Set
+    (#(key value Any))
+    go:&void
+    (go:when*
+      (go::= (k ok) (go:as key go:int))
+      ok
+      (go:when (go:== k 0) (o.SetFirst value))
+      ((go:dot (go:as o.cdr Map) Set) key value))
+    (_error "list-set! expected integer"))
+  (go:func
+    #(o (go:ptr Pair))
+    SetFirst
+    (#(value Any))
+    go:&void
+    (go:= o.car value))
+  (go:func
+    #(o (go:ptr Pair))
+    SetRest
+    (#(value Any))
+    go:&void
+    (go:= o.cdr value))
+  (go:func
+    #(ls (go:ptr Pair))
+    SchemeString
+    ()
+    go:string
+    (go:when
+      (go:as (_list? ls) go:bool)
+      (go::= v (go:as (_list->vector ls) Vector))
+      (go:return (go:index (v.SchemeString) 1 #f)))
+    (go::= v (go:as (_list*->vector ls) Vector))
+    (go::= most
+           ((go:dot
+              (Vector (go:index v 0 (go:- (go:len v) 2)))
+              SchemeString)))
+    (go::= last
+           (go:as (_->scheme-string
+                    (go:index v (go:- (go:len v) 1)))
+                  go:string))
+    (go:return
+      (go:+ (go:+ (go:+ (go:+ "("
+                              (go:index most 2 (go:- (go:len most) 1)))
+                        " . ")
+                  last)
+            ")")))
+  (go:func
+    #(o (go:ptr Pair))
+    ToVector
+    ()
+    Any
+    (go:var (go:= ret (go:make: (go:slice Any))))
+    (go:var #(cur Any))
+    (go:for
+      (go:= cur o)
+      (go:as (_pair? cur) go:bool)
+      (go:= cur (go:dot (go:as cur (go:ptr Pair)) cdr))
+      (go:= ret
+            (go:append
+              ret
+              (go:dot (go:as cur (go:ptr Pair)) car))))
+    (go:return (Vector ret)))
+  (go:func
+    #(o (go:ptr Pair))
+    First
+    ()
+    Any
+    (go:return o.car))
+  (go:func
+    #(o (go:ptr Pair))
+    Rest
+    ()
+    Any
+    (go:return o.cdr)))

@@ -1,0 +1,86 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any"))
+  (go:const
+    (go:= TypeCodeAny iota)
+    TypeCodeType
+    TypeCodeNull
+    TypeCodePair
+    TypeCodeChar
+    TypeCodeBool
+    TypeCodeProc
+    TypeCodeBinary
+    TypeCodeNumber
+    TypeCodePort
+    TypeCodeString
+    TypeCodeSymbol
+    TypeCodeVector
+    TypeCodeTable
+    TypeCodeRecord
+    TypeCodeLibrary
+    TypeCodeValues
+    TypeCodeSyntax
+    TypeCodeEnvSpec
+    TypeCodeError
+    TypeCodeLabel
+    TypeCodeVoid
+    TypeCodeMax)
+  (go:func
+    _kind-of
+    (#(a Any))
+    go:int
+    (go:type!
+      (go:as a type)
+      ((go:int8) (go:return TypeCodeNumber))
+      ((go:int16) (go:return TypeCodeNumber))
+      ((go:int32) (go:return TypeCodeNumber))
+      ((go:int64) (go:return TypeCodeNumber))
+      ((go:uint8) (go:return TypeCodeNumber))
+      ((go:uint16) (go:return TypeCodeNumber))
+      ((go:uint32) (go:return TypeCodeNumber))
+      ((go:uint64) (go:return TypeCodeNumber))
+      ((go:float32) (go:return TypeCodeNumber))
+      ((go:float64) (go:return TypeCodeNumber))
+      ((go:complex64) (go:return TypeCodeNumber))
+      ((go:complex128) (go:return TypeCodeNumber))
+      ((go:bool) (go:return TypeCodeBool))
+      ((Char) (go:return TypeCodeChar))
+      (((go:ptr Void)) (go:return TypeCodeVoid))
+      (((go:ptr Null)) (go:return TypeCodeNull))
+      (((go:ptr Pair)) (go:return TypeCodePair))
+      (((go:ptr Proc)) (go:return TypeCodeProc))
+      (((go:ptr LambdaProc)) (go:return TypeCodeProc))
+      ((Binary) (go:return TypeCodeBinary))
+      ((String) (go:return TypeCodeString))
+      ((Symbol) (go:return TypeCodeSymbol))
+      ((Values) (go:return TypeCodeValues))
+      ((Vector) (go:return TypeCodeVector))
+      ((STable) (go:return TypeCodeTable))
+      (((go:ptr Env)) (go:return TypeCodeEnvSpec)))
+    (go:return
+      ((go:dot (go:as a AnyKinder) GetType))))
+  (go:func
+    _kind->string
+    (#(ak Any))
+    go:string
+    (go:case!
+      (go:as ak go:int)
+      ((TypeCodeBool) (go:return "boolean"))
+      ((TypeCodeChar) (go:return "char"))
+      ((TypeCodeNull) (go:return "null"))
+      ((TypeCodePair) (go:return "pair"))
+      ((TypeCodeProc) (go:return "procedure"))
+      ((TypeCodeVoid) (go:return "void"))
+      ((TypeCodeBinary) (go:return "bytevector"))
+      ((TypeCodeString) (go:return "string"))
+      ((TypeCodeSymbol) (go:return "symbol"))
+      ((TypeCodeValues) (go:return "values"))
+      ((TypeCodeVector) (go:return "vector"))
+      ((TypeCodeTable) (go:return "hashtable"))
+      ((TypeCodeNumber) (go:return "number"))
+      ((TypeCodePort) (go:return "port"))
+      ((TypeCodeEnvSpec) (go:return "environment"))
+      ((TypeCodeSyntax) (go:return "syntax")))
+    (_error
+      "kind->string expected a recognized type")
+    (go:return "")))

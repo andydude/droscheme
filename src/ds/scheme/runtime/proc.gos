@@ -1,0 +1,44 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any"))
+  (go:type
+    STable
+    (go:struct
+      #(it (go:map: go:uintptr (go:slice Any)))
+      #(hashFn Any)
+      #(equivFn Any)))
+  (go:type
+    CaseSyntax
+    (go:struct
+      #(env (go:ptr Env))
+      #(expr Any)
+      #(lits Any)
+      #(body Any)
+      #(name go:string)))
+  (go:type
+    RulesSyntax
+    (go:struct
+      #(env (go:ptr Env))
+      #(lits Any)
+      #(body Any)
+      #(name go:string)))
+  (go:type
+    CaseLambdaProc
+    (go:struct
+      #(name go:string)
+      #(env (go:ptr Env))
+      #(exprs (go:slice Any))))
+  (go:type
+    SType
+    (go:struct
+      #(typeName go:string)
+      #(typeCode go:int)
+      #(portTypeCode go:int)
+      #(numberTypeCode go:int)))
+  (go:func
+    IsType
+    (#(o Any) #(tag go:int))
+    go:bool
+    (go:return
+      (go:== ((go:dot (go:as o AnyKinder) GetType))
+             tag))))

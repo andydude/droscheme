@@ -1,8 +1,0 @@
-(package
-  ds_any_runtime
-  (import (dot "ds/any"))
-  (type LambdaProc
-        (struct
-          #(name &imm-string)
-          #(env (ptr Env))
-          #(expr Any))))

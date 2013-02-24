@@ -1,0 +1,795 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any"))
+  (go:import "fmt" "reflect")
+  (go:var (go:= apply (NewProc _apply "apply")))
+  (go:func...
+    _apply
+    (#(proc Any) #(args Any))
+    Any
+    (go:return
+      ((go:dot (go:as proc Proc) Apply) (Vector args))))
+  (go:var
+    (go:= boolean? (NewProc _boolean? "boolean?")))
+  (go:func
+    _boolean?
+    (#(a Any))
+    Any
+    (go::= (_ ok) (go:as a go:bool))
+    (go:return ok))
+  (go:var
+    (go:= boolean=? (NewProc _boolean=? "boolean=?")))
+  (go:func
+    _boolean=?
+    (#(a b Any))
+    Any
+    (go:return
+      (go:and
+        (go:and
+          (go:as (_boolean? a) go:bool)
+          (go:as (_boolean? b) go:bool))
+        (go:== (go:as a go:bool) (go:as b go:bool)))))
+  (go:var
+    (go:= bytevector
+          (NewProc _bytevector "bytevector")))
+  (go:func...
+    _bytevector
+    (#(rest Any))
+    Any
+    (go:return
+      (_u8-vector->bytevector (Vector rest))))
+  (go:var
+    (go:= bytevector->u8-list
+          (NewProc
+            _bytevector->u8-list
+            "bytevector->u8-list")))
+  (go:func
+    _bytevector->u8-list
+    (#(a Any))
+    Any
+    (go:return
+      (_vector->list (_bytevector->u8-vector a))))
+  (go:var
+    (go:= bytevector->u8-vector
+          (NewProc
+            _bytevector->u8-vector
+            "bytevector->u8-vector")))
+  (go:func
+    _bytevector->u8-vector
+    (#(a Any))
+    Any
+    (go::= bv (go:as a Binary))
+    (go::= vc
+           (go:as (_make-vector (go:len bv)) Vector))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:len bv))
+      (go:++ i)
+      (go:= ((go:index vc i)) (go:index bv i)))
+    (go:return vc))
+  (go:var
+    (go:= bytevector?
+          (NewProc _bytevector? "bytevector?")))
+  (go:func
+    _bytevector?
+    (#(a Any))
+    Any
+    (go::= (_ ok) (go:as a Binary))
+    (go:return ok))
+  (go:var (go:= car (NewProc _car "car")))
+  (go:func
+    _car
+    (#(ls Any))
+    Any
+    (go:return (go:dot (go:as ls (go:ptr Pair)) car)))
+  (go:var
+    (go:= car+cdr (NewProc _car+cdr "car+cdr")))
+  (go:func
+    _car+cdr
+    (#(ls Any))
+    #(car cdr Any)
+    (go:return (_car ls) (_cdr ls)))
+  (go:var (go:= cdr (NewProc _cdr "cdr")))
+  (go:func
+    _cdr
+    (#(ls Any))
+    Any
+    (go:return (go:dot (go:as ls (go:ptr Pair)) cdr)))
+  (go:var
+    (go:= char->integer
+          (NewProc _char->integer "char->integer")))
+  (go:func
+    _char->integer
+    (#(ch Any))
+    Any
+    (go:return (go:int (go:rune (go:as ch Char)))))
+  (go:var (go:= char=? (NewProc _char=? "char=?")))
+  (go:func
+    _char=?
+    (#(a b Any))
+    Any
+    (go:return (go:== (go:as a Char) (go:as b Char))))
+  (go:var (go:= char? (NewProc _char? "char?")))
+  (go:func
+    _char?
+    (#(a Any))
+    Any
+    (go::= (_ ok) (go:as a Char))
+    (go:return ok))
+  (go:var (go:= cons (NewProc _cons "cons")))
+  (go:func
+    _cons
+    (#(a b Any))
+    Any
+    (go:return (go:new: Pair a b)))
+  (go:var
+    (go:= eof-object
+          (NewProc _eof-object "eof-object")))
+  (go:func _eof-object () Any (go:return gEOF))
+  (go:var
+    (go:= eof-object?
+          (NewProc _eof-object? "eof-object?")))
+  (go:func
+    _eof-object?
+    (#(a Any))
+    Any
+    (go:when*
+      (go::= (ch ok) (go:as a Char))
+      ok
+      (go:return (go:== ch gEOF)))
+    (go:return #f))
+  (go:var (go:= eq? (NewProc _eq? "eq?")))
+  (go:func
+    _eq?
+    (#(a b Any))
+    Any
+    (go:return (_eqv? a b)))
+  (go:var
+    (go:= object-equal?
+          (NewProc _object-equal? "object-equal?")))
+  (go:func
+    _object-equal?
+    (#(a b Any))
+    Any
+    (go:return (reflect.DeepEqual a b)))
+  (go:var (go:= equal? (NewProc _equal? "equal?")))
+  (go:func
+    _equal?
+    (#(a b Any))
+    Any
+    (go:when*
+      (go::= (c ok) (go:as a Equaler))
+      ok
+      (go:return (c.Equal b)))
+    (go:when*
+      (go::= (c ok) (go:as b Equaler))
+      ok
+      (go:return (c.Equal a)))
+    (go:return (_object-equal? a b)))
+  (go:var (go:= eqv? (NewProc _eqv? "eqv?")))
+  (go:func
+    _eqv?
+    (#(a b Any))
+    Any
+    (go:unless
+      (go:as (_type=? a b) go:bool)
+      (go:return #f))
+    (go:when
+      (go:as (_symbol? a) go:bool)
+      (go:return (_symbol=? a b)))
+    (go:when
+      (go:as (_boolean? a) go:bool)
+      (go:return (_boolean=? a b)))
+    (go:when
+      (go:as (_inexact? a) go:bool)
+      (go:return (_inexact=? a b)))
+    (go:when
+      (go:as (_exact? a) go:bool)
+      (go:return (_exact=? a b)))
+    (go:when
+      (go:as (_char? a) go:bool)
+      (go:return (_char=? a b)))
+    (go:when
+      (go:as (_null? a) go:bool)
+      (go:return (_null? b)))
+    (go:when
+      (go:as (_empty? a) go:bool)
+      (go:return (_empty? b)))
+    (go:return (_pointer=? a b)))
+  (go:var (go:= __error (NewProc _error "error")))
+  (go:func...
+    _error
+    (#(msg Any) #(irr Any))
+    Any
+    (go:return
+      (_raise (go:apply... _error-object msg irr))))
+  (go:var
+    (go:= error-object
+          (NewProc _error-object "error-object")))
+  (go:func...
+    _error-object
+    (#(msg Any) #(irr Any))
+    Any
+    (go::= str
+           (go:as (_->immutable-string msg) go:string))
+    (go:return
+      (go:make:
+        ErrorObject
+        (go:: msg str)
+        (go:: it (Vector irr)))))
+  (go:var
+    (go:= error-object-irritants
+          (NewProc
+            _error-object-irritants
+            "error-object-irritants")))
+  (go:func
+    _error-object-irritants
+    (#(a Any))
+    Any
+    (go:return ((go:dot (go:as a Error) Irritants))))
+  (go:var
+    (go:= error-object-message
+          (NewProc
+            _error-object-message
+            "error-object-message")))
+  (go:func
+    _error-object-message
+    (#(a Any))
+    Any
+    (go:return ((go:dot (go:as a Error) Error))))
+  (go:var
+    (go:= error-object?
+          (NewProc _error-object? "error-object?")))
+  (go:func
+    _error-object?
+    (#(a Any))
+    Any
+    (go::= (_ ok) (go:as a Error))
+    (go:return ok))
+  (go:var
+    (go:= exact=? (NewProc _exact=? "exact=?")))
+  (go:func
+    _exact=?
+    (#(a b Any))
+    Any
+    (go:return (_object-equal? a b)))
+  (go:var (go:= exact? (NewProc _exact? "exact?")))
+  (go:func
+    _exact?
+    (#(a Any))
+    Any
+    (go:when*
+      (go::= (num ok) (go:as a Num))
+      ok
+      (num.IsExact))
+    (go:return #f))
+  (go:var
+    (go:= inexact=? (NewProc _inexact=? "inexact=?")))
+  (go:func
+    _inexact=?
+    (#(a b Any))
+    Any
+    (go:return (_object-equal? a b)))
+  (go:var
+    (go:= inexact? (NewProc _inexact? "inexact?")))
+  (go:func
+    _inexact?
+    (#(a Any))
+    Any
+    (go:when*
+      (go::= (num ok) (go:as a Num))
+      ok
+      (num.IsInexact))
+    (go:return #f))
+  (go:var
+    (go:= integer->char
+          (NewProc _integer->char "integer->char")))
+  (go:func
+    _integer->char
+    (#(cp Any))
+    Any
+    (go:return (Char (go:rune (go:as cp go:int)))))
+  (go:var
+    (go:= last-pair (NewProc _last-pair "last-pair")))
+  (go:func
+    _last-pair
+    (#(ls Any))
+    Any
+    (go::= cur ls)
+    (go:when
+      (go:as (_null? cur) go:bool)
+      (go:return (_null)))
+    (go:while
+      (go:as (_pair? (_cdr cur)) go:bool)
+      (go:= cur (_cdr cur)))
+    (go:return cur))
+  (go:var (go:= length (NewProc _length "length")))
+  (go:func
+    _length
+    (#(ls Any))
+    Any
+    (go:when
+      (go:as (_null? ls) go:bool)
+      (go:return 0))
+    (go:when*
+      (go::= (_ ok) (go:as ls (go:ptr Pair)))
+      ok
+      (go:return
+        (go:+ 1 (go:as (_length (_cdr ls)) go:int))))
+    (go:return (_error "length expected list")))
+  (go:var (go:= list* (NewProc _list* "list*")))
+  (go:func...
+    _list*
+    (#(o Any))
+    Any
+    (go::= (most last)
+           (go:index o 0 (go:- (go:len o) 1))
+           ((go:slice Any)
+            (go:as (go:index o (go:- (go:len o) 1)) Vector)))
+    (go::= vs
+           (go:append
+             most
+             ((go:slice Any)
+              (go:as (_list->vector last) Vector))))
+    (go:return (_vector->list (Vector vs))))
+  (go:var (go:= list+ (NewProc _list+ "list+")))
+  (go:func...
+    _list+
+    (#(a Any) #(rest Any))
+    Any
+    (go::= first
+           ((go:slice Any) (go:as (_list->vector a) Vector)))
+    (go:return
+      (_vector->list
+        (Vector (go:apply... go:append first rest)))))
+  (go:var (go:= list? (NewProc _list? "list?")))
+  (go:func
+    _list?
+    (#(a Any))
+    Any
+    (go:return (_null? (_cdr (_last-pair a)))))
+  (go:var (go:= list (NewProc _list "list")))
+  (go:func...
+    _list
+    (#(o Any))
+    Any
+    (go:return (_vector->list o)))
+  (go:var
+    (go:= list*->vector
+          (NewProc _list*->vector "list*->vector")))
+  (go:func
+    _list*->vector
+    (#(pr Any))
+    Any
+    (go::= vec (go:make: (go:slice Any)))
+    (go:var #(cur Any))
+    (go:for
+      (go:= cur pr)
+      (go:as (_pair? (_cdr cur)) go:bool)
+      (go:= cur (_cdr cur))
+      (go:= vec (go:append vec (_car cur))))
+    (go:= vec (go:append vec (_car cur) (_cdr cur)))
+    (go:return (Vector vec)))
+  (go:var
+    (go:= list->string
+          (NewProc _list->string "list->string")))
+  (go:func
+    _list->string
+    (#(a Any))
+    Any
+    (go:return (_vector->string (_list->vector a))))
+  (go:var
+    (go:= list->vector
+          (NewProc _list->vector "list->vector")))
+  (go:func
+    _list->vector
+    (#(ls Any))
+    Any
+    (go:when
+      (go:as (_null? ls) go:bool)
+      (go:return (Vector (go:make: (go:slice Any)))))
+    (go:unless
+      (go:as (_pair? ls) go:bool)
+      (_error "list->vector expected list"))
+    (go::= (cur vc)
+           (_null)
+           (go:make: (go:slice Any)))
+    (go:for
+      (go:= cur ls)
+      (go:as (_pair? cur) go:bool)
+      (go:= cur (_cdr cur))
+      (go:= vc (go:append vc (_car cur))))
+    (go:unless
+      (go:as (_null? cur) go:bool)
+      (_error "list->vector expected null"))
+    (go:return (Vector vc)))
+  (go:var
+    (go:= make-bytevector
+          (NewProc _make-bytevector "make-bytevector")))
+  (go:func
+    _make-bytevector
+    (#(k Any))
+    Any
+    (go:return
+      (Binary
+        (make (go:slice go:byte) (go:as k go:int)))))
+  (go:var
+    (go:= make-list (NewProc _make-list "make-list")))
+  (go:func
+    _make-list
+    (#(k Any))
+    Any
+    (go:return (_vector->list (_make-vector k))))
+  (go:var
+    (go:= make-string
+          (NewProc _make-string "make-string")))
+  (go:func
+    _make-string
+    (#(k Any))
+    Any
+    (go:return
+      (String
+        (make (go:slice go:rune) (go:as k go:int)))))
+  (go:var
+    (go:= make-vector
+          (NewProc _make-vector "make-vector")))
+  (go:func
+    _make-vector
+    (#(k Any))
+    Any
+    (go:return
+      (Vector (make (go:slice Any) (go:as k go:int)))))
+  (go:var (go:= not (NewProc _not "not")))
+  (go:func
+    _not
+    (#(bl Any))
+    Any
+    (go:return (go:not (go:as bl go:bool))))
+  (go:var (go:= null (NewProc _null "null")))
+  (go:func...
+    _null
+    (#(o Any))
+    Any
+    (go:return gNull))
+  (go:var (go:= null? (NewProc _null? "null?")))
+  (go:func
+    _null?
+    (#(a Any))
+    Any
+    (go::= (_ ok) (go:as a (go:ptr Null)))
+    (go:return ok))
+  (go:var (go:= pair? (NewProc _pair? "pair?")))
+  (go:func
+    _pair?
+    (#(a Any))
+    Any
+    (go::= (_ ok) (go:as a (go:ptr Pair)))
+    (go:return ok))
+  (go:var
+    (go:= pointer-of
+          (NewProc _pointer-of "pointer-of")))
+  (go:func
+    _pointer-of
+    (#(a Any))
+    Any
+    (go:return
+      ((go:dot (reflect.ValueOf a) Pointer))))
+  (go:var
+    (go:= pointer=? (NewProc _pointer=? "pointer=?")))
+  (go:func
+    _pointer=?
+    (#(a b Any))
+    Any
+    (go:return
+      (go:== (go:as (_pointer-of a) go:uintptr)
+             (go:as (_pointer-of b) go:uintptr))))
+  (go:var
+    (go:= procedure?
+          (NewProc _procedure? "procedure?")))
+  (go:func
+    _procedure?
+    (#(a Any))
+    Any
+    (go::= (_ ok) (go:as a Proc))
+    (go:return ok))
+  (go:var (go:= raise (NewProc _raise "raise")))
+  (go:func
+    _raise
+    (#(err Any))
+    Any
+    (go:panic err)
+    (go:return (_void)))
+  (go:var
+    (go:= __string (NewProc _string "string")))
+  (go:func...
+    _string
+    (#(chars Any))
+    Any
+    (go:return (_vector->string (Vector chars))))
+  (go:var
+    (go:= string-hash
+          (NewProc _string-hash "string-hash")))
+  (go:func
+    _string-hash
+    (#(a Any))
+    Any
+    (go:return
+      ((go:dot (NewString (go:as a go:string)) GetHash))))
+  (go:var
+    (go:= string->list
+          (NewProc _string->list "string->list")))
+  (go:func
+    _string->list
+    (#(a Any))
+    Any
+    (go:return (_vector->list (_string->vector a))))
+  (go:var
+    (go:= string->vector
+          (NewProc _string->vector "string->vector")))
+  (go:func
+    _string->vector
+    (#(a Any))
+    Any
+    (go::= st (go:as a String))
+    (go::= vc
+           (go:as (_make-vector (go:len st)) Vector))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:len st))
+      (go:++ i)
+      (go:= ((go:index vc i)) (go:index st i)))
+    (go:return vc))
+  (go:var
+    (go:= string? (NewProc _string? "string?")))
+  (go:func
+    _string?
+    (#(a Any))
+    Any
+    (go::= (_ ok) (go:as a String))
+    (go:return ok))
+  (go:var
+    (go:= symbol=? (NewProc _symbol=? "symbol=?")))
+  (go:func
+    _symbol=?
+    (#(a b Any))
+    Any
+    (go:return
+      (go:== ((go:dot (go:as a Symbol) String))
+             ((go:dot (go:as b Symbol) String)))))
+  (go:var
+    (go:= string->symbol
+          (NewProc _string->symbol "string->symbol")))
+  (go:func
+    _string->symbol
+    (#(a Any))
+    Any
+    (go:return ((go:dot (go:as a String) ToSymbol))))
+  (go:var
+    (go:= symbol->string
+          (NewProc _symbol->string "symbol->string")))
+  (go:func
+    _symbol->string
+    (#(a Any))
+    Any
+    (go:return ((go:dot (go:as a Symbol) ToString))))
+  (go:var
+    (go:= symbol? (NewProc _symbol? "symbol?")))
+  (go:func
+    _symbol?
+    (#(a Any))
+    Any
+    (go::= (_ ok) (go:as a Symbol))
+    (go:return ok))
+  (go:var
+    (go:= u8-list->bytevector
+          (NewProc
+            _u8-list->bytevector
+            "u8-list->bytevector")))
+  (go:func
+    _u8-list->bytevector
+    (#(a Any))
+    Any
+    (go:return
+      (_u8-vector->bytevector (_list->vector a))))
+  (go:var
+    (go:= u8-vector->bytevector
+          (NewProc
+            _u8-vector->bytevector
+            "u8-vector->bytevector")))
+  (go:func
+    _u8-vector->bytevector
+    (#(a Any))
+    Any
+    (go::= vc (go:as a Vector))
+    (go::= bv
+           (go:as (_make-bytevector (go:len vc)) Binary))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:len vc))
+      (go:++ i)
+      (go:= ((go:index bv i))
+            (go:as (go:index vc i) go:byte)))
+    (go:return bv))
+  (go:var
+    (go:= vector->list*
+          (NewProc _vector->list* "vector->list*")))
+  (go:func
+    _vector->list*
+    (#(a Any))
+    Any
+    (go::= vc (go:as a Vector))
+    (go:when
+      (go:== (go:len vc) 0)
+      (go:return (_null)))
+    (go:when
+      (go:== (go:len vc) 1)
+      (go:return (go:index vc 0)))
+    (go:return
+      (_cons (go:index vc 0)
+             (_vector->list* (Vector (go:index vc 1 #f))))))
+  (go:var
+    (go:= vector->string
+          (NewProc _vector->string "vector->string")))
+  (go:func
+    _vector->string
+    (#(a Any))
+    Any
+    (go::= vc (go:as a Vector))
+    (go::= st
+           (go:as (_make-string (go:len vc)) String))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:len vc))
+      (go:++ i)
+      (go:= ((go:index st i))
+            (go:rune (go:as (go:index vc i) Char))))
+    (go:return st))
+  (go:var (go:= vector (NewProc _vector "vector")))
+  (go:func...
+    _vector
+    (#(o Any))
+    Any
+    (go:return (Vector o)))
+  (go:var
+    (go:= vector->list
+          (NewProc _vector->list "vector->list")))
+  (go:func
+    _vector->list
+    (#(a Any))
+    Any
+    (go::= (vc ls) (go:as a Vector) (_null))
+    (go:for
+      (go::= i (go:- (go:len vc) 1))
+      (go:>= i 0)
+      (go:-- i)
+      (go:= ls (_cons (go:index vc i) ls)))
+    (go:return ls))
+  (go:var
+    (go:= vector? (NewProc _vector? "vector?")))
+  (go:func
+    _vector?
+    (#(a Any))
+    Any
+    (go::= (_ ok) (go:as a Vector))
+    (go:return ok))
+  (go:var (go:= void (NewProc _void "void")))
+  (go:func...
+    _void
+    (#(o Any))
+    Any
+    (go:return gVoid))
+  (go:var (go:= void? (NewProc _void? "void?")))
+  (go:func
+    _void?
+    (#(a Any))
+    Any
+    (go::= (_ ok) (go:as a (go:ptr Void)))
+    (go:return ok))
+  (go:var (go:= u8? (NewProc _u8? "u8?")))
+  (go:func
+    _u8?
+    (#(a Any))
+    Any
+    (go:when*
+      (go::= (_ ok) (go:as a go:byte))
+      ok
+      (go:return #t))
+    (go:when*
+      (go::= (c ok) (go:as a go:int))
+      (go:and ok (go:and (go:<= 0 c) (go:<= c 255)))
+      (go:return #t))
+    (go:return #f))
+  (go:var (go:= type=? (NewProc _type=? "type=?")))
+  (go:func
+    _type=?
+    (#(a b Any))
+    Any
+    (go:return
+      (go:== ((go:dot (go:as a AnyKinder) GetType))
+             ((go:dot (go:as b AnyKinder) GetType)))))
+  (go:var
+    (go:= string->immutable-string
+          (NewProc
+            _string->immutable-string
+            "string->immutable-string")))
+  (go:func
+    _string->immutable-string
+    (#(a Any))
+    Any
+    (go:when*
+      (go::= (s ok) (go:as a String))
+      ok
+      (go:return (s.String)))
+    (go:return (_error "expected string")))
+  (go:var
+    (go:= immutable-string->string
+          (NewProc
+            _immutable-string->string
+            "immutable-string->string")))
+  (go:func
+    _immutable-string->string
+    (#(a Any))
+    Any
+    (go:when*
+      (go::= (s ok) (go:as a go:string))
+      ok
+      (go:return (NewString s)))
+    (go:return (_error "expected immutable-string")))
+  (go:var
+    (go:= __->go-string
+          (NewProc _->go-string "->go-string")))
+  (go:func
+    _->go-string
+    (#(a Any))
+    Any
+    (go:when*
+      (go::= (s ok) (go:as a GoStringer))
+      ok
+      (go:return (s.GoString)))
+    (go:return
+      (_error "->scheme-string unknown type")))
+  (go:var
+    (go:= __->immutable-string
+          (NewProc
+            _->immutable-string
+            "->immutable-string")))
+  (go:func
+    _->immutable-string
+    (#(a Any))
+    Any
+    (go:when*
+      (go::= (s ok) (go:as a go:string))
+      ok
+      (go:return s))
+    (go:when*
+      (go::= (s ok) (go:as a fmt.Stringer))
+      ok
+      (go:return (s.String)))
+    (go:return
+      (_error "->immutable-string unknown type")))
+  (go:var
+    (go:= __->scheme-string
+          (NewProc _->scheme-string "->scheme-string")))
+  (go:func
+    _->scheme-string
+    (#(a Any))
+    Any
+    (go:when*
+      (go::= (s ok) (go:as a SchemeStringer))
+      ok
+      (go:return (s.SchemeString)))
+    (go:return
+      (_error "->scheme-string unknown type")))
+  (go:var
+    (go:= __->string (NewProc _->string "->string")))
+  (go:func
+    _->string
+    (#(a Any))
+    Any
+    (go:when*
+      (go::= (s ok) (go:as a String))
+      ok
+      (go:return s))
+    (go:return
+      (_immutable-string->string
+        (_->immutable-string a)))))

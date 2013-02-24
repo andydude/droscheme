@@ -1,0 +1,60 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any"))
+  (go:func
+    #(_ Values)
+    GetType
+    ()
+    go:int
+    (go:return TypeCodeValues))
+  (go:func
+    #(_ Void)
+    GetHash
+    ()
+    go:uintptr
+    (go:return 0))
+  (go:func
+    #(_ Void)
+    GetType
+    ()
+    go:int
+    (go:return TypeCodeVoid))
+  (go:func
+    #(_ Void)
+    Equal
+    (#(a Any))
+    go:bool
+    (go:return (go:as (_void? a) go:bool)))
+  (go:func
+    #(_ Void)
+    String
+    ()
+    go:string
+    (go:return ""))
+  (go:var (go:= empty? (NewProc _empty? "empty?")))
+  (go:func
+    _empty?
+    (#(a Any))
+    Any
+    (go:type!
+      (go:as a type)
+      (((go:ptr Null)) (go:return #t))
+      (((go:ptr Void)) (go:return #t))
+      ((Binary)
+       (go:return (go:== (go:len (go:as a Binary)) 0)))
+      ((String)
+       (go:return (go:== (go:len (go:as a String)) 0)))
+      ((Symbol)
+       (go:return
+         (go:== (go:len (go:dot (go:as a Symbol) name)) 0)))
+      ((Vector)
+       (go:return (go:== (go:len (go:as a Vector)) 0)))
+      ((Values)
+       (go:return (go:== (go:len (go:as a Values)) 0))))
+    (go:return #f))
+  (go:var (go:= values (NewProc _values "values")))
+  (go:func...
+    _values
+    (#(o Any))
+    Any
+    (go:return (Values o))))

@@ -1,5 +1,5 @@
 (use-modules (ice-9 pretty-print))
-(load "base-guile.scm")
+;(load "base-guile.scm")
 ;(load "ds-sugar.scm")
 
 (define *input-filename*

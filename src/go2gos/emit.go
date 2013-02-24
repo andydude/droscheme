@@ -98,7 +98,7 @@ func (c *Compiler) emitBranchStmt(node *ast.BranchStmt) {
 func (c *Compiler) emitCallExpr(node *ast.CallExpr) {
 	c.emit("(")
 	if node.Ellipsis != 0 {
-		c.emit("%s... ", prefix)
+		c.emit("%sapply... ", prefix)
 	}
 	c.emitExpr(node.Fun)
 	for _, arg := range node.Args {

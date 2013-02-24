@@ -1,0 +1,99 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any") "fmt")
+  (go:func
+    #(vc Vector)
+    GetType
+    ()
+    go:int
+    (go:return TypeCodeVector))
+  (go:func
+    #(vc Vector)
+    GetHash
+    ()
+    go:uintptr
+    (go:return
+      (go:as (go:apply... _object-hash ((go:slice Any) vc))
+             go:uintptr)))
+  (go:func
+    #(vc Vector)
+    Equal
+    (#(a Any))
+    go:bool
+    (go:return (go:as (_object-equal? vc a) go:bool)))
+  (go:func
+    #(vc Vector)
+    Eval
+    (#(env (go:ptr Env)))
+    Any
+    (go:var
+      (go:= rv
+            (go:as (_make-vector (go:len vc)) Vector)))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:len vc))
+      (go:++ i)
+      (go:= ((go:index rv i))
+            (_eval (go:index vc i) env)))
+    (go:return rv))
+  (go:func
+    #(vc Vector)
+    Ref
+    (#(k Any))
+    Any
+    (go:return (go:index vc (go:as k go:int))))
+  (go:func
+    #(vc Vector)
+    Set
+    (#(k v Any))
+    Any
+    (go:= ((go:index vc (go:as k go:int))) v)
+    (go:return (_void)))
+  (go:func
+    #(vc Vector)
+    SchemeString
+    ()
+    go:string
+    (go:when (go:== (go:len vc) 0) (go:return "#()"))
+    (go::= rv (go:make: (go:slice go:byte)))
+    (go:range
+      (:= (_ value) vc)
+      (go:= rv (go:append rv #\space))
+      (go:= rv
+            (go:apply...
+              go:append
+              rv
+              (go:as (_->scheme-string value) go:string))))
+    (go:return
+      (fmt.Sprintf "#(%s)" (go:index rv 1 #f))))
+  (go:func
+    #(vc Vector)
+    ToBinary
+    ()
+    Binary
+    (go::= rv (make (go:slice go:byte) (go:len vc)))
+    (go:range
+      (:= (k it) vc)
+      (go:= ((go:index rv k)) (go:as it go:byte)))
+    (go:return (Binary rv)))
+  (go:func
+    #(vc Vector)
+    ToList
+    ()
+    Any
+    (go:when
+      (go:== (go:len vc) 0)
+      (go:return (_null)))
+    (go:return
+      (_cons (go:index vc 0)
+             ((go:dot (Vector (go:index vc 1 #f)) ToList)))))
+  (go:func
+    #(vc Vector)
+    ToString
+    ()
+    String
+    (go::= rv (make (go:slice go:rune) (go:len vc)))
+    (go:range
+      (:= (k it) vc)
+      (go:= ((go:index rv k)) (go:as it go:rune)))
+    (go:return (String rv))))

@@ -1,0 +1,2 @@
+#!/bin/bash
+guile $DROSCHEME_PATH/scm/scheme2gos-guile.scm "$@"

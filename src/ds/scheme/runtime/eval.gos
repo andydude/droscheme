@@ -1,0 +1,69 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any"))
+  (go:var
+    (go:= eval-syntax
+          (NewSyntax _eval-syntax "eval-syntax")))
+  (go:func
+    _eval-syntax
+    (#(env (go:ptr Env)) #(exp Any))
+    Any
+    (go:return (_eval exp env)))
+  (go:var (go:= eval (NewProc _eval "eval")))
+  (go:func
+    _eval
+    (#(exp Any) #(env Any))
+    Any
+    (go:unless
+      (go:as (_pair? exp) go:bool)
+      (go:return (_eval-literal exp env)))
+    (go::= (cas _) (_car+cdr exp))
+    (go:when
+      (go:as (_symbol? cas) go:bool)
+      (go::= value
+             ((go:dot (go:as env (go:ptr Env)) Ref) cas))
+      (go:when*
+        (go::= (trans ok) (go:as value Syntax))
+        ok
+        (go:return
+          (trans.Transform (go:as env (go:ptr Env)) exp))))
+    (go:return
+      (_eval-vector
+        (_list->vector exp)
+        (go:as env (go:ptr Env)))))
+  (go:var
+    (go:= eval-literal
+          (NewProc _eval-literal "eval-literal")))
+  (go:func
+    _eval-literal
+    (#(exp Any) #(env Any))
+    Any
+    (go:unless*
+      (go::= (_ ok) (go:as exp Evaler))
+      ok
+      (go:return exp))
+    (go:return
+      ((go:dot (go:as exp Evaler) Eval)
+       (go:as env (go:ptr Env)))))
+  (go:var
+    (go:= eval-vector
+          (NewProc _eval-vector "eval-vector")))
+  (go:func
+    _eval-vector
+    (#(exp Any) #(env Any))
+    Any
+    (go::= arg
+           (go:as ((go:dot (go:as exp Vector) Eval)
+                   (go:as env (go:ptr Env)))
+                  Vector))
+    (go::= (car cdr)
+           (go:index arg 0)
+           (Vector (go:index arg 1 #f)))
+    (go:unless
+      (go:as (_procedure? car) go:bool)
+      (_error "expected procedure"))
+    (go:unless*
+      (go::= (_ ok) (go:as car Proc))
+      ok
+      (_error "expected procedure (Applier)"))
+    (go:return ((go:dot (go:as car Proc) Apply) cdr))))

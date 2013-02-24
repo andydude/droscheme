@@ -1,4 +1,7 @@
 (load "base-guile.scm")
+(load "ds-common.scm")
+(load "ds-library.scm")
+(load "ds-function.scm")
 (load "gos2go-lib.scm")
 
 (define *input-filename*

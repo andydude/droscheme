@@ -1,0 +1,21 @@
+(go:package
+  ds_any_runtime
+  (go:import "runtime")
+  (go:func
+    getFE
+    (#(pc go:uintptr))
+    go:uintptr
+    (go:return
+      ((go:dot (runtime.FuncForPC pc) Entry))))
+  (go:func
+    getFL
+    (#(pc go:uintptr))
+    (values #(file go:string) #(line go:int))
+    (go:return
+      ((go:dot (runtime.FuncForPC pc) FileLine) pc)))
+  (go:func
+    getFN
+    (#(pc go:uintptr))
+    go:string
+    (go:return
+      ((go:dot (runtime.FuncForPC pc) Name)))))

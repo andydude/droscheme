@@ -1,0 +1,40 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any"))
+  (go:type
+    ErrorObject
+    (go:struct
+      #(msg go:string)
+      #(it Any)
+      #(code go:int)))
+  (go:func
+    #(eo ErrorObject)
+    GetType
+    ()
+    go:int
+    (go:return TypeCodeError))
+  (go:func
+    #(eo ErrorObject)
+    GetHash
+    ()
+    go:uintptr
+    (go:return
+      (go:as (_string-hash (eo.Error)) go:uintptr)))
+  (go:func
+    #(eo ErrorObject)
+    GetErrorObjectType
+    ()
+    go:int
+    (go:return eo.code))
+  (go:func
+    #(eo ErrorObject)
+    Irritants
+    ()
+    Any
+    (go:return eo.it))
+  (go:func
+    #(eo ErrorObject)
+    Error
+    ()
+    go:string
+    (go:return eo.msg)))

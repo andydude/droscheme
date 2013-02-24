@@ -1,0 +1,83 @@
+(go:package
+  ds_any_runtime
+  (go:import (dot "ds/any") "fmt")
+  (go:func
+    NewString
+    (#(s go:string))
+    String
+    (go:return (String ((go:slice go:rune) s))))
+  (go:func
+    #(st String)
+    ToBytes
+    ()
+    (go:slice go:byte)
+    (go:return
+      ((go:slice go:byte)
+       (go:string ((go:slice go:rune) st)))))
+  (go:func
+    #(st String)
+    GoString
+    ()
+    go:string
+    (go:return (go:string ((go:slice go:rune) st))))
+  (go:func
+    #(_ String)
+    GetType
+    ()
+    go:int
+    (go:return TypeCodeString))
+  (go:func
+    #(st String)
+    GetHash
+    ()
+    go:uintptr
+    (go:return
+      (go:as (go:apply...
+               _object-hash
+               ((go:slice Any) (st.ToVector)))
+             go:uintptr)))
+  (go:func
+    #(st String)
+    String
+    ()
+    go:string
+    (go:return
+      (fmt.Sprintf
+        "\"%s\""
+        (go:string ((go:slice go:rune) st)))))
+  (go:func
+    #(st String)
+    Ref
+    (#(k Any))
+    Any
+    (go:return (Char (go:index st (go:as k go:int)))))
+  (go:func
+    #(st String)
+    Set
+    (#(k v Any))
+    Any
+    (go:= ((go:index st (go:as k go:int)))
+          (go:rune (go:as v Char)))
+    (go:return (_void)))
+  (go:func
+    #(st String)
+    RawString
+    ()
+    go:string
+    (go:return (go:string ((go:slice go:rune) st))))
+  (go:func
+    #(st String)
+    ToSymbol
+    ()
+    Symbol
+    (go:return (NewSymbol (st.RawString))))
+  (go:func
+    #(st String)
+    ToVector
+    ()
+    Vector
+    (go::= rv (make (go:slice Any) (go:len st)))
+    (go:range
+      (:= (k ch) st)
+      (go:= ((go:index rv k)) (Any ch)))
+    (go:return (Vector rv))))
