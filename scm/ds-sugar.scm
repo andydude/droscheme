@@ -8,6 +8,15 @@
   (define sugar-read-save read)
   (define sugar-load-save primitive-load)
 
+  (define (readline level port)
+    (read-char port)
+    (let ((char (peek-char port)))
+      (if (or (eof-object? char)
+              (eq? char #\newline))
+          ;(begin (map (lambda () (read-char port)) (string->list level))
+          'scheme-indent-sugar-comment-line
+          (readline level port))))
+
   (define (readquote level port qt)
     (read-char port)
     (let ((char (peek-char port)))
@@ -26,6 +35,9 @@
         (readquote level port 'quote))
        ((eq? char #\,)
         (readquote level port 'unquote))
+       ((eq? char #\;)
+        (begin
+          (readline level port)))
        (else
         (sugar-read-save port)))))
 
@@ -112,13 +124,13 @@
        (else
        (let* ((first (readitem level port))
               (rest (readblock level port))
-                     (level (car rest))
+                     (level2 (car rest))
                             (block (cdr rest)))
                               (if (eq? first '.)
                                     (if (pair? block)
-                                          (cons level (car block))
+                                          (cons level2 (car block))
                                                   rest)
-                                                        (cons level (cons first block))))))))
+                                                        (cons level2 (cons first block))))))))
 
   ;; reads a block and handles group, (quote), (unquote) and
   ;; (quasiquote).
@@ -132,7 +144,7 @@
                 (cons next-level (car block))
                       (cons next-level '.)))))
 
-  (define (sugar-read . port)
+  (define (sugar-read-dirty . port)
     (let* ((read (readblock-clean "" (if (null? port)
                                      (current-input-port)
                                                                 (car port))))
@@ -143,6 +155,23 @@
         '())
        (else
         block))))
+
+
+  (define (sugar-read . port)
+    (define (comment? out)
+      (eq? out 'scheme-indent-sugar-comment-line))
+    (define (not-comment? out)
+      (not (comment? out)))
+    (define (sugar-process out)
+      (if (pair? out)
+          (let ((fst (car out))
+                (rst (cdr out)))
+            (if (comment? fst)
+                (sugar-process rst)
+                (cons (sugar-process fst) (sugar-process rst))))
+          out))
+    (let ((out (apply sugar-read-dirty port)))
+      (sugar-process out)))
 
   ;(define (sugar-load filename)
   ;  (define (load port)

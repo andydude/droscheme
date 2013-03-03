@@ -1,3 +1,34 @@
+
+;; General functions
+
+;; multi-assoc takes an alist and returns all matches
+;;
+;; For example, if:
+;;   alist == '((import x y) (export foo bar) (import a b c))
+;; then:
+;;   (multi-assoc alist 'import) = '(x y a b c)
+;;
+(define (multi-assoc alist key)
+  (let ((apair (assoc key alist)))
+    (if apair
+        (apply append (map cdr
+         (lset-difference equal? alist
+          (alist-delete key alist))))
+        '())))
+
+;; multi-diff takes an alist and keys and returns everything else
+;;
+;; For example, if:
+;;   alist == '((import x y) (export foo bar) (import a b c))
+;; then:
+;;   (multi-diff alist 'import) = '(foo bar)
+;;
+(define (multi-diff alist . keys)
+  (if (null? keys)
+      alist
+      (alist-delete (car keys)
+       (apply multi-diff alist (cdr keys)))))
+
 (define (go-encoded? name)
   (if (>= (string-length name) 2)
       (let ((c0 (string-ref name 0))
@@ -1160,13 +1191,14 @@
     (cons 'void           emit-void     )
     (cons 'while          emit-for1       )))
 
+;; NOT USED
 (define (droscheme-read-file filename)
   (let ((fnlen (string-length filename)))
     (if (and (> fnlen 4)
              (equal? (substring filename (- fnlen 4) fnlen)
                      ".ild"))
-        (sugar-read filename)
-        (read filename))))
+        (call-with-input-file filename sugar-read)
+        (call-with-input-file filename read))))
 
 ;; globals
 
@@ -1180,3 +1212,6 @@
 (define *package-path* (make-parameter "/"))
 (define *libraries* (make-parameter '()))
 (define *droscheme-path* (make-parameter (droscheme-path)))
+(define droscheme-compile-mode (make-parameter 'library)) ; one-of: import, export, library, program
+(define droscheme-output-mode (make-parameter 'raw)) ; one-of: raw, pretty
+

@@ -1,6 +1,5 @@
 (library (balloons)
   (export make push pop)
-  (import (rnrs))
 
   (define (make w h) (cons w h))
   (define (push b amt)

@@ -85,6 +85,75 @@
 
 (define (go-keyword? kw)
   (define *table* '(
+    append
+    bool
+    break
+    byte
+    cap
+    case
+    chan
+    close
+    complex
+    complex128
+    complex64
+    const
+    continue
+    copy
+    default
+    defer
+    delete
+    else
+    error
+    fallthrough
+    false
+    float32
+    float64
+    for
+    func
+    go
+    goto
+    if
+    imag
+    import
+    int
+    int16
+    int32
+    int64
+    int8
+    interface
+    iota
+    len
+    make
+    map
+    new
+    nil
+    package
+    panic
+    print
+    println
+    range
+    real
+    recover
+    return
+    rune
+    select
+    string
+    struct
+    switch
+    true
+    type
+    uint
+    uint16
+    uint32
+    uint64
+    uint8
+    uintptr
+    var))
+  (memv (string->symbol kw) *table*))
+
+
+(define (go-prefixed-keyword? kw)
+  (define *table* '(
     go:append
     go:bool
     go:break
@@ -163,8 +232,17 @@
 ;  (symbol->string id))
 (define (emit-symbol id)
   (define *table* '(
-          ; types
+          ; my types
           ("go:any" . "interface{}")
+          ("go:internal:env" . "*ds_env.Env")
+          ("go:internal:frame" . "map[string]interface{}")
+          ("go:internal:table" . "map[uintptr][]interface{}")
+          ("go:internal:vector" . "[]interface{}")   ; required by Apply()
+          ("go:internal:values" . "[]reflect.Value") ; required by (prim-apply)
+          ("go:internal:string" . "[]rune")
+          ("go:internal:binary" . "[]byte")
+
+          ; go types
           ("go:bool" . "bool")
           ("go:byte" . "byte")
           ("go:complex64" . "complex64")
@@ -206,12 +284,9 @@
       (let ((s (symbol->string id)))
         (if (assoc s *table*)
             (cdr (assoc s *table*))
-            (symbol->mangle id)))
-            ;(let ((out (symbol->string id)))
-            ;  (if (or (go-keyword? out)
-            ;          (go-encoded? out))
-            ;      (string-append "__" out)
-            ;      out))))
+            (if (go-keyword? s)
+                (string-append "__" s)
+                (symbol->mangle id))))
       (error id)))
 
 (define (emit-op sym)
@@ -249,6 +324,7 @@
    (string-join (map emit-field fields) ", ")))
 
 (define (emit-params... fields)
+  (display "**DEPRECATED**")
   (parameterize ((*type-context* #t))
    (string-join (append 
     (map emit-field (most fields)) 
@@ -263,12 +339,13 @@
             (ls (vector-last field)))
         (string-append (emit-exprs ms) " " (emit-expr ls)))
       (if (and (list? field)
-               (eqv? (car field) 'func)
+               (eqv? (car field) 'go:func)
                (symbol? (cadr field)))
           (emit-method field)
           (emit-expr field))))
 
 (define (emit-field... field)
+  (display "**DEPRECATED**")
   (if (vector? field)
       (let ((ms (reverse (cdr (reverse (vector->list field)))))
             (ls (vector-last field)))
@@ -357,6 +434,11 @@
   ;(write specs)
   (string-join (map emit-spec specs) "\n"))
 
+(define (emit-interface-block types)
+  (if (= (length types) 0)
+      "{}"
+      (string-append "{\n" (emit-fields types) "\n}\n")))
+
 (define (emit-type-block types)
   (if (= (length types) 0)
       "{}"
@@ -409,9 +491,14 @@
   (apply emit a))
 
 (define (emit-return-type ret)
-   (if (vector? ret)
-       (string-append "(" (emit-field ret) ")")
-       (emit-field ret)))
+  (define (emit-return-values ret)
+    (string-append "(" (emit-params ret) ")"))
+  (if (vector? ret)
+      (string-append "(" (emit-field ret) ")")
+      (if (and (list? ret)
+               (eq? (car ret) 'values))
+          (emit-return-values (cdr ret))
+          (emit-field ret))))
 
 (define (emit-sig ins ret)
   (string-append "(" 
@@ -419,6 +506,7 @@
     (emit-return-type ret)))
 
 (define (emit-sig... ins ret)
+  (display "**DEPRECATED**")
   (string-append "(" 
     (emit-params... ins) ")"
     (emit-return-type ret)))
@@ -436,22 +524,23 @@
       "{}"
       (let ((ms (most stmts))
             (ls (last stmts)))
-        (if (eqv? (car ls) 'else)
-            (if (= (length ls) 2)
-                ;; else if
-                (string-append "{\n\t" 
-                 (emit-stmts ms) "\n} else " 
-                 (emit-stmts (cdr ls)))
+        (if (eqv? (car ls) 'go:else)
+            ;(if (= (length ls) 2)
+            ;    ;; else if
+            ;    (string-append "{\n\t" 
+            ;     (emit-stmts ms) "\n} else " 
+            ;     (emit-stmts (cdr ls)))
                 ;; else
                 (string-append "{\n\t" 
                  (emit-stmts ms) "\n} else {\n" 
-                 (emit-stmts (cdr ls)) "\n}\n"))
+                 (emit-stmts (cdr ls)) "\n}\n")
             (emit-block stmts)))))
 
 (define (emit-block stmts)
+ (parameterize ((*top-context* #f))
   (if (null? stmts)
       ""
-      (string-append "{\n\t" (emit-stmts stmts) "\n}\n")))
+      (string-append "{\n\t" (emit-stmts stmts) "\n}"))))
 
 (define (emit-decls decls)
   (define (emit decl)
@@ -525,7 +614,7 @@
                   (lambda () 
                     (catch 'match-error do-match no-match))
                   yes-match)))
-    (if t t (apply apply-go 'go:apply expr))))
+    (if t t (apply apply-go 'go:call expr))))
 
 (define (*rules* . expr)
   (match expr
@@ -580,16 +669,18 @@
     (('go:label id . stmts) `(,id ":" ,(emit-stmts stmts)))
 
     ;; keywords
-    (('go:apply fn . args)
+    (('go:call fn . args)
      `(,fn "(" ,(emit-exprs args) ")"))
-    (('go:apply... fn . args)
+    (('go:apply fn . args)
      `(,fn "(" ,(emit-exprs args) "...)"))
     (('go:array length type)
      `("[" ,length "]" ,type))
-    (('go:values . types)
-     `("(" ,(emit-params types) ")"))
     (('go:array... type)
      `("[...]" ,type))
+    (('go:values . types)
+     `("(" ,(emit-params types) ")"))
+    (('go:ellipsis type)
+     `("..." ,type))
     (('go:slice type)
      `("[]" ,type))
     (('go:struct . fields)
@@ -600,7 +691,7 @@
     (('go:chan<- type) `("<-chan" ,type))
     (('go:chan<-! type) `("chan<-" ,type))
     (('go:interface . methods)
-     `("interface" ,(emit-type-block methods)))
+     `("interface" ,(emit-interface-block methods)))
 
     (('go:break . rest) (emit-branch 'break rest))
     (('go:continue . rest) (emit-branch 'continue rest))
@@ -668,7 +759,7 @@
     (('go:internal:define-func name sig ret . body)
      (if (*top-context*)
          `("func" ,name ,(emit-sig sig ret) ,(emit-block body)) ; FuncDecl
-         `("var" ,name " = func" ,(emit-sig sig ret) ,(emit-block body)))) ; FuncStmt
+         `("var" ,name " func" ,(emit-sig sig ret) "\n" ,name " = func" ,(emit-sig sig ret) ,(emit-block body)))) ; FuncStmt
 
     (('go:internal:define-func... name sig ret . body)
      (if (*top-context*)

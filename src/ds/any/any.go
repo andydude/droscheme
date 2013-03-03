@@ -6,43 +6,53 @@
 // FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
 // terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
 
-package ds_any
+// Interfaces
+//
+// These types are used for anything that supports them.
+// 'any' is a synonym for Go interface{} objects, which 
+// represents any object. Previously, the Any interface
+// had Equaler and Hasher methods on it, which required
+// that only user-defined types could become members,
+// as time passed, it became clear that types such as
+// bool or char or int32 or float64 should also be able
+// to have Equaler and Hasher methods for them, and
+// after realizing that this was impossible in the Go
+// runtime, the requirement that every object implement
+// Equaler and Hasher methods was relaxed.
+package ds_scheme_base
 
-// Any
-//
-//
-type Any interface{}
+import "ds/env"
 
-// Evaler
-//
-//
-type Evaler interface {
-	Eval(env *Env) Any
-}
+type (
+	Applier interface {
+		Apply(args []interface{}) interface{}
+	}
 
-// Named
+	Evaler interface {
+		Eval(env *ds_env.Env) interface{}
+	}
 
-// This interface represents maplets in environments.
-//
-// In order to lubricate the import and export between
-// packages, this allows us to pass a single object to
-// the environment which it can then query to find its
-// name. After that, it may call Define() on the value.
-type Named interface {
-	Name() string
-	Value() Any // of the type func(???)Any
-}
+	Equaler interface {
+		Equal(obj interface{}) bool
+	}
 
-// Proc
-//
-//
-type Proc interface {
-	Apply(args []Any) Any
-}
+	Hasher interface {
+		Hash(obj interface{}) uintptr
+	}
 
-// Syntax
-//
-// This interface represents macro transformers.
-type Syntax interface {
-	Transform(env *Env, exp Any) Any
-}
+	Kinder interface {
+		Kind(obj interface{}) int
+	}
+
+	Matcher interface {
+		Match(syntax interface{}, env *ds_env.Env) bool
+	}
+
+	Replacer interface {
+		Replace(env *ds_env.Env) interface{}
+	}
+
+	Transformer interface {
+		Transform(syntax interface{}, env *ds_env.Env) interface{}
+	}
+)

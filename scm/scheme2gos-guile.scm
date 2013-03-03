@@ -1,3 +1,4 @@
+(use-modules (ice-9 match))
 (use-modules (ice-9 pretty-print))
 (load "base-guile.scm")
 (load "ds-common.scm")
@@ -11,12 +12,17 @@
 (define emit-package emit-package-compile)
 
 (define (main-guile)
-  (let* ((raw (and (< 1 (length (command-line)))
-                   (equal? (list-ref (command-line) 1) "-r")))
-         (output (compile (read))))
-    (if raw
-        (write output)
-        (pretty-print output))
-    (newline)))
+  (let* ((argv (command-line))
+         (raw (member "-r" argv))
+         (mode (if (and (pair? argv)
+                        (not (equal? (cadr argv) "-r")))
+                   (cadr argv)
+                   "library")))
+    (droscheme-compile-mode (string->symbol mode))
+;    (write (droscheme-compile-mode))))
+    (let ((output (compile (read))))
+          (if raw
+              (write output)
+              (pretty-print output)))))
 
 (main-guile)

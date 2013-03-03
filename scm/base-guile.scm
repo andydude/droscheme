@@ -1,6 +1,13 @@
 (use-modules (ice-9 regex)
              (srfi srfi-39))
 
+
+(define (void)
+  (if #f #f))
+
+(define (void? obj)
+  (unspecified? obj))
+
 (define (most ls)
   (if (null? ls) '()
       (if (null? (cdr ls)) '()
@@ -10,6 +17,15 @@
   (if (null? ls) ls
       (if (null? (cdr ls)) (car ls)
           (last (cdr ls)))))
+
+(define (list+ ls . elems)
+  (append ls elems))
+
+(define (list* . rest)
+  (if (null? rest) '()
+      (let ((m (most rest))
+            (l (last rest)))
+        (append m l))))
 
 ; srfi-98
 (define get-environment-variable getenv)
@@ -28,6 +44,9 @@
 
 (define (hashtable-set! alist key value)
   (cons (cons key value) alist))
+
+(define (hashtable-append alist1 alist2)
+  (append alist1 alist2))
 
 (define string-subcopy string-replace)
 

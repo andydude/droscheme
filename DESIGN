@@ -297,28 +297,65 @@ To convert from (2) to (1):
 
 === Data Model
 
-Ds type Go type	Scm type
------   -------	-------
-SBool	bool	boolean?
-SChar	rune	char?
-SNull   struct	null?
-SPair   struct	pair?
-SBinary []byte	bytevector?
-String []rune	string?
-Symbol string	symbol?
-Vector []Any   vector?
-Values []Any   values?
-STable  map[Any]Any
+Scheme type            		Droscheme/Go type
+-------             		--------------
+boolean?            		bool
+char?               		rune
+object?                     interface{}
+symbol?         			ds_env.Symbol
+u8?                         byte
+void?           			nil
+value?         			    reflect.Value
 
-*Pair
-*Env
+sequence?                   ds_seq.Seq | ds_seq.MSeq
+bytevector?     			[]byte
+string?         			[]rune | string (imm-string)
+vector?         			[]interface{}
+values?         			[]reflect.Value
 
-SPrimSyntax
-SCaseSyntax
-SRuleSyntax
-SPrim struct
-SProc struct
-SType struct
-SBytePort
-SCharPort
-SFilePort
+list?                       ds_seq_list.List | ds_seq_list.MList
+null?           			*ds_seq_list.Null
+pair?           			*ds_seq_list.Pair | *ds_seq_list.Star (imm-list)
+
+procedure?                  ds_any.Applier | primitive-function?
+primitive-function?     	func(...interface{})interface{}
+primitive-procedure?    	*ds_scheme_procedure.Prim
+lambda-procedure?       	*ds_scheme_procedure.Lambda
+case-lambda-procedure?  	*ds_scheme_procedure.Case
+parameter-procedure?  	    *ds_scheme_parameter.Param
+box?            			*ds_box.Box
+
+transformer?                ds_any.Transformer
+primitive-transformer?  	*ds_scheme_transformer.Prim
+syntax-rules-transformer?   *ds_scheme_transformer.Rules
+syntax-case-transformer?    *ds_scheme_transformer.Case
+type-descriptor?            *ds_type.Type
+
+port?                       ds_any.Closer
+bytevector-port?            *ds_port.Binary
+string-port?                *ds_port.String
+file-port?                  *ds_port.File
+
+mapping?                    ds_map.Map | ds_map.Maplet
+hashtable?      			*ds_map_hashtable.Table
+environment?    			*ds_env.Env
+environment-frame?   		map[string]interface{}
+
+evaler?              		ds_any.Evaler
+equaler?
+hasher?
+kinder?
+number-kinder?
+port-kinder?
+matcher?
+replacer?
+transformer?
+
+used in the compiler:
+ds-function?
+ds-function-signature?
+ds-function-parameter?
+
+ds-package?
+ds-package-import?
+ds-package-export?

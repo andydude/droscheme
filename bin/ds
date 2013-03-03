@@ -86,12 +86,10 @@ function gos2go() {
 }
 
 function i2s() {
-    echo i2s "$OPT_IN" "$OPT_OUT"
     $GUILE -s $DROSCHEME_PATH/scm/i2s-guile.scm "$@"
 }
 
 function s2s() {
-    echo i2s "$OPT_IN" "$OPT_OUT"
     $GUILE -s $DROSCHEME_PATH/scm/s2s-guile.scm "$@"
 }
 

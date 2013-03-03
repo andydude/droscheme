@@ -1,0 +1,115 @@
+(go:package ds_any_syntax 
+ (go:import "io" "fmt" "math" "strconv" "strings" (dot "ds/any") "ds/any/runtime" (dot "ds/port")) (go:type State (go:func ( (go:ptr Lexer)) State)) (go:type Lexer (go:struct #(buffer (go:slice go:rune)) #(input TIPort) #(start pos width go:int) #(tokens (go:chan (go:ptr yySymType))) #(state State) #(ch go:rune) #(pcount go:int) #(base sign go:int) #(inexact go:bool) #(err go:error) #(value Any))) 
+
+
+(go:func emptyTokens () (go:chan (go:ptr yySymType))  (go:return (make (go:chan (go:ptr yySymType)) 4))) 
+
+(go:func newLexer ( #(rd TIPort)) (go:ptr Lexer)  (go:return (newLexerWithState rd (go:dot (go:ptr Lexer) lexToken)))) 
+
+(go:func newLexerWithBase ( #(rd TIPort) #(base go:int)) (go:ptr Lexer)  (go::= lex (go:new: Lexer (go:: buffer (go:make: (go:slice go:rune))) (go:: input rd) (go:: tokens (emptyTokens)) (go:: state (go:dot (go:ptr Lexer) lexNumber)) (go:: base base) (go:: sign 1) (go:: ch 0))) (go:return lex)) 
+
+(go:func newLexerWithState ( #(rd TIPort) #(state State)) (go:ptr Lexer)  (go::= lex (go:new: Lexer (go:: buffer (go:make: (go:slice go:rune))) (go:: input rd) (go:: tokens (emptyTokens)) (go:: state state) (go:: base 10) (go:: sign 1) (go:: ch 0))) (go:return lex)) 
+
+(go:func newToken ( #(token go:int) #(datum Any)) (go:ptr yySymType)  (go::= tok (go:new: yySymType (go:: token token) (go:: datum datum))) (go:return tok)) 
+
+(go:func  #(t (go:ptr yySymType)) String () go:str  (go:return (fmt.Sprintf "%s[%d]" t.datum t.token))) 
+
+(go:func  #(lex (go:ptr Lexer)) emitLabel ( #(label go:int)) go:&void  (lex.emitDatum LABEL (NewLabel label go:nil))) 
+
+(go:func  #(lex (go:ptr Lexer)) emitDatum ( #(token go:int) #(datum Any)) go:&void  (go:<-! lex.tokens (newToken token datum)) (lex.consume)) 
+
+(go:func  #(lex (go:ptr Lexer)) emitNum ( #(datum Any)) go:&void  (lex.emitDatum NUMBER datum)) 
+
+(go:func  #(lex (go:ptr Lexer)) emitId ( #(name go:str)) go:&void  (lex.emitDatum ID (ds_any_runtime.NewSymbol name))) 
+
+(go:func  #(lex (go:ptr Lexer)) emit ( #(token go:int)) go:&void  (lex.emitDatum token go:nil)) 
+
+(go:func  #(lex (go:ptr Lexer)) accept1 ( #(valid go:rune)) go:bool  (go:when (go:== (lex.peek) valid)  (lex.next) (go:return #t)) (go:return #f)) 
+
+(go:func  #(lex (go:ptr Lexer)) accept ( #(valid go:str)) go:bool  (go:while (go:>= (strings.IndexRune valid (lex.peek)) 0)  (lex.next) (go:return #t)) (go:return #f)) 
+
+(go:func  #(lex (go:ptr Lexer)) backup () go:&void  (go:defer ((go:func () go:&void  (go::= x (go:recover)) (go:when (go:!= x go:nil)  (fmt.Printf "backup s=%s, p=%s, buf=%s\n" lex.start lex.pos lex.buffer) (go:panic "error in backup()"))))) (go:-= lex.pos lex.width) (go:when (go:> (go:len lex.buffer) 0)  (go:= lex.buffer (go:index lex.buffer 0 (go:- (go:len lex.buffer) 1)))) (go::= err ((go:dot lex.input UnreadRune))) (go:when (go:!= err go:nil)  (go:panic err))) 
+
+(go:func  #(lex (go:ptr Lexer)) consume () go:&void  (go:= lex.start lex.pos) (go:= lex.buffer (go:make: (go:slice go:rune)))) 
+
+(go:func  #(lex (go:ptr Lexer)) match1 ( #(valid go:rune)) go:&void  (go:when (go:!= (lex.next) valid)  (go:panic (go:+ "failed to match: " (go:str (go:make: (go:slice go:rune) valid)))))) 
+
+(go:func  #(lex (go:ptr Lexer)) match ( #(valid go:str)) go:&void  (go:when (go:== valid "")  (go:return)) (go:when (go:!= (lex.next) (go:rune (go:index valid 0)))  (go:panic "failed to match")) (lex.match (go:index valid 1 #f))) 
+
+(go:func  #(lex (go:ptr Lexer)) getSpan () go:str  (go:defer ((go:func () go:&void  (go::= x (go:recover)) (go:when (go:!= x go:nil)  (fmt.Printf "s=%s, p=%s, w=%s\n" lex.start lex.pos lex.width) (go:panic "error in getSpan()"))))) (go:return (go:str lex.buffer))) 
+
+(go:func  #(lex (go:ptr Lexer)) nextToken () (go:ptr yySymType)  (go:while #t  (go:comm! ((go::= tok (go:<- lex.tokens)) (go:return tok)) (go:else (go:when (go:== lex.state go:nil)  (go:return (newToken (go:- 1) go:nil))) (go:= lex.state (lex.state lex))))) (go:panic "unreachable")) 
+
+(go:func  #(lex (go:ptr Lexer)) next () go:rune  (go:const (go:= debug #f)) (go:when (go:as (_eof-object? lex.ch) go:bool)  (go:= lex.err io.EOF) (lex.consume) (go:return (go:rune (go:as (_eof-object) ds_any_runtime.Char)))) (go:var #(err go:error)) (go:= (lex.ch lex.width err) ((go:dot lex.input ReadRune))) (go:when (go:!= err go:nil)  (go:when (go:!= err io.EOF)  (go:panic err)) (go:= (lex.ch lex.width) (go:rune (go:as (_eof-object) ds_any_runtime.Char)) 0) (go:when debug  (fmt.Printf "--- next(%d) = '%s'\n" lex.ch lex.buffer)) (go:return lex.ch)) (go:= lex.buffer (go:append lex.buffer lex.ch)) (go:+= lex.pos lex.width) (go:when debug  (fmt.Printf "--- next(%d) = '%s'\n" lex.ch lex.buffer)) (go:return lex.ch)) 
+
+(go:func  #(lex (go:ptr Lexer)) peek () go:rune  (go:const (go:= debug #f)) (go:when (go:as (_eof-object? lex.ch) go:bool)  (go:return (go:rune (go:as (_eof-object) ds_any_runtime.Char)))) (go:var #(err go:error)) (go:= (lex.ch lex.width err) ((go:dot lex.input PeekRune))) (go:when (go:!= err go:nil)  (go:when (go:!= err io.EOF)  (go:panic err)) (go:= (lex.ch lex.width) (go:rune (go:as (_eof-object) ds_any_runtime.Char)) 0)) (go:when debug  (fmt.Printf "--- peek(%d)\n" lex.ch)) (go:return lex.ch)) 
+
+(go:func  #(lex (go:ptr Lexer)) skip () go:&void  (lex.next)) 
+
+(go:func  #(lex (go:ptr Lexer)) lexSpace () State  (go:while (lex.isWhitespace)  (lex.skip)) (lex.backup) (lex.consume) (go:= lex.base 10) (go:= lex.sign 1) (go:return (go:dot (go:ptr Lexer) lexToken))) 
+
+(go:func  #(lex (go:ptr Lexer)) lexToken () State  (go:cond!* (go::= r (lex.peek)) ((go:as (_eof-object? r) go:bool)  (go:return go:nil)) ((go:== r 0)  (go:return go:nil)) ((go:== r #\;)  (go:return (go:dot (go:ptr Lexer) lexLineComment))) ((go:== r #\")  (go:return (go:dot (go:ptr Lexer) lexString))) ((go:== r #\#)  (go:return (go:dot (go:ptr Lexer) lexHash))) ((go:== r #\.)  (go:return (go:dot (go:ptr Lexer) lexDot))) ((go:== r #\')  (lex.next) (lex.emit QUOTE)) ((go:== r #\`)  (lex.next) (lex.emit QQUOTE)) ((go:== r #\,)  (lex.next) (go:when (go:== (lex.peek) #\@)  (lex.next) (lex.emit UNQUOTES)(go:else  (lex.emit UNQUOTE)))) ((go:or (go:== r #\+) (go:== r #\-))  (go:return (go:dot (go:ptr Lexer) lexSigns))) ((lex.isInitial)  (go:return (go:dot (go:ptr Lexer) lexId))) ((lex.isDigit10)  (go:= lex.base 10) (go:return (go:dot (go:ptr Lexer) lexNumber))) ((lex.isWhitespace)  (go:return (go:dot (go:ptr Lexer) lexSpace))) ((go:== r #\()  (go:++ lex.pcount) (lex.emit (go:int (lex.next)))) ((go:== r #\))  (go:-- lex.pcount) (lex.emit (go:int (lex.next))) (go:when (go:== lex.pcount 0)  (go:return go:nil))) (go:else  (lex.emit (go:int (lex.next))))) (go:return (go:dot (go:ptr Lexer) lexToken))) 
+
+(go:func  #(lex (go:ptr Lexer)) lexString () State  (lex.match1 #\") (go::= contents (go:make: (go:slice go:rune))) (lex.next) (go:while (lex.isStringElement)  (go:when (go:== lex.ch #\\)  (lex.next) (go:case! lex.ch ((#\a)  (go:= lex.ch 0x07)) ((#\b)  (go:= lex.ch 0x08)) ((#\t)  (go:= lex.ch 0x09)) ((#\n)  (go:= lex.ch 0x0A)) ((#\v)  (go:= lex.ch 0x0B)) ((#\f)  (go:= lex.ch 0x0C)) ((#\r)  (go:= lex.ch 0x0D)) ((#\x)  (lex.peek) (lex.consume) (go:while (lex.isDigit16)  (lex.next)) (lex.backup) (go:= lex.base 16) (go::= ret (go:as (lex.getInt) go:int)) (lex.match1 #\;) (go:= lex.ch (go:rune ret))))) (go:= contents (go:append contents lex.ch)) (lex.next)) (lex.backup) (lex.match1 #\") (lex.emitDatum STRING (ds_any_runtime.String contents)) (go:return (go:dot (go:ptr Lexer) lexToken))) 
+
+(go:func  #(lex (go:ptr Lexer)) lexChar () State  (go::= ch (lex.next)) (go::= pk (lex.peek)) (go:cond! ((go:and (go:== ch #\a) (go:== pk #\l)) ) ((go:and (go:== ch #\b) (go:== pk #\a)) ) ((go:and (go:== ch #\d) (go:== pk #\e)) ) ((go:and (go:== ch #\e) (go:== pk #\s)) ) ((go:and (go:== ch #\l) (go:== pk #\i))  (lex.match "inefeed") (lex.emitDatum CHAR (ds_any_runtime.Char #\linefeed))) ((go:and (go:== ch #\n) (go:== pk #\e))  (lex.match "ewline") (lex.emitDatum CHAR (ds_any_runtime.Char #\linefeed))) ((go:and (go:== ch #\v) (go:== pk #\t)) ) ((go:and (go:== ch #\p) (go:== pk #\a)) ) ((go:and (go:== ch #\r) (go:== pk #\e))  (lex.match "eturn") (lex.emitDatum CHAR (ds_any_runtime.Char #\return))) ((go:and (go:== ch #\s) (go:== pk #\p))  (lex.match "pace") (lex.emitDatum CHAR (ds_any_runtime.Char #\ ))) ((go:and (go:== ch #\t) (go:== pk #\a))  (lex.match "ab") (lex.emitDatum CHAR (ds_any_runtime.Char #\tab))) ((go:and (go:== ch #\x) (lex.isDigit16))  (lex.peek) (lex.consume) (go:while (lex.isDigit16)  (lex.next)) (lex.backup) (go:= lex.base 16) (go::= ret (go:as (lex.getInt) go:int)) (lex.emitDatum CHAR (ds_any_runtime.Char ret))) (go:else  (lex.emitDatum CHAR (ds_any_runtime.Char ch)))) (go:return (go:dot (go:ptr Lexer) lexToken))) 
+
+(go:func  #(lex (go:ptr Lexer)) lexDot () State  (go:when (go:!= (lex.next) #\.)  (go:panic "unreachable")) (go:when (go:== (lex.next) #\.)  (go:when (go:== (lex.next) #\.)  (lex.emitId "...") (go:return (go:dot (go:ptr Lexer) lexToken))(go:else  (go:panic "expected ...")))(go:else (go:when (lex.isDigit10)  (lex.backup) (lex.backup) (go:return (go:dot (go:ptr Lexer) lexNumber))(go:else  (lex.backup))))) (lex.emit #\.) (go:return (go:dot (go:ptr Lexer) lexSpace))) 
+
+(go:func  #(lex (go:ptr Lexer)) lexHash () State  (lex.next) (go:case! (lex.next) ((#\:)  (lex.emit KEYWORD) (go:return (go:dot (go:ptr Lexer) lexToken))) ((#\%)  (lex.emit KSYMBOL) (go:return (go:dot (go:ptr Lexer) lexToken))) ((#\')  (lex.emit SYNTAX) (go:return (go:dot (go:ptr Lexer) lexToken))) ((#\`)  (lex.emit QSYNTAX) (go:return (go:dot (go:ptr Lexer) lexToken))) ((#\,)  (go:when (go:== (lex.peek) #\@)  (lex.next) (lex.emit UNSYNTAXS)(go:else  (lex.emit UNSYNTAX))) (go:return (go:dot (go:ptr Lexer) lexToken))) ((#\\)  (go:return (go:dot (go:ptr Lexer) lexChar))) ((#\|)  (go:return (go:dot (go:ptr Lexer) lexNestedComment))) ((#\!)  (go:return (go:dot (go:ptr Lexer) lexLineComment))) ((#\;)  (lex.emit COMMENT) (go:return (go:dot (go:ptr Lexer) lexToken))) ((#\E #\I #\B #\O #\D #\X)  (go:fallthrough)) ((#\e #\i #\b #\o #\d #\x)  (lex.backup) (lex.backup) (go:return (go:dot (go:ptr Lexer) lexNumber))) ((#\F)  (go:fallthrough)) ((#\f)  (lex.emitDatum BOOL #f) (go:return (go:dot (go:ptr Lexer) lexToken))) ((#\T)  (go:fallthrough)) ((#\t)  (lex.emitDatum BOOL #t) (go:return (go:dot (go:ptr Lexer) lexToken))) ((#\V)  (go:fallthrough)) ((#\v)  (lex.next) (go:fallthrough)) ((#\U)  (go:fallthrough)) ((#\u)  (lex.match1 #\8) (lex.match1 #\() (go:++ lex.pcount) (lex.emit U8VECTORPAREN) (go:return (go:dot (go:ptr Lexer) lexToken))) ((#\()  (go:++ lex.pcount) (lex.emit VECTORPAREN) (go:return (go:dot (go:ptr Lexer) lexToken)))) (go:when (lex.isDigit10)  (lex.peek) (lex.consume) (go:while (lex.isDigit10)  (lex.next)) (lex.backup) (go:= lex.base 10) (go::= label (go:as (lex.getInt) go:int)) (lex.emitLabel (go:int label))) (go:return go:nil)) 
+
+(go:func  #(lex (go:ptr Lexer)) lexSigns () State  (go::= s (lex.next)) (go:when (go:and (go:!= s #\+) (go:!= s #\-))  (go:panic "unreachable")) (go::= r (lex.peek)) (go:when (go:and (go:== s #\-) (go:== r #\>))  (go:+= lex.pos 1) (go:return (go:dot (go:ptr Lexer) lexId))) (go:cond! ((lex.isWhitespace)  (lex.emitId (go:str (go:make: (go:slice go:rune) s))) (go:return (go:dot (go:ptr Lexer) lexSpace))) ((go:== r #\()  (go:fallthrough)) ((go:== r #\))  (go:fallthrough)) ((go:as (_eof-object? r) go:bool)  (lex.emitId (go:str (go:make: (go:slice go:rune) s))) (go:return (go:dot (go:ptr Lexer) lexToken))) ((go:== r #\i)  (go:fallthrough)) ((go:== r #\n)  (go:fallthrough)) ((lex.isDigit10)  (go:= lex.base 10) (lex.backup) (go:return (go:dot (go:ptr Lexer) lexNumber)))) (go:return (go:dot (go:ptr Lexer) lexId))) 
+
+(go:func  #(lex (go:ptr Lexer)) lexLineComment () State  (go:while (go:and (go:!= lex.ch #\linefeed) (go:not (go:as (_eof-object? lex.ch) go:bool)))  (lex.next)) (lex.backup) (lex.consume) (go:return (go:dot (go:ptr Lexer) lexToken))) 
+
+(go:func  #(lex (go:ptr Lexer)) lexNestedComment () State  (go:while #t  (go::= c lex.ch) (go::= d (lex.next)) (go:when (go:and (go:== c #\#) (go:== d #\|))  (lex.lexNestedComment) (go:continue)) (go:when (go:and (go:== c #\|) (go:== d #\#))  (lex.consume) (go:break))) (go:return (go:dot (go:ptr Lexer) lexToken))) 
+
+(go:func  #(lex (go:ptr Lexer)) lexId () State  (go:while (lex.isSubsequent)  (lex.next)) (lex.backup) (go::= str (lex.getSpan)) (lex.consume) (lex.emitId str) (go:return (go:dot (go:ptr Lexer) lexToken))) 
+
+(go:func  #(lex (go:ptr Lexer)) lexNumber () State  (go::= p (lex.peek)) (go:when (go:== p #\#)  (lex.next) (go:case! (lex.next) ((#\E) ) ((#\e)  (go:= lex.inexact #f) (lex.consume) (go:return (go:dot (go:ptr Lexer) lexNumber))) ((#\I) ) ((#\i)  (go:= lex.inexact #t) (lex.consume) (go:return (go:dot (go:ptr Lexer) lexNumber))) ((#\B) ) ((#\b)  (go:= lex.base 2) (lex.consume) (go:return (go:dot (go:ptr Lexer) lexNumber))) ((#\O) ) ((#\o)  (go:= lex.base 8) (lex.consume) (go:return (go:dot (go:ptr Lexer) lexNumber))) ((#\D) ) ((#\d)  (go:= lex.base 10) (lex.consume) (go:return (go:dot (go:ptr Lexer) lexNumber))) ((#\X) ) ((#\x)  (go:= lex.base 16) (lex.consume) (go:return (go:dot (go:ptr Lexer) lexNumber))) (go:else  (go:return go:nil)))) (go:return (go:dot (go:ptr Lexer) lexToken))) 
+
+(go:func  #(lex (go:ptr Lexer)) isI () go:bool  (go:when (go:!= (lex.peek) #\i)  (go:return #f)) (lex.next) (go:when (go:== (lex.peek) #\n)  (lex.backup) (go:return #f)) (lex.backup) (go:return #t)) 
+
+(go:func  #(lex (go:ptr Lexer)) isSign () go:bool  (go:case! (lex.peek) ((#\+ #\-)  (go:return #t))) (go:return #f)) 
+
+(go:func  #(lex (go:ptr Lexer)) matchSign () go:&void  (go:case! (lex.peek) ((#\+)  (go:= lex.sign 1) (lex.next)) ((#\-)  (go:= lex.sign (go:- 1)) (lex.next)) (go:else  (go:panic "expected sign")))) 
+
+(go:func  #(lex (go:ptr Lexer)) acceptSign () go:&void  (go:case! (lex.peek) ((#\-)  (lex.next) (go:= lex.sign (go:- 1))) ((#\+)  (lex.next) (go:= lex.sign 1)) (go:else  (go:= lex.sign 1)))) 
+
+(go:func  #(lex (go:ptr Lexer)) getReal () Any  (go:case! (lex.peek) ((#\i)  (lex.match "inf.0") (lex.consume) (go:return (math.Inf lex.sign))) ((#\n)  (lex.match "nan.0") (lex.consume) (go:return (math.NaN)))) (go:when (go:!= lex.base 10)  (lex.posInt) (go::= ret (lex.getInt)) (lex.consume) (go:return ret)) (go::= ret (lex.getDecimal)) (lex.consume) (go:return ret)) 
+
+(go:func  #(lex (go:ptr Lexer)) getDecimal () Any  (go:when (go:!= lex.base 10)  (_error "only decimal fractions supported")) (go:when (go:== (lex.peek) #\.)  (lex.posFrac) (go:return (lex.getFlonum))) (lex.posInt) (go:case! (lex.peek) ((#\.)  (lex.posFrac) (go:return (lex.getFlonum))) ((#\e)  (go:return (lex.getFlonum)))) (go:return (lex.getInt))) 
+
+(go:func  #(lex (go:ptr Lexer)) getInt () Any  (go:return (lex.getFixnum))) 
+
+(go:func  #(lex (go:ptr Lexer)) getFlonum () go:float64  (lex.getSuffix) (go::= str (lex.getSpan)) (lex.consume) (go::= (num err) (strconv.ParseFloat str 64)) (go:when (go:!= err go:nil)  (go:panic err)) (go:return num)) 
+
+(go:func  #(lex (go:ptr Lexer)) getFixnum () go:int64  (go::= str (lex.getSpan)) (lex.consume) (go::= (num err) (strconv.ParseInt str lex.base 64)) (go:when (go:!= err go:nil)  (go:panic err)) (go:return num)) 
+
+(go:func  #(lex (go:ptr Lexer)) getSuffix () (values #(exp go:int) #(prec go:int))  (go:var #(expSign go:int)) (go:case! (lex.peek) ((#\e) ) ((#\s)  (go:= prec 10)) ((#\f)  (go:= prec 23)) ((#\d)  (go:= prec 52)) ((#\l)  (go:= prec 112)) (go:else  (go:return 0 (go:- 1)))) (lex.next) (go:case! (lex.peek) ((#\+)  (lex.next) (go:= expSign 1)) ((#\-)  (lex.next) (go:= expSign (go:- 1)))) (lex.posInt) (go::= str (lex.getSpan)) (lex.consume) (go::= (expAbs err) (strconv.ParseInt str lex.base 64)) (go:when (go:!= err go:nil)  (go:panic err)) (go:return (go:* expSign (go:int expAbs)) prec)) 
+
+(go:func  #(lex (go:ptr Lexer)) posInt () go:&void  (lex.peek) (go:case! lex.base ((2)  (go:while (lex.isDigit2)  (lex.next))) ((8)  (go:while (lex.isDigit8)  (lex.next))) ((10)  (go:while (lex.isDigit10)  (lex.next))) ((16)  (go:while (lex.isDigit16)  (lex.next)))) (lex.backup)) 
+
+(go:func  #(lex (go:ptr Lexer)) posFrac () go:&void  (lex.match1 #\.) (lex.peek) (go:while (lex.isDigit10)  (lex.next)) (lex.backup)) 
+
+(go:func  #(lex (go:ptr Lexer)) isLetter () go:bool  (go:return (go:or (go:and (go:<= #\a lex.ch) (go:<= lex.ch #\z)) (go:and (go:<= #\A lex.ch) (go:<= lex.ch #\Z))))) 
+
+(go:func  #(lex (go:ptr Lexer)) isDigit2 () go:bool  (go:return (go:or (go:== #\0 lex.ch) (go:== lex.ch #\1)))) 
+
+(go:func  #(lex (go:ptr Lexer)) isDigit8 () go:bool  (go:return (go:and (go:<= #\0 lex.ch) (go:<= lex.ch #\7)))) 
+
+(go:func  #(lex (go:ptr Lexer)) isDigit10 () go:bool  (go:return (go:and (go:<= #\0 lex.ch) (go:<= lex.ch #\9)))) 
+
+(go:func  #(lex (go:ptr Lexer)) isDigit16 () go:bool  (go:when (lex.isDigit10)  (go:return #t)) (go:when (go:and (go:<= #\a lex.ch) (go:<= lex.ch #\f))  (go:return #t)) (go:when (go:and (go:<= #\A lex.ch) (go:<= lex.ch #\F))  (go:return #t)) (go:return #f)) 
+
+(go:func  #(lex (go:ptr Lexer)) isInitial () go:bool  (go:return (go:or (lex.isLetter) (lex.isSpecialInitial)))) 
+
+(go:func  #(lex (go:ptr Lexer)) isSubsequent () go:bool  (go:return (go:or (go:or (lex.isInitial) (lex.isDigit10)) (lex.isSpecialSubsequent)))) 
+
+(go:func  #(lex (go:ptr Lexer)) isSpecialInitial () go:bool  (go:case! lex.ch ((#\! #\$ #\% #\& #\* #\/ #\: #\< #\= #\> #\? #\^ #\_ #\~)  (go:return #t))) (go:return #f)) 
+
+(go:func  #(lex (go:ptr Lexer)) isSpecialSubsequent () go:bool  (go:return (go:or (go:or (go:== lex.ch #\.) (go:== lex.ch #\+)) (go:== lex.ch #\-)))) 
+
+(go:func  #(lex (go:ptr Lexer)) isWhitespace () go:bool  (go:when (go:or (go:or (go:or (go:== lex.ch #\ ) (go:== lex.ch #\tab)) (go:== lex.ch #\linefeed)) (go:== lex.ch #\return))  (go:return #t)) (go:return #f)) 
+
+(go:func  #(lex (go:ptr Lexer)) isStringElement () go:bool  (go:when (go:== lex.ch #\")  (go:return #f)) (go:return #t)))
