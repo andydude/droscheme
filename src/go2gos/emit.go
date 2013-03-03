@@ -389,7 +389,7 @@ func (c *Compiler) emitFuncTypes(node *ast.FuncType, external bool) {
 func (c *Compiler) emitFuncResults(node *ast.FieldList) {
 	c.emit(" ")
 	if node == nil || len(node.List) == 0 {
-		c.emit("%s&void", prefix)
+		c.emit("%svoid", prefix)
 		return
 	}
 
