@@ -44,10 +44,12 @@ function setopt() {
 setopt $(getopt dri:o: "$@")
 for OPT; do
     case "$OPT" in
+        import|export|library|program)
+            OPT_MODE="${OPT}"; OPT_REST="${OPT} ${OPT_REST}"; shift;;
         -d)
-            OPT_DEBUG=true; OPT_REST="${OPT_REST}-d " shift;;
+            OPT_DEBUG=true; OPT_REST="${OPT_REST} ${OPT}"; shift;;
         -r)
-            OPT_RAW=true; OPT_REST="${OPT_REST}-r " shift;;
+            OPT_RAW=true; OPT_REST="${OPT_REST} ${OPT}"; shift;;
         -i)
             OPT_IN="$2"; shift; shift;;
         -o)

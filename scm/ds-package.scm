@@ -121,6 +121,9 @@
 (define (ds-package-import-filename pi)
   (ds-package-name-filename (ds-package-import-package pi)))
 
+(define (ds-package-import-filepath pi)
+  (ds-package-name-filepath (ds-package-import-package pi)))
+
 ;; returns a list of var specs
 (define (ds-package-import->gos pi)
   (let* ((pn (ds-package-import-package pi))
@@ -128,7 +131,7 @@
          (un (string->symbol (string-append "_" fn)))
          (symbols (ds-package-import-symbols pi)))
     (define (per-package)
-      `(go:= ,un (go:dot ,fn Export)))
+      `(go:= ,un (go:dot ,(string->symbol fn) Export)))
     (define (per-symbol pe)
       (let* ((name (symbol->string (ds-package-export-gos-name pe)))
              (gos-name (ds-package-export-gos-name pe))

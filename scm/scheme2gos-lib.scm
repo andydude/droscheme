@@ -102,7 +102,7 @@
 
 (define (compile-package expr)
   (define (compile-imports imports)
-    `(go:import ,@(map ds-package-import-filename imports)))
+    `(go:import ,@(map ds-package-import-filepath imports)))
   (define (compile-import-vars imports)
     `(go:var ,@(apply append (map ds-package-import->gos imports))))
   (define (compile-exports exports)

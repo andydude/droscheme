@@ -2,8 +2,8 @@
 (use-modules (ice-9 pretty-print))
 (load "base-guile.scm")
 (load "ds-common.scm")
+(load "ds-package.scm")
 (load "ds-function.scm")
-(load "ds-library.scm")
 (load "scheme2gos-lib.scm")
 
 (define emit-defines emit-defines-export)
