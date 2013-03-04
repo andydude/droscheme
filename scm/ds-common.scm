@@ -201,6 +201,21 @@
     ((#\Z) "Z")
     (else (string c))))
 
+(define (mangle->string str)
+  (define (iterate chars)
+    (if (null? chars)
+        '()
+        (if (pair? chars)
+            (let* ((c (car chars))
+                   (rst (cdr chars)))
+              (if (char=? c #\Z)
+                  (let* ((c2 (car rst))
+                         (rst2 (cdr rst)))
+                    (append (string->list (char-unmangle c2)) (iterate rst2)))
+                  (cons c (iterate rst))))
+            #f)))
+  (list->string (iterate (string->list str))))
+
 (define (string->mangle str)
   (string-join (map char-mangle (string->list str)) ""))
 

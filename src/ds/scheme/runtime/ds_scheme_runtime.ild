@@ -92,7 +92,7 @@ define-library
     (raise (error-object msg (postellipsis irr))))
 
   (define (error-object msg . irr)
-    (:= str (as (->immutable-string msg) string))
+    (:= str (as (->imm-string msg) string))
     #(ErrorObject #:msg str #:it (Vector irr)))
 
   (define (error-object-irritants a)
@@ -336,27 +336,27 @@ define-library
     (== (as a AnyKinder (GetType))
         (as b AnyKinder (GetType))))
 
-  (define (string->immutable-string a)
+  (define (string->imm-string a)
     (if2 (:= (s ok) (as a String)) ok
          (return (dot s (String))))
     (error "expected string"))
     
-  (define (immutable-string->string a)
+  (define (imm-string->string a)
     (if2 (:= (s ok) (as a string)) ok
          (return (NewString s)))
-    (error "expected immutable-string"))
+    (error "expected imm-string"))
 
   (define (->go-string a)
     (if2 (:= (s ok) (as a GoStringer)) ok
          (return (dot s (GoString))))
     (error "->scheme-string unknown type"))
 
-  (define (->immutable-string a)
+  (define (->imm-string a)
     (if2 (:= (s ok) (as a string)) ok
          (return s))
     (if2 (:= (s ok) (as a (dot fmt Stringer))) ok
          (return (dot s (String))))
-    (error "->immutable-string unknown type"))
+    (error "->imm-string unknown type"))
 
   (define (->scheme-string a)
     (if2 (:= (s ok) (as a SchemeStringer)) ok
@@ -366,5 +366,5 @@ define-library
   (define (->string a)
     (if2 (:= (s ok) (as a String)) ok
          (return s))
-    (immutable-string->string
-      (->immutable-string a)))
+    (imm-string->string
+      (->imm-string a)))

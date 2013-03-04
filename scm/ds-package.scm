@@ -45,11 +45,14 @@
   (vector-ref pg 6))
 
 (define (ds-package-exports pg)
+  ;(write pg)
   (let* ((defines (ds-package-defines pg))
          (exports (ds-package-export-symbols pg)))
     (define (pred pe)
-      (member (ds-package-export-name pe) exports))
-    (filter pred (map ds-function-export defines))))
+      (if pe
+          (member (ds-package-export-name pe) exports)
+          #f))
+    (filter pred (map ds-function-export (filter values defines)))))
 
 ; (define-record-type PackageName
 ;   make-package-name
@@ -137,7 +140,9 @@
              (gos-name (ds-package-export-gos-name pe))
              (gos-type (ds-package-export-gos-type pe)))
         `(go:= ,gos-name (go:as (go:index ,un ,name) ,gos-type))))
-    (cons (per-package) (map per-symbol symbols))))
+    (if (null? symbols)
+        '()
+        (cons (per-package) (map per-symbol symbols)))))
 
 ;(define (compile-import-vars . o)
 ;  (define (list->gos-import-var spec)
@@ -260,12 +265,14 @@
 (define list->filepath list->directory)
 (define list->filename list->underscore)
 (define (filepath->list filepath)
-  (map string->symbol (string-split expr "/")))
+  (map string->symbol (string-split filepath #\/)))
 
 (define (->ds-package-name expr)
   (cond
    ((string? expr)
-    (make-ds-package-name (filepath->list expr) #f #f #f))
+    (let* ((list (filepath->list expr))
+           (filename (list->filename list)))
+      (make-ds-package-name list filename expr #f)))
    ((list? expr)
     (let ((filepath (list->filepath expr))
           (filename (list->filename expr)))
@@ -281,8 +288,9 @@
 
 (define (->ds-package-import expr)
   (cond
+   ((not expr) #f)
    ((string? expr)
-    (->ds-package-import (filepath->list expr)))
+    (make-ds-package-import (->ds-package-name expr) '()))
    ((list? expr)
     (match expr
      (('except spec . symbols)

@@ -93,13 +93,20 @@
       `(,func ,name ,formals ,ret ,@body)))
 
 (define (compile-function expr)
-  (compile-ds-function (->ds-function expr)))
-         
+  (if (not expr)
+      #f
+      (if (ds-function? expr)
+          (compile-ds-function expr)
+          (let ((fn (->ds-function expr)))
+            (if (ds-function? fn)
+                (compile-ds-function fn)
+                expr))))) ; a const, var, type or something
+
 (define (compile-ds-function fn)
   (let* ((head (ds-function->gos-func-head fn))
          (body (ds-function-body fn)))
     (append head (compile-return-block body))))
-
+  
 (define (compile-package expr)
   (define (compile-imports imports)
     `(go:import ,@(map ds-package-import-filepath imports)))
@@ -107,7 +114,7 @@
     `(go:var ,@(apply append (map ds-package-import->gos imports))))
   (define (compile-exports exports)
     `(go:func Export () go:internal:frame
-       (go:return #(go:internal:frame
+       (go:return (go:make: go:internal:frame
          ,@(map ds-package-export->gos exports)))))
 
   (let* ((pg (->ds-package expr))
@@ -127,19 +134,25 @@
 
      ((eqv? mode 'export)
       `(go:package ,name
-                   ,(compile-imports imports)
                    ,(compile-exports exports)))
+
+     ((eqv? mode 'library-only)
+      `(go:package ,name
+                   ,(compile-imports imports)
+                   ,@(filter values (map compile-function defines))))
+                   ;,(compile-init body)))
 
      ((eqv? mode 'library)
       `(go:package ,name
                    ,(compile-imports imports)
-                   ,@(map compile-ds-function defines)))
-                   ;,(compile-init body)))
+                   ,(compile-import-vars imports)
+                   ,(compile-exports exports)
+                   ,@(map compile-function defines)))
 
      ((eqv? mode 'program)
       `(go:package main
                    ,(compile-imports imports)
-                   ,@(map compile-ds-function defines)
+                   ,@(map compile-function defines)
                    ,(compile-main body)))
      (else #f))))
 

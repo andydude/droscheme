@@ -7,11 +7,11 @@ clean:
 install: all
 	go install
 
-import.go: $(LIB).sld
-	ds scheme2gos import $(LIB).sld > import.go
+import.gos: $(LIB).sld
+	ds scheme2gos import $(LIB).sld > import.gos
 
-export.go: $(LIB).sld
-	ds scheme2gos export $(LIB).sld > export.go
+export.gos: $(LIB).sld
+	ds scheme2gos export $(LIB).sld > export.gos
 
 main.scm: main.icm
 	ds i2s $< $@

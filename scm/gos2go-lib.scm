@@ -80,8 +80,8 @@
         (and (eqv? c0 #\Z) (not (eqv? c1 #\Z))))
       #f))
 
-(define (go-public? name)
-  (ds-function-name-public? name))
+;(define (go-public? name)
+;  (ds-function-name-public? name))
 
 (define (go-keyword? kw)
   (define *table* '(
@@ -278,6 +278,8 @@
           ("go:println" . "println")
           ("go:real" . "real")
           ("go:recover" . "recover")
+          ("go:make" . "make")
+          ("go:new" . "new")
           ; objects
           ("go:nil" . "nil")))
   (if (symbol? id)
@@ -313,11 +315,10 @@
           (goop->op str))))
    (else (error "emit-op expected string or symbol, got" sym))))
 
-(define (emit-literal vec)
-  (let ((l (vector->list vec)))
-    (string-append 
-     (emit-expr (car l)) "{" 
-     (emit-exprs (cdr l)) "}")))
+(define (emit-literal lit)
+  (string-append 
+   (emit-type (car lit)) "{" 
+   (emit-exprs (cdr lit)) "}"))
 
 (define (emit-params fields)
   (parameterize ((*type-context* #t))
@@ -511,10 +512,11 @@
     (emit-params... ins) ")"
     (emit-return-type ret)))
 
+(define (emit-type t)
+  (parameterize ((*type-context* #t))
+                (emit-expr t)))
+
 (define (emit-as a b . rest)
-  (define (emit-type t)
-    (parameterize ((*type-context* #t))
-                  (emit-expr t)))
   (if (null? rest)
       (string-append (emit-expr a) ".(" (emit-type b) ")")
       (apply emit-expr 'dot (list 'as a b) rest)))
@@ -556,13 +558,9 @@
   (string-join (map emit-expr exprs) ", "))
 
 (define (emit-expr expr)
-  ;(display "\nemit-expr")
-  ;(when (string? expr)
-  ;      (display (string-append "emit-str " expr "\n")))
-  ;(when (symbol? expr)
-  ;      (display (string-append "emit-sym " (symbol->string expr) "\n")))
-  ;(when (pair? expr)
-  ;      (display (string-append "emit-lst (" (symbol->string (car expr)) " ...)\n")))
+  ;(display "\n\nemit-expr:\n")
+  ;(write expr)
+  ;(newline)
   (cond
     ((pair? expr)
      (if (eqv? (car expr) 'quote)
@@ -573,7 +571,8 @@
     ((number? expr) (number->string expr))
     ((string? expr) (emit-string expr))
     ((symbol? expr) (emit-symbol expr))
-    ((vector? expr) (emit-literal expr))
+    ((vector? expr) (error "Vectors are no longer used for literals, please use go:new: or go:make: instead."))
+    ;(emit-literal (vector->list expr)))
     ((null? expr) "_null()")
     (else (error "emit unrecognized type"))))
 
@@ -692,6 +691,11 @@
     (('go:chan<-! type) `("chan<-" ,type))
     (('go:interface . methods)
      `("interface" ,(emit-interface-block methods)))
+
+    (('go:new: . args)
+     `("&" ,(emit-literal args)))
+    (('go:make: . args)
+     (emit-literal args))
 
     (('go:break . rest) (emit-branch 'break rest))
     (('go:continue . rest) (emit-branch 'continue rest))

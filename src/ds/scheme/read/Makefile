@@ -1,11 +1,11 @@
+LIB = ds_scheme_read
+
 FILES = \
-	ds_any_syntax.sld \
-	ds_any_syntax.go
+	export.gos \
+	export.go \
+	import.gos \
+	import.go \
+	$(LIB).gos \
+	$(LIB).go
 
-all: $(FILES)
-
-%.sld: %.ild
-	gosc --sugar $< > $@
-
-%.go: %.sld
-	gosc --lib $< > $@
+include $(DROSCHEME_PATH)/src.mk

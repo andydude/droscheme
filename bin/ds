@@ -150,12 +150,24 @@ function install_program() {
     :
 }
 
+function skeleton() {
+    $DROSCHEME_PATH/src-skel.sh "$OPT_IN"
+}
+
 function mangle() {
-    :
+    if [ x"$OPT_IN" = x"/dev/stdin" ]; then
+        $GUILE -s $DROSCHEME_PATH/scm/mangle-guile.scm "$@" "$(cat)"
+    else
+        $GUILE -s $DROSCHEME_PATH/scm/mangle-guile.scm "$@" "$OPT_IN"
+    fi
 }
 
 function unmangle() {
-    :
+    if [ x"$OPT_IN" = x"/dev/stdin" ]; then
+        $GUILE -s $DROSCHEME_PATH/scm/unmangle-guile.scm "$@" "$(cat)"
+    else
+        $GUILE -s $DROSCHEME_PATH/scm/unmangle-guile.scm "$@" "$OPT_IN"
+    fi
 }
 
 function run() {

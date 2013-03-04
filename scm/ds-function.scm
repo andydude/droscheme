@@ -16,7 +16,8 @@
     ,(list->eqv-hashtable meta)))
 
 (define (ds-function? fn)
-  (eqv? (vector-ref fn 0) 'droscheme-function))
+  (and (vector? fn)
+       (eqv? (vector-ref fn 0) 'droscheme-function)))
 
 (define (ds-function-export fn)
   (unless (ds-function? fn)
@@ -67,7 +68,8 @@
     ,(list->eqv-hashtable meta)))
 
 (define (ds-function-signature? fs)
-  (eqv? (vector-ref fs 0) 'droscheme-function-signature))
+  (and (vector? fs)
+       (eqv? (vector-ref fs 0) 'droscheme-function-signature)))
 (define (ds-function-signature-parameters fs)
   (unless (ds-function-signature? fs)
           (error "TypeError in ds-function-signature-parameters"))
@@ -92,7 +94,7 @@
 (define (ds-function-signature->gos-self-parameters fs)
   (let ((self (ds-function-signature-self-parameters fs)))
     (if (null? self) '()
-        (ds-function-parameter->gos-formal (car self)))))
+        (list (ds-function-parameter->gos-formal (car self))))))
 
 (define (ds-function-signature->gos-input-parameters fs)
   (let ((ins (ds-function-signature-input-parameters fs)))
@@ -123,7 +125,8 @@
     ,(list->eqv-hashtable meta)))
 
 (define (ds-function-parameter? fp)
-  (eqv? (vector-ref fp 0) 'droscheme-function-parameter))
+  (and (vector? fp)
+       (eqv? (vector-ref fp 0) 'droscheme-function-parameter)))
 (define (ds-function-self-parameter? fp)
   (eqv? (ds-function-parameter-role fp) 'self))
 (define (ds-function-input-parameter? fp)
@@ -326,7 +329,7 @@
                (init (if (pair? init) (car init) (void)))
                (name (car name)))
           (list (make-ds-function-parameter name type init role))))
-     (else (list fp)))))
+       (else (list fp)))))
   (define (ellipsis-parameter name)
     (make-ds-function-parameter name '(go:ellipsis go:any) (void) 'in '(rest)))
   (cond
@@ -415,11 +418,11 @@
                   (->ds-function-output-parameters 'go:any)))))
        (make-ds-function #f fs body)))
 
-    (('go:func #(sname stype) name insig outsig . body)
+    (('go:func #(sname stype) (? symbol? name) insig outsig . body)
      (let ((fs (make-ds-function-signature (append
                   (->ds-function-self-parameters sname stype)
-                  (->ds-function-input-parameters sig)
-                  (->ds-function-output-parameters 'go:any)))))
+                  (->ds-function-input-parameters insig)
+                  (->ds-function-output-parameters outsig)))))
        (make-ds-function (make-name name fs) fs body)))
 
     (('go:func (? symbol? name) insig outsig . body)

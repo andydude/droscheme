@@ -19,9 +19,7 @@
 // after realizing that this was impossible in the Go
 // runtime, the requirement that every object implement
 // Equaler and Hasher methods was relaxed.
-package ds_scheme_base
-
-import "ds/env"
+package ds_any
 
 type (
 	Applier interface {
@@ -29,7 +27,7 @@ type (
 	}
 
 	Evaler interface {
-		Eval(env *ds_env.Env) interface{}
+		Eval(env *Env) interface{}
 	}
 
 	Equaler interface {
@@ -45,14 +43,14 @@ type (
 	}
 
 	Matcher interface {
-		Match(syntax interface{}, env *ds_env.Env) bool
+		Match(syntax interface{}, env *Env) bool
 	}
 
 	Replacer interface {
-		Replace(env *ds_env.Env) interface{}
+		Replace(env *Env) interface{}
 	}
 
 	Transformer interface {
-		Transform(syntax interface{}, env *ds_env.Env) interface{}
+		Transform(syntax interface{}, env *Env) interface{}
 	}
 )
