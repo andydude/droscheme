@@ -237,8 +237,9 @@
           ("go:internal:env" . "*ds_env.Env")
           ("go:internal:frame" . "map[string]interface{}")
           ("go:internal:table" . "map[uintptr][]interface{}")
-          ("go:internal:vector" . "[]interface{}")   ; required by Apply()
+          ("go:internal:value" . "reflect.Value") ; required by (prim-apply)
           ("go:internal:values" . "[]reflect.Value") ; required by (prim-apply)
+          ("go:internal:vector" . "[]interface{}")   ; required by Apply()
           ("go:internal:string" . "[]rune")
           ("go:internal:binary" . "[]byte")
 
@@ -573,7 +574,7 @@
     ((symbol? expr) (emit-symbol expr))
     ((vector? expr) (error "Vectors are no longer used for literals, please use go:new: or go:make: instead."))
     ;(emit-literal (vector->list expr)))
-    ((null? expr) "_null()")
+    ((null? expr) "null()")
     (else (error "emit unrecognized type"))))
 
 (define (map-go sy xs)
@@ -666,6 +667,7 @@
     (('go:not expr) `("!" ,expr))
     (('go:ptr expr) `("*" ,expr))
     (('go:label id . stmts) `(,id ":" ,(emit-stmts stmts)))
+    (('go:block . body) (emit-block body))
 
     ;; keywords
     (('go:call fn . args)
@@ -763,33 +765,18 @@
     (('go:internal:define-func name sig ret . body)
      (if (*top-context*)
          `("func" ,name ,(emit-sig sig ret) ,(emit-block body)) ; FuncDecl
-         `("var" ,name " func" ,(emit-sig sig ret) "\n" ,name " = func" ,(emit-sig sig ret) ,(emit-block body)))) ; FuncStmt
-
-    (('go:internal:define-func... name sig ret . body)
-     (if (*top-context*)
-         `("func" ,name ,(emit-sig... sig ret) ,(emit-block body)) ; FuncDecl
-         `("var" ,name " = func" ,(emit-sig... sig ret) ,(emit-block body)))) ; FuncStmt
+         `("var" ,name " func" ,(emit-sig sig ret) "\n" 
+               ,name " = func" ,(emit-sig sig ret) ,(emit-block body)))) ; FuncStmt
 
     (('go:internal:define-method-func rec name sig ret . body)
      `("func (" ,(emit-field rec) ")" ,name 
                 ,(emit-sig sig ret) 
                 ,(emit-block body)))
 
-    (('go:internal:define-method-func... rec name sig ret . body)
-     `("func (" ,(emit-field rec) ")" ,name 
-                ,(emit-sig... sig ret) 
-                ,(emit-block body)))
-
     (('go:internal:lambda-func sig ret . body)
      (if (*type-context*)
          `("func" ,(emit-sig sig ret)) ; FuncType
          `("func" ,(emit-sig sig ret) 
-                  ,(emit-block body)))) ; FuncExpr
-
-    (('go:internal:lambda-func... sig ret . body)
-     (if (*type-context*)
-         `("func" ,(emit-sig... sig ret)) ; FuncType
-         `("func" ,(emit-sig... sig ret) 
                   ,(emit-block body)))) ; FuncExpr
 
     ;; The glorious "func" type-switch!
@@ -799,13 +786,6 @@
       ((symbol? (car rest)) `((go:internal:define-func ,@rest)))
       ((list? (car rest)) `((go:internal:lambda-func ,@rest)))
       (else (error "func expected symbol, vector, or list"))))
-
-    (('go:func... . rest)
-     (cond
-      ((vector? (car rest)) `((go:internal:define-method-func... ,@rest)))
-      ((symbol? (car rest)) `((go:internal:define-func... ,@rest)))
-      ((list? (car rest)) `((go:internal:lambda-func... ,@rest)))
-      (else (error "func... expected symbol, vector, or list"))))
 
   );match
 );define

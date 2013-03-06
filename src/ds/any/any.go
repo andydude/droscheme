@@ -30,16 +30,22 @@ type (
 		Eval(env *Env) interface{}
 	}
 
+	Conser interface {
+		Cons(obj interface{}) Conser
+		Car() interface{}
+		Cdr() Conser
+	}
+
 	Equaler interface {
 		Equal(obj interface{}) bool
 	}
 
 	Hasher interface {
-		Hash(obj interface{}) uintptr
+		Hash() uintptr
 	}
 
 	Kinder interface {
-		Kind(obj interface{}) int
+		Kind() int
 	}
 
 	Matcher interface {

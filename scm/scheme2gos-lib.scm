@@ -106,6 +106,9 @@
   (let* ((head (ds-function->gos-func-head fn))
          (body (ds-function-body fn)))
     (append head (compile-return-block body))))
+
+(define (compile-defines defines)
+  (filter values (map compile-function defines)))
   
 (define (compile-package expr)
   (define (compile-imports imports)
@@ -139,7 +142,7 @@
      ((eqv? mode 'library-only)
       `(go:package ,name
                    ,(compile-imports imports)
-                   ,@(filter values (map compile-function defines))))
+                   ,@(compile-defines defines)))
                    ;,(compile-init body)))
 
      ((eqv? mode 'library)
@@ -147,12 +150,12 @@
                    ,(compile-imports imports)
                    ,(compile-import-vars imports)
                    ,(compile-exports exports)
-                   ,@(map compile-function defines)))
+                   ,@(compile-defines defines)))
 
      ((eqv? mode 'program)
       `(go:package main
                    ,(compile-imports imports)
-                   ,@(map compile-function defines)
+                   ,@(compile-defines defines)
                    ,(compile-main body)))
      (else #f))))
 
@@ -304,11 +307,35 @@
   (('or a . o)
    (compile-list `(if ,a ,a (or ,@o))))
 
+  (('if cond ('begin . thens) ('begin . elses))
+   `((go:func () go:any
+      (go:when (go:as ,(compile cond) go:bool)
+               ,@(compile-return-block thens))
+      ,@(compile-return-block elses))))
+
+  (('if cond ('begin . thens) else)
+   `((go:func () go:any
+      (go:when (go:as ,(compile cond) go:bool)
+               ,@(compile-return-block thens))
+      (go:return ,(compile else)))))
+
+  (('if cond then ('begin . elses))
+   `((go:func () go:any
+      (go:when (go:as ,(compile cond) go:bool)
+               (go:return ,(compile then)))
+      ,@(compile-return-block elses))))
+
   (('if cond then else)
    `((go:func () go:any
       (go:when (go:as ,(compile cond) go:bool)
                (go:return ,(compile then)))
       (go:return ,(compile else)))))
+
+  (('if cond ('begin . thens))
+   `((go:func () go:any
+      (go:when (go:as ,(compile cond) go:bool)
+               ,@(compile-return-block thens))
+      (go:return (void)))))
 
   (('if cond then)
    (compile-list `(if ,cond ,then (void))))
@@ -322,30 +349,41 @@
       ,@(map compile-cond-clause clauses))
       (go:return (void)))))
 
-  (('when . o)
-   `(go:when ,@o))
+  (('when cond . o)
+   `(go:when (go:as ,cond go:bool) ,@o))
 
-  (('when* . o)
-   `(go:when* ,@o))
+  (('when* stmt cond . o)
+   `(go:when* ,stmt (go:as ,cond go:bool) ,@o))
 
-  (('unless . o)
-   `(go:unless ,@o))
+  (('unless cond . o)
+   `(go:unless (go:as ,cond go:bool) ,@o))
 
-  (('unless* . o)
-   `(go:unless* ,@o))
+  (('unless* stmt cond . o)
+   `(go:unless* ,stmt (go:as ,cond go:bool) ,@o))
 
   ;(('cond-expand . o))
   ;(('import . o))
   ;(('export . o))
 
   (('begin . o)
+   `(go:block ,@o))
+
+  (('begin-thunk . o)
    `((go:func () go:any
       ,@(compile-return-block o))))
 
   (('let* binds . o)
    (compile-list
     (let ((vs (compile-let->vars binds)))
-      `(begin ,@vs ,@o))))
+      `(begin-thunk ,@vs ,@o))))
+
+  (('let (? symbol? name) binds . o)
+   (compile-list 
+    (let ((fs (compile-let->forms binds))
+          (is (compile-let->inits binds)))
+      `(begin-thunk
+         (define (,name ,@fs) ,@o)
+         (,name ,@is)))))
 
   (('let (? list? binds) . o)
    (compile-list 
@@ -353,14 +391,6 @@
           (is (compile-let->inits binds)))
       `((lambda ,fs ,@o) ,@is))))
 
-  (('let (? symbol? name) binds . o)
-   (compile-list 
-    (let ((fs (compile-let->forms binds))
-          (is (compile-let->inits binds)))
-      `(begin
-         (define (,name ,@fs) ,@o)
-         (,name ,@is)))))
-   
   (('define! (? symbol? x) y)
    `(go::= ,x ,y))
    

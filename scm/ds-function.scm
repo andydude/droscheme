@@ -52,7 +52,10 @@
     fn))
 
 (define (ds-function-name fn)
-  (ds-package-export-name (ds-function-export fn)))
+  (let ((fe (ds-function-export fn)))
+    (if fe
+        (ds-package-export-name fe)
+        #f)))
 
 
 ; (define-record-type FunctionSignature
@@ -400,11 +403,11 @@
                   (->ds-function-output-parameters 'go:any)))))
        (make-ds-function (make-name name fs) fs body)))
 
-    (('define (? symbol? name) ('case-lambda . bodies))
-     (let ((fs (make-ds-function-signature (append
-                  (->ds-function-input-parameters '(#(CaseRest (go:ellipsis go:any))))
-                  (->ds-function-output-parameters 'go:any)))))
-       (make-ds-function (make-name name fs) fs body)))
+    ;(('define (? symbol? name) ('case-lambda . bodies))
+    ; (let ((fs (make-ds-function-signature (append
+    ;              (->ds-function-input-parameters '(#(CaseRest (go:ellipsis go:any))))
+    ;              (->ds-function-output-parameters 'go:any)))))
+    ;   (make-ds-function-case (make-name name fs) fs bodies)))
 
     (('lambda sig . body)
      (let ((fs (make-ds-function-signature (append
