@@ -53,6 +53,9 @@
         </ul>
 
         <h3><tt>ds</tt></h3>
+        <p>
+The <tt>ds</tt> command is the swiss-army tool of Droscheme. It runs the scripts which perform compilation between different languages. First Scheme is converted to Gos with <tt>scheme2gos</tt>, then converted to Go with <tt>gos2go</tt>. There are many other subcommands, try <tt>ds help</tt> to see a list of available commands.
+        </p>
         <h3><tt>ds scheme2gos</tt></h3>
         <p>
 The <tt>scheme2gos</tt> command is the Scheme =&gt; Gos compiler.
@@ -72,7 +75,13 @@ This command is mostly written in Guile. The language accepted by <tt>gos2go</tt
           <li>Read the <a href="go2gos.html"><tt>go2gos</tt> documentation</a>.</li>
           <li>Browse the <a href="https://github.com/andydude/droscheme/tree/master/scm/gos2go-lib.scm#L624">source code</a>.</li>
         </ul>
+        <h3><tt>ds mangle</tt></h3>
         <p>
+The <tt>mangle</tt> subcommand helps when you are dealing with Gos directly. It filters its argument through the same encoding system used to mangle Gos identifiers before outputting Go.
+        </p>
+        <h3><tt>ds build</tt></h3>
+        <p>
+The <tt>build</tt> subcommand oversees the chain of commands requires to build a Droscheme library.
 Eventually, this logic will be migrated to Droscheme, which shouldn't be too hard since Guile is Scheme, and the other command (<tt>go2gos</tt>) is written in Go, which is the target language. If or when this rewrite is done, then this command will be renamed to '<tt>dsc</tt>'.
         </p>
       </section>
