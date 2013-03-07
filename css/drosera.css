@@ -29,6 +29,10 @@ a:hover {
   color: #030;
 }
 
+a.plainlink {
+  color: #696;
+}
+
 .drobar {
   color: #474;
   font-size: 16px;

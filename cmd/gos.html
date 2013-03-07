@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>Droscheme</title>
-    <link rel="stylesheet" href="/droscheme/css/drosera.css">
     <link rel="stylesheet" href="/droscheme/cmd/scribble.css">
+    <link rel="stylesheet" href="/droscheme/css/drosera.css">
     <link rel="stylesheet" href="/droscheme/cmd/gos-style.css">
     <!--link rel="stylesheet" href="stylesheets/pygment_trac.css"-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
@@ -638,9 +638,6 @@
         </div>
         <div class="maincolumn">
             <div class="main">
-                <div class="versionbox">
-                    <span class="versionNoNav">Version: 5.2</span>
-                </div>
                 <h2>
                     <a name="(part._.Gos_.Programming_.Language)"/>Gos Programming Language
                 </h2>
@@ -651,7 +648,7 @@
                 <p>This is a reference manual for the Gos programming language.
                     Gos is an S-expressions syntax for Go, hence the name.
                     Most forms are exactly the same as Go with parentheses added,
-                    however there are changes such as <span class="stt">map</span> is written <span class="stt">map-type</span>
+                    however there are changes such as <span class="stt">map</span> is written <span class="stt">map:</span>
                     and <span class="stt">if</span> is written <span class="stt">when</span> to allow syntactic sugar to be written
                     that matches Scheme more closely.
                 </p>
@@ -669,7 +666,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">(func hypot (#(x y &amp;float64)) &amp;float64</span>
+                                        <span class="stt">(func hypot (#(x y float64)) float64</span>
                                     </span>
                                 </p>
                             </td>
@@ -723,9 +720,7 @@
                     Lexical syntax
                 </h3>
                 <p>Source code is represented as S-expressions similar to Lisp and Scheme.</p><p>Almost every language construct is represented with lists, but there
-                    are two language constructs that are represented with vectors.
-                    In an expression context, vectors represent composite literals,
-                    and in a declaration context, vectors represent typed identifiers.
+                    is one language construct that is represented with vectors: typed identifiers.
                 </p>
                 <p/>
                 <table cellspacing="0">
@@ -733,7 +728,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    #(x y int)<span class="hspace">                         </span><span class="stt">; declaration context</span>
+                                    <span class="stt">#(x y float32)</span>
                                 </span>
                             </p>
                         </td>
@@ -742,25 +737,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    #(a b c d IdentifierType)<span class="hspace">          </span><span class="stt">; declaration context</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    #(LiteralType a b c d e f)<span class="hspace">         </span><span class="stt">; expression context</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">#(LiteralType #:author a #:book b) ; expression context</span>
+                                    <span class="stt">#(a b c d IdentifierType)</span>
                                 </span>
                             </p>
                         </td>
@@ -770,11 +747,55 @@
                     2.1<tt> </tt><a name="(part._.Identifiers)"/>
                     Identifiers
                 </h4>
+                <p/>
+                <div class="SIntrapara">Identifiers are encoded using the following system:
+                </div>
+                <div class="SIntrapara">
+                    <table cellspacing="0">
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        ZA !<span class="hspace">     </span>ZF &amp;<span class="hspace">     </span>ZK -<span class="hspace">     </span>ZP &lt;<span class="hspace">     </span>ZS ?<span class="hspace">     </span><span class="stt">ZX |</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        ZD $<span class="hspace">     </span>ZH *<span class="hspace">     </span>ZM /<span class="hspace">     </span>ZQ =<span class="hspace">     </span>ZT @<span class="hspace">     </span><span class="stt">ZY ~</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        ZE %<span class="hspace">     </span>ZI +<span class="hspace">     </span>ZN :<span class="hspace">     </span>ZR &gt;<span class="hspace">     </span>ZV ^<span class="hspace">     </span><span class="stt">ZZ Z</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="SIntrapara">
+                    There are plans to encode <span class="stt">.</span> as <span class="stt">ZL</span> in the future, but not yet.
+                    Gos identifiers have the same gamut as Scheme identifiers, and so you can
+                    safely use any identifier you would like. They are encoded by the compiler
+                    so that they do not collide with Go identifiers and keywords.
+                </div>
                 <h4>
                     2.2<tt> </tt><a name="(part._.Keywords)"/>
                     Keywords
                 </h4>
-                <p>There are several different kinds of keywords in Gos.</p><p/>
+                <p>There are several different kinds of keywords in Gos.
+                    All of the keywords in this document are prefixed with <span class="stt">go:</span> when
+                    run by the compiler system.
+                </p>
+                <p/>
                 <div class="SIntrapara">The following are type-keywords:
                 </div>
                 <div class="SIntrapara">
@@ -783,7 +804,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">----------------++++++++++++++++----------------</span>
+                                        *<span class="hspace">               </span>chan<span class="hspace">            </span><span class="stt">interface</span>
                                     </span>
                                 </p>
                             </td>
@@ -792,7 +813,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        array<span class="hspace">           </span>func-type<span class="hspace">       </span><span class="stt">slice</span>
+                                        map:<span class="hspace">            </span>chan&lt;-<span class="hspace">          </span><span class="stt">slice</span>
                                     </span>
                                 </p>
                             </td>
@@ -801,31 +822,27 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        chan<span class="hspace">            </span>interface<span class="hspace">       </span><span class="stt">struct</span>
-                                    </span>
-                                </p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <p>
-                                    <span class="stt">
-                                        chan&lt;-<span class="hspace">          </span><span class="stt">map-type</span>
-                                    </span>
-                                </p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <p>
-                                    <span class="stt">
-                                        chan&lt;-!<span class="hspace">         </span><span class="stt">ptr</span>
+                                        array<span class="hspace">           </span>chan&lt;-!<span class="hspace">         </span><span class="stt">struct</span>
                                     </span>
                                 </p>
                             </td>
                         </tr>
                     </table>
                 </div>
+                <blockquote>
+                    <ul>
+                        <li>
+                            <p>
+                                <span class="stt">(*</span> <span style="font-style: italic">type</span><span class="stt">)</span> represents pointer types.
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                <span class="stt">(map:</span> <span style="font-style: italic">keytype</span> <span style="font-style: italic">type</span><span class="stt">)</span> represents map types.
+                            </p>
+                        </li>
+                    </ul>
+                </blockquote>
                 <p/>
                 <div class="SIntrapara">The following are declaration-keywords:
                 </div>
@@ -835,7 +852,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        define-const<span class="hspace">    </span>define-type<span class="hspace">     </span><span class="stt">package</span>
+                                        const<span class="hspace">           </span>import<span class="hspace">          </span><span class="stt">type</span>
                                     </span>
                                 </p>
                             </td>
@@ -844,21 +861,93 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        define-func<span class="hspace">     </span><span class="stt">define-var</span>
-                                    </span>
-                                </p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <p>
-                                    <span class="stt">
-                                        define-init<span class="hspace">     </span><span class="stt">import</span>
+                                        func<span class="hspace">            </span>package<span class="hspace">         </span><span class="stt">var</span>
                                     </span>
                                 </p>
                             </td>
                         </tr>
                     </table>
+                </div>
+                <p/>
+                <div class="SIntrapara">
+                    The <span class="stt">func</span> keyword is the most polymorphic language construct in Gos.
+                </div>
+                <div class="SIntrapara">
+                    <blockquote>
+                        <ul>
+                            <li>
+                                <p/>
+                                <div class="SIntrapara">
+                                    <span class="stt">(func</span> <span style="font-style: italic">param</span> <span style="font-style: italic">ret</span> ... <span style="font-style: italic">body?</span><span class="stt">)</span> represents a
+                                </div>
+                                <div class="SIntrapara">
+                                    <blockquote>
+                                        <ul>
+                                            <li>
+                                                <p>function type
+                                                    (<a href="http://golang.org/ref/spec#FunctionType" class="plainlink">FunctionType</a>)
+                                                    in a type context, and a
+                                                </p>
+                                            </li>
+                                            <li>
+                                                <p>function literal
+                                                    (<a href="http://golang.org/ref/spec#FunctionLit" class="plainlink">FunctionLit</a>)
+                                                    in an expression context.
+                                                </p>
+                                            </li>
+                                        </ul>
+                                    </blockquote>
+                                </div>
+                                <div class="SIntrapara">
+                                    The <span style="font-style: italic">param</span> must be a list.
+                                </div>
+                            </li>
+                            <li>
+                                <p/>
+                                <div class="SIntrapara">
+                                    <span class="stt">(func</span> <span style="font-style: italic">name</span> <span style="font-style: italic">param</span> <span style="font-style: italic">ret</span> ... <span style="font-style: italic">body?</span><span class="stt">)</span> represents a
+                                </div>
+                                <div class="SIntrapara">
+                                    <blockquote>
+                                        <ul>
+                                            <li>
+                                                <p>method specification
+                                                    (<a href="http://golang.org/ref/spec#MethodSpec" class="plainlink">MethodSpec</a>)
+                                                    in an interface context, a
+                                                </p>
+                                            </li>
+                                            <li>
+                                                <p>function declaration
+                                                    (<a href="http://golang.org/ref/spec#FunctionDecl" class="plainlink">FunctionDecl</a>)
+                                                    in an declaration context, and a
+                                                </p>
+                                            </li>
+                                            <li>
+                                                <p>function literal assigned to a var
+                                                    (<a href="http://golang.org/ref/spec#VarDecl" class="plainlink">VarDecl</a>)
+                                                    in a statement context.
+                                                </p>
+                                                <p>This is one feature required by all Schemes but is absent in Go; the ability to declare a named function that is local to the scope of the body of a function declaration.</p>
+                                            </li>
+                                        </ul>
+                                    </blockquote>
+                                </div>
+                                <div class="SIntrapara">
+                                    The <span style="font-style: italic">name</span> must be a symbol.
+                                </div>
+                            </li>
+                            <li>
+                                <p>
+                                    <span class="stt">(func</span> <span style="font-style: italic">receiver</span> <span style="font-style: italic">name</span> <span style="font-style: italic">param</span> <span style="font-style: italic">ret</span><span class="stt">)</span> represents a method declaration
+                                    (<a href="http://golang.org/ref/spec#MethodDecl" class="plainlink">MethodDecl</a>)
+                                    in a declaration context.
+                                </p>
+                                <p>
+                                    The <span style="font-style: italic">receiver</span> must be a vector.
+                                </p>
+                            </li>
+                        </ul>
+                    </blockquote>
                 </div>
                 <p/>
                 <div class="SIntrapara">The following are statement-keywords:
@@ -888,7 +977,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">bitwise-and=</span>
+                                        bitwise-and=<span class="hspace">        </span><span class="stt">goto</span>
                                     </span>
                                 </p>
                             </td>
@@ -897,7 +986,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">bitwise-but=</span>
+                                        bitwise-or=<span class="hspace">         </span><span class="stt">import</span>
                                     </span>
                                 </p>
                             </td>
@@ -906,7 +995,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">bitwise-or=</span>
+                                        bitwise-xor=<span class="hspace">        </span><span class="stt">interface</span>
                                     </span>
                                 </p>
                             </td>
@@ -915,15 +1004,70 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">bitwise-xor=</span>
+                                        break<span class="hspace">               </span><span class="stt">package</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        continue<span class="hspace">            </span><span class="stt">range</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        default<span class="hspace">             </span><span class="stt">return</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        defer<span class="hspace">               </span><span class="stt">select</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        fallthrough<span class="hspace">         </span><span class="stt">switch</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        for<span class="hspace">                 </span><span class="stt">type</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        go<span class="hspace">                  </span><span class="stt">var</span>
                                     </span>
                                 </p>
                             </td>
                         </tr>
                     </table>
                 </div>
-                <p>...</p><p/>
-                <div class="SIntrapara">The following are expression-keywords:
+                <p/>
+                <div class="SIntrapara">Expressions may also include Types in Go, so these keywords may also appear in type-expressions.
+                    The following are expression-keywords:
                 </div>
                 <div class="SIntrapara">
                     <table cellspacing="0">
@@ -931,7 +1075,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">!= ! % * + - / &lt; &lt;- &lt;&lt; &lt;= == &gt; &gt;= &gt;&gt;</span>
+                                        <span class="stt">!= ! % * &amp; + - / &lt; &lt;- &lt;&lt; &lt;= == &gt; &gt;= &gt;&gt;</span>
                                     </span>
                                 </p>
                             </td>
@@ -950,7 +1094,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">bitwise-and</span>
+                                        bitwise-and<span class="hspace">         </span><span class="stt">as</span>
                                     </span>
                                 </p>
                             </td>
@@ -959,7 +1103,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">bitwise-but</span>
+                                        bitwise-or<span class="hspace">          </span><span class="stt">dot</span>
                                     </span>
                                 </p>
                             </td>
@@ -968,7 +1112,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">bitwise-or</span>
+                                        bitwise-xor<span class="hspace">         </span><span class="stt">index</span>
                                     </span>
                                 </p>
                             </td>
@@ -977,179 +1121,31 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">bitwise-xor</span>
+                                        and<span class="hspace">                 </span><span class="stt">index-set!</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        apply<span class="hspace">               </span><span class="stt">or</span>
+                                    </span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    <span class="stt">
+                                        call<span class="hspace">                </span><span class="stt">xor</span>
                                     </span>
                                 </p>
                             </td>
                         </tr>
                     </table>
                 </div>
-                <p/>
-                <table cellspacing="0">
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    break<span class="hspace">        </span>default<span class="hspace">      </span>func<span class="hspace">         </span>interface<span class="hspace">    </span><span class="stt">select</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    case<span class="hspace">         </span>defer<span class="hspace">        </span>go<span class="hspace">           </span>map<span class="hspace">          </span><span class="stt">struct</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    chan<span class="hspace">         </span>else<span class="hspace">         </span>goto<span class="hspace">         </span>package<span class="hspace">      </span><span class="stt">switch</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    const<span class="hspace">        </span>fallthrough<span class="hspace">  </span>if<span class="hspace">           </span>range<span class="hspace">        </span><span class="stt">type</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    continue<span class="hspace">     </span>for<span class="hspace">          </span>import<span class="hspace">       </span>return<span class="hspace">       </span><span class="stt">var</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">adr</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">and</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">as</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">but</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">ior</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">xor</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">call</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">dot</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">index</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">index-set!</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">lambda-func</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt">ptr</span>
-                                </span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <p>
-                                <span class="stt">
-                                    <span class="stt"/>
-                                </span>
-                                <span class="hspace"> </span>
-                            </p>
-                        </td>
-                    </tr>
-                </table>
                 <h4>
                     2.3<tt> </tt><a name="(part._.Integer_literals)"/>
                     Integer literals
@@ -1278,21 +1274,19 @@
                     Boolean types
                 </h4>
                 <p>
-                    The boolean type is written <span class="stt">&amp;bool</span> and has the values <span class="stt">#t</span> and <span class="stt">#f</span>.
+                    The boolean type is written <span class="stt">bool</span> and has the values <span class="stt">#t</span> and <span class="stt">#f</span>.
                 </p>
                 <h4>
                     3.2<tt> </tt><a name="(part._.Numeric_types)"/>
                     Numeric types
                 </h4>
-                <p>
-                    Numeric types have the same names as they do in Go, prefixed with an ampersand (<span class="stt">&amp;</span>).
-                </p>
+                <p>Numeric types have the same names as they do in Go.</p>
                 <h4>
                     3.3<tt> </tt><a name="(part._.String_types)"/>
                     String types
                 </h4>
                 <p>
-                    The string type is written <span class="stt">&amp;imm-string</span>.
+                    The string type is written <span class="stt">string</span>.
                 </p>
                 <h4>
                     3.4<tt> </tt><a name="(part._.Array_types)"/>
@@ -1430,7 +1424,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="hspace">        </span><span class="stt">#(x y &amp;int)</span>
+                                        <span class="hspace">        </span><span class="stt">#(x y int)</span>
                                     </span>
                                 </p>
                             </td>
@@ -1439,7 +1433,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="hspace">        </span><span class="stt">#(u &amp;float32)</span>
+                                        <span class="hspace">        </span><span class="stt">#(u float32)</span>
                                     </span>
                                 </p>
                             </td>
@@ -1448,7 +1442,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="hspace">        </span><span class="stt">#(_ &amp;float32) ; padding</span>
+                                        <span class="hspace">        </span><span class="stt">#(_ float32) ; padding</span>
                                     </span>
                                 </p>
                             </td>
@@ -1457,7 +1451,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="hspace">        </span><span class="stt">#(A (ptr (slice &amp;int)))</span>
+                                        <span class="hspace">        </span><span class="stt">#(A (* (slice int)))</span>
                                     </span>
                                 </p>
                             </td>
@@ -1466,7 +1460,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="hspace">        </span><span class="stt">#(F (func () &amp;void)))</span>
+                                        <span class="hspace">        </span><span class="stt">#(F (func () void)))</span>
                                     </span>
                                 </p>
                             </td>
@@ -1483,7 +1477,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    <span class="stt">PointerType = '(ptr' Type ')' .</span>
+                                    <span class="stt">PointerType = '(*' Type ')' .</span>
                                 </span>
                             </p>
                         </td>
@@ -1517,7 +1511,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    Result<span class="hspace">         </span><span class="stt">= '(values' { ParameterDecl } ')' | '&amp;void' | Type .</span>
+                                    Result<span class="hspace">         </span><span class="stt">= '(values' { ParameterDecl } ')' | 'void' | Type .</span>
                                 </span>
                             </p>
                         </td>
@@ -1532,7 +1526,10 @@
                         </td>
                     </tr>
                 </table>
-                <p>One major difference between Go and Gos is that in Go the return type is optional, but in Gos the parameters are optional, and the return type is required.</p><p>Ellipses are not supported.</p>
+                <p>One major difference between Go and Gos is that in Go the return type is optional, but in Gos the parameters are optional, and the return type is required.</p>
+                <p>
+                    Ellipses are supported by using the <span class="stt">ellipsis</span> keyword, which may be used with <span class="stt">array</span> and <span class="stt">func</span>.
+                </p>
                 <h4>
                     3.9<tt> </tt><a name="(part._.Interface_types)"/>
                     Interface types
@@ -1594,7 +1591,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">(define-type (Lock (interface</span>
+                                        <span class="stt">(type (Lock (interface</span>
                                     </span>
                                 </p>
                             </td>
@@ -1603,7 +1600,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="hspace">        </span><span class="stt">(func Lock &amp;void)</span>
+                                        <span class="hspace">        </span><span class="stt">(func Lock void)</span>
                                     </span>
                                 </p>
                             </td>
@@ -1612,7 +1609,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="hspace">        </span><span class="stt">(func Unlock &amp;void))))</span>
+                                        <span class="hspace">        </span><span class="stt">(func Unlock void))))</span>
                                     </span>
                                 </p>
                             </td>
@@ -1629,7 +1626,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    MapType<span class="hspace">     </span><span class="stt">= '(map-type' KeyType ElementType ')' .</span>
+                                    MapType<span class="hspace">     </span><span class="stt">= '(map:' KeyType ElementType ')' .</span>
                                 </span>
                             </p>
                         </td>
@@ -1793,7 +1790,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    <span class="stt">TypeSpec = '(' Identifier Type ')' .</span>
+                                    <span class="stt">TypeSpec = Identifier Type .</span>
                                 </span>
                             </p>
                         </td>
@@ -1998,7 +1995,16 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    CompositeLit<span class="hspace">  </span><span class="stt">= '#(' LiteralType LiteralValue ')' .</span>
+                                    CompositeLit<span class="hspace">  </span><span class="stt">= '(make:' LiteralType LiteralValue ')'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="hspace">              </span><span class="stt">| '(new:' LiteralType LiteralValue ')' .</span>
                                 </span>
                             </p>
                         </td>
@@ -2067,6 +2073,10 @@
                         </td>
                     </tr>
                 </table>
+                <p>The two forms are syntactic sugar for two common composite literal expressions.
+                    The <span class="stt">make:</span> form represents <span class="stt">Type{Values}</span>, and the <span class="stt">new:</span> form
+                    represents <span class="stt">&amp;Type{Values}</span>.
+                </p>
                 <p/>
                 <div class="SIntrapara">Given the declarations
                 </div>
@@ -2085,7 +2095,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="hspace">  </span><span class="stt">(Point3D (struct (x y z &amp;float64)))</span>
+                                        <span class="hspace">  </span><span class="stt">(Point3D (struct (x y z float64)))</span>
                                     </span>
                                 </p>
                             </td>
@@ -2109,7 +2119,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">(:= origin #(Point3D)) ; zero value for Point3D</span>
+                                        <span class="stt">(:= origin (make: Point3D)) ; zero value for Point3D</span>
                                     </span>
                                 </p>
                             </td>
@@ -2118,7 +2128,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">(:= line #(Line origin #(Point3D (: y -4) (: z 12.3))))</span>
+                                        <span class="stt">(:= line (make: Line origin (make: Point3D (: y -4) (: z 12.3))))</span>
                                     </span>
                                 </p>
                             </td>
@@ -2255,7 +2265,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    Index<span class="hspace">   </span><span class="stt">= '(index' PrimaryExpr Expression ')' .</span>
+                                    <span class="stt">IndexSet = '(index-set!' PrimaryExpr Expression Expression ')' .</span>
                                 </span>
                             </p>
                         </td>
@@ -2264,7 +2274,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    Slice<span class="hspace">   </span><span class="stt">= '(index' PrimaryExpr OptExpr OptExpr ')' .</span>
+                                    Index<span class="hspace">    </span><span class="stt">= '(index' PrimaryExpr Expression ')' .</span>
                                 </span>
                             </p>
                         </td>
@@ -2273,7 +2283,16 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    <span class="stt">OptExpr = '#f' | Expression .</span>
+                                    Slice<span class="hspace">    </span><span class="stt">= '(index' PrimaryExpr OptExpr OptExpr ')' .</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    OptExpr<span class="hspace">  </span><span class="stt">= '#f' | Expression .</span>
                                 </span>
                             </p>
                         </td>
@@ -2314,7 +2333,16 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    <span class="stt">BuiltinCall = '(' Type { ArgumentList } ')' .</span>
+                                    <span class="stt">BuiltinId = 'new' | 'make'</span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                <span class="stt">
+                                    <span class="stt">BuiltinCall = '(' BuiltinId Type { ArgumentList } ')' .</span>
                                 </span>
                             </p>
                         </td>
@@ -2332,7 +2360,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    <span class="hspace">     </span><span class="stt">| '(apply' PrimaryExpr { ArgumentList } ')'</span>
+                                    <span class="hspace">     </span><span class="stt">| '(call' PrimaryExpr { ArgumentList } ')'</span>
                                 </span>
                             </p>
                         </td>
@@ -2341,7 +2369,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    <span class="hspace">     </span><span class="stt">| '(apply...' PrimaryExpr { ArgumentList } ')' .</span>
+                                    <span class="hspace">     </span><span class="stt">| '(apply' PrimaryExpr { ArgumentList } ')' .</span>
                                 </span>
                             </p>
                         </td>
@@ -2383,7 +2411,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">(define-var (pt) (ptr Point))</span>
+                                        <span class="stt">(var #(pt (* Point)))</span>
                                     </span>
                                 </p>
                             </td>
@@ -2392,7 +2420,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">(dot pt (Scale 3.5))</span>
+                                        <span class="stt">(pt.Scale 3.5)</span>
                                     </span>
                                 </p>
                             </td>
@@ -2510,7 +2538,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    <span class="hspace">           </span><span class="stt">| 'ptr' | 'adr' | '&lt;-' .</span>
+                                    <span class="hspace">           </span><span class="stt">| '*' | '&amp;' | '&lt;-' .</span>
                                 </span>
                             </p>
                         </td>
@@ -2679,7 +2707,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    <span class="stt">'(adr' Expression ')'</span>
+                                    <span class="stt">'(&amp;' Expression ')'</span>
                                 </span>
                             </p>
                         </td>
@@ -2688,7 +2716,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    <span class="stt">'(ptr' Expression ')'</span>
+                                    <span class="stt">'(*' Expression ')'</span>
                                 </span>
                             </p>
                         </td>
@@ -2703,7 +2731,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">(adr x)</span>
+                                        <span class="stt">(&amp; x)</span>
                                     </span>
                                 </p>
                             </td>
@@ -2712,7 +2740,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">(adr (index a (f 2)))</span>
+                                        <span class="stt">(&amp; (index a (f 2)))</span>
                                     </span>
                                 </p>
                             </td>
@@ -2721,7 +2749,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">(ptr p)</span>
+                                        <span class="stt">(* p)</span>
                                     </span>
                                 </p>
                             </td>
@@ -2730,7 +2758,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">(ptr (pf x))</span>
+                                        <span class="stt">(* (pf x))</span>
                                     </span>
                                 </p>
                             </td>
@@ -2780,7 +2808,7 @@
                             <td>
                                 <p>
                                     <span class="stt">
-                                        <span class="stt">(define-var (= (x ok) (&lt;- ch)))</span>
+                                        <span class="stt">(var (= (x ok) (&lt;- ch)))</span>
                                     </span>
                                 </p>
                             </td>
@@ -2797,7 +2825,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    MethodExpr<span class="hspace">    </span><span class="stt">= '(apply' ReceiverType MethodName ')' .</span>
+                                    MethodExpr<span class="hspace">    </span><span class="stt">= '(dot' ReceiverType MethodName ')' .</span>
                                 </span>
                             </p>
                         </td>
@@ -2806,7 +2834,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    ReceiverType<span class="hspace">  </span><span class="stt">= TypeName | '(ptr' TypeName ')' .</span>
+                                    ReceiverType<span class="hspace">  </span><span class="stt">= TypeName | '(*' TypeName ')' .</span>
                                 </span>
                             </p>
                         </td>
@@ -2822,7 +2850,7 @@
                         <td>
                             <p>
                                 <span class="stt">
-                                    <span class="stt">Conversion = '(' Type Expression ')' .</span>
+                                    <span class="stt">Conversion = '(call' Type Expression ')' .</span>
                                 </span>
                             </p>
                         </td>

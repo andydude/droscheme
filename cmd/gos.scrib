@@ -1,4 +1,4 @@
-#lang scribble/manual
+#lang scribble/base
 
 @title{Gos Programming Language}
 
@@ -7,7 +7,7 @@
 This is a reference manual for the Gos programming language.
 Gos is an S-expressions syntax for Go, hence the name.
 Most forms are exactly the same as Go with parentheses added,
-however there are changes such as @tt{map} is written @tt{map-type} 
+however there are changes such as @tt{map} is written @tt{map:} 
 and @tt{if} is written @tt{when} to allow syntactic sugar to be written 
 that matches Scheme more closely.
 
@@ -17,7 +17,7 @@ The purpose of Gos is to write the standard library for Droscheme.
 
 For example, the following Gos code:
 @verbatim{
-(func hypot (#(x y &float64)) &float64
+(func hypot (#(x y float64)) float64
   (return (math.Sqrt (+ (* x x) (* y y)))))
 }
 compiles to the Go code:
@@ -32,81 +32,118 @@ func hypot(x, y float64) float64 {
 Source code is represented as S-expressions similar to Lisp and Scheme.
 
 Almost every language construct is represented with lists, but there
-are two language constructs that are represented with vectors.
-In an expression context, vectors represent composite literals,
-and in a declaration context, vectors represent typed identifiers.
+is one language construct that is represented with vectors: typed identifiers.
 
 @verbatim{
-#(x y int)                         ; declaration context
-#(a b c d IdentifierType)          ; declaration context
-#(LiteralType a b c d e f)         ; expression context
-#(LiteralType #:author a #:book b) ; expression context
+#(x y float32)           
+#(a b c d IdentifierType)
 }
 
 @subsection{Identifiers}
 
+Identifiers are encoded using the following system:
+@verbatim{
+ZA !     ZF &     ZK -     ZP <     ZS ?     ZX |
+ZD $     ZH *     ZM /     ZQ =     ZT @"@"     ZY ~
+ZE %     ZI +     ZN :     ZR >     ZV ^     ZZ Z
+}
+There are plans to encode @tt{.} as @tt{ZL} in the future, but not yet.
+Gos identifiers have the same gamut as Scheme identifiers, and so you can
+safely use any identifier you would like. They are encoded by the compiler
+so that they do not collide with Go identifiers and keywords.
+
 @subsection{Keywords}
 
 There are several different kinds of keywords in Gos.
+All of the keywords in this document are prefixed with @tt{go:} when
+run by the compiler system.
 
 The following are type-keywords:
 @verbatim{
-----------------++++++++++++++++----------------
-array           func-type       slice
-chan            interface       struct
-chan<-          map-type
-chan<-!         ptr 
+*               chan            interface
+map:            chan<-          slice
+array           chan<-!         struct
 }
+
+@nested[#:style 'inset
+@itemlist[
+@item{@tt{(*} @italic{type}@tt{)} represents pointer types.}
+@item{@tt{(map:} @italic{keytype} @italic{type}@tt{)} represents map types.}
+]]
 
 The following are declaration-keywords:
 @verbatim{
-define-const    define-type     package
-define-func     define-var
-define-init     import    
+const           import          type
+func            package         var
 }
+
+The @tt{func} keyword is the most polymorphic language construct in Gos.
+@nested[#:style 'inset
+@itemlist[
+
+@item{@tt{(func} @italic{param} @italic{ret} ... @italic{body?}@tt{)} represents a
+@nested[#:style 'inset
+@itemlist[
+@item{function type 
+(@hyperlink[#:style "plainlink" "http://golang.org/ref/spec#FunctionType"]{FunctionType}) 
+in a type context, and a}
+@item{function literal
+(@hyperlink[#:style "plainlink" "http://golang.org/ref/spec#FunctionLit"]{FunctionLit}) 
+in an expression context.}
+]]
+The @italic{param} must be a list.}
+
+@item{@tt{(func} @italic{name} @italic{param} @italic{ret} ... @italic{body?}@tt{)} represents a
+@nested[#:style 'inset
+@itemlist[
+@item{method specification 
+(@hyperlink[#:style "plainlink" "http://golang.org/ref/spec#MethodSpec"]{MethodSpec}) 
+in an interface context, a}
+@item{function declaration
+(@hyperlink[#:style "plainlink" "http://golang.org/ref/spec#FunctionDecl"]{FunctionDecl}) 
+in an declaration context, and a}
+@item{function literal assigned to a var
+(@hyperlink[#:style "plainlink" "http://golang.org/ref/spec#VarDecl"]{VarDecl}) 
+in a statement context.
+
+This is one feature required by all Schemes but is absent in Go; the ability to declare a named function that is local to the scope of the body of a function declaration.}
+]]
+The @italic{name} must be a symbol.}
+
+@item{@tt{(func} @italic{receiver} @italic{name} @italic{param} @italic{ret}@tt{)} represents a method declaration
+(@hyperlink[#:style "plainlink" "http://golang.org/ref/spec#MethodDecl"]{MethodDecl}) 
+in a declaration context. 
+
+The @italic{receiver} must be a vector.}
+]]
 
 The following are statement-keywords:
 @verbatim{
 ++ -- <-! %= *= += -= /= := <<= >>= =
 
-bitwise-and=
-bitwise-but=
-bitwise-or=
-bitwise-xor=
+bitwise-and=        goto         
+bitwise-or=         import        
+bitwise-xor=        interface     
+break               package       
+continue            range         
+default             return         
+defer               select        
+fallthrough         switch           
+for                 type          
+go                  var
 }
 
-  ...
-
+Expressions may also include Types in Go, so these keywords may also appear in type-expressions.
 The following are expression-keywords:
 @verbatim{
-!= ! % * + - / < <- << <= == > >= >>
+!= ! % * & + - / < <- << <= == > >= >>
 
-bitwise-and
-bitwise-but
-bitwise-or
-bitwise-xor
-}
-
-
-@verbatim{
-break        default      func         interface    select
-case         defer        go           map          struct
-chan         else         goto         package      switch
-const        fallthrough  if           range        type
-continue     for          import       return       var
-adr
-and
-as
-but
-ior
-xor
-call
-dot
-index
-index-set!
-lambda-func
-ptr
-
+bitwise-and         as     
+bitwise-or          dot     
+bitwise-xor         index      
+and                 index-set!
+apply               or     
+call                xor    
 }
 
 @subsection{Integer literals}
@@ -143,15 +180,15 @@ TypeLit  = ArrayType
 
 @subsection{Boolean types}
 
-The boolean type is written @tt{&bool} and has the values @tt["#t"] and @tt["#f"].
+The boolean type is written @tt{bool} and has the values @tt["#t"] and @tt["#f"].
 
 @subsection{Numeric types}
 
-Numeric types have the same names as they do in Go, prefixed with an ampersand (@tt{&}).
+Numeric types have the same names as they do in Go.
 
 @subsection{String types}
 
-The string type is written @tt{&imm-string}.
+The string type is written @tt{string}.
 
 @subsection{Array types}
 
@@ -187,17 +224,17 @@ For example:
 
 ; A struct with 6 fields.
 (struct
-	#(x y &int)
-	#(u &float32)
-	#(_ &float32) ; padding
-	#(A (ptr (slice &int)))
-	#(F (func () &void)))
+	#(x y int)
+	#(u float32)
+	#(_ float32) ; padding
+	#(A (* (slice int)))
+	#(F (func () void)))
 }
 
 @subsection{Pointer types}
 
 @verbatim{
-PointerType = '(ptr' Type ')' .
+PointerType = '(*' Type ')' .
 }
 
 @subsection{Function types}
@@ -205,13 +242,13 @@ PointerType = '(ptr' Type ')' .
 @verbatim{
 FunctionType   = '(func' Signature ')'.
 Signature      = { ParameterDecl } Result .
-Result         = '(values' { ParameterDecl } ')' | '&void' | Type .
+Result         = '(values' { ParameterDecl } ')' | 'void' | Type .
 ParameterDecl  = TypedIdentifierList | Type .
 }
 
 One major difference between Go and Gos is that in Go the return type is optional, but in Gos the parameters are optional, and the return type is required. 
 
-Ellipses are not supported.
+Ellipses are supported by using the @tt{ellipsis} keyword, which may be used with @tt{array} and @tt{func}.
 
 @subsection{Interface types}
 @verbatim{
@@ -224,14 +261,14 @@ InterfaceTypeName  = TypeName .
 
 For example:
 @verbatim{
-(define-type (Lock (interface
-	(func Lock &void)
-	(func Unlock &void))))
+(type (Lock (interface
+	(func Lock void)
+	(func Unlock void))))
 }
 
 @subsection{Map types}
 @verbatim{
-MapType     = '(map-type' KeyType ElementType ')' .
+MapType     = '(map:' KeyType ElementType ')' .
 KeyType     = Type .
 }
 
@@ -262,7 +299,7 @@ Iota is written @tt{iota}.
 @subsection{Type declarations}
 @verbatim{
 TypeDecl = '(type' { TypeSpec } ')' .
-TypeSpec = '(' Identifier Type ')' .
+TypeSpec = Identifier Type .
 }
 
 @subsection{Variable declarations}
@@ -311,7 +348,8 @@ QualifiedIdent = '(dot' { Identifier } Identifier ')' .
 
 @subsection{Composite literals}
 @verbatim{
-CompositeLit  = '#(' LiteralType LiteralValue ')' .
+CompositeLit  = '(make:' LiteralType LiteralValue ')'
+              | '(new:' LiteralType LiteralValue ')' .
 LiteralType   = StructType | ArrayType | SliceType | MapType | TypeName .
 LiteralValue  = { Element } .
 Element       = Value | '(:' Key Value ')' .
@@ -321,16 +359,20 @@ ElementIndex  = Expression .
 Value         = Expression | CompositeLit .
 }
 
+The two forms are syntactic sugar for two common composite literal expressions.
+The @tt{make:} form represents @tt{Type@"{"Values@"}"}, and the @tt{new:} form
+represents @tt{&Type@"{"Values@"}"}.
+
 Given the declarations
 @verbatim{
 (type
-  (Point3D (struct (x y z &float64)))
+  (Point3D (struct (x y z float64)))
   (Line (struct (p q Point3D))))
 }
 one may write
 @verbatim{
-(:= origin #(Point3D)) ; zero value for Point3D
-(:= line #(Line origin #(Point3D (: y -4) (: z 12.3))))
+(:= origin (make: Point3D)) ; zero value for Point3D
+(:= line (make: Line origin (make: Point3D (: y -4) (: z 12.3))))
 }
 
 @subsection{Function literals}
@@ -358,9 +400,10 @@ Selector = '(dot' PrimaryExpr Identifier ')'
 
 @subsection{Indexes and Slices}
 @verbatim{
-Index   = '(index' PrimaryExpr Expression ')' .
-Slice   = '(index' PrimaryExpr OptExpr OptExpr ')' .
-OptExpr = '#f' | Expression .
+IndexSet = '(index-set!' PrimaryExpr Expression Expression ')' .
+Index    = '(index' PrimaryExpr Expression ')' .
+Slice    = '(index' PrimaryExpr OptExpr OptExpr ')' .
+OptExpr  = '#f' | Expression .
 }
 
 @subsection{Type assertions}
@@ -371,10 +414,11 @@ TypeAssertion = '(as' PrimaryExpr Type ')'
 
 @subsection{Calls}
 @verbatim{
-BuiltinCall = '(' Type { ArgumentList } ')' .
+BuiltinId = 'new' | 'make'
+BuiltinCall = '(' BuiltinId Type { ArgumentList } ')' .
 Call = '(' PrimaryExpr { ArgumentList } ')'
-     | '(apply' PrimaryExpr { ArgumentList } ')'
-     | '(apply...' PrimaryExpr { ArgumentList } ')' .
+     | '(call' PrimaryExpr { ArgumentList } ')'
+     | '(apply' PrimaryExpr { ArgumentList } ')' .
 ArgumentList = ExpressionList .
 }
 
@@ -382,8 +426,8 @@ For example:
 @verbatim{
 (f a1 a2 … an)
 (math.Atan2 x y)
-(define-var (pt) (ptr Point))
-(dot pt (Scale 3.5))
+(var #(pt (* Point)))
+(pt.Scale 3.5)
 }
 
 @subsection{Operators}
@@ -399,7 +443,7 @@ mul_op     = '*' | '/' | '%' | '<<' | '>>'
            | 'bitwise-and' | 'bitwise-but' .
 
 unary_op   = '+' | '-' | 'not' | 'bitwise-not' 
-           | 'ptr' | 'adr' | '<-' .
+           | '*' | '&' | '<-' .
 }
 
 @subsection{Arithmetic operators}
@@ -431,16 +475,16 @@ Go  Gos (Unary)
 
 @subsection{Address operators}
 @verbatim{
-'(adr' Expression ')'
-'(ptr' Expression ')'
+'(&' Expression ')'
+'(*' Expression ')'
 }
 
 For example:
 @verbatim{
-(adr x)
-(adr (index a (f 2)))
-(ptr p)
-(ptr (pf x))
+(& x)
+(& (index a (f 2)))
+(* p)
+(* (pf x))
 }
 
 @subsection{Receive operator}
@@ -452,18 +496,18 @@ For example:
 @verbatim{
 (= (x ok) (<- ch))
 (:= (x ok) (<- ch))
-(define-var (= (x ok) (<- ch)))
+(var (= (x ok) (<- ch)))
 }
 
 @subsection{Method expressions}
 @verbatim{
-MethodExpr    = '(apply' ReceiverType MethodName ')' .
-ReceiverType  = TypeName | '(ptr' TypeName ')' .
+MethodExpr    = '(dot' ReceiverType MethodName ')' .
+ReceiverType  = TypeName | '(*' TypeName ')' .
 }
 
 @subsection{Conversions}
 @verbatim{
-Conversion = '(' Type Expression ')' .
+Conversion = '(call' Type Expression ')' .
 }
 
 @section{Statements}

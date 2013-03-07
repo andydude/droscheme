@@ -44,31 +44,36 @@
         <h3><tt>dsi</tt></h3>
 
         <p>
-The <tt>dsi</tt> command is the Droscheme interpreter.
+          The <tt>dsi</tt> command is the Droscheme interpreter. <emph>Not working yet.</emph>
         </p>
         <ul>
           <li>Read the <a href="http://www.r6rs.org/">R6RS report on Scheme</a>.</li>
-          <li>Read the <a href="dsi.html">command documentation</a>.</li>
+          <li>Read the <a href="dsi.html"><tt>dsi</tt> documentation</a>.</li>
           <li>Browse the <a href="https://github.com/andydude/droscheme/tree/master/cmd">source code</a>.</li>
         </ul>
 
-        <h3><tt>gosc</tt></h3>
-
+        <h3><tt>ds</tt></h3>
+        <h3><tt>ds scheme2gos</tt></h3>
         <p>
-The <tt>gosc</tt> command is the Gos =&gt; Go compiler.
-It is currently only intended to build the standard libraries for the interpreter.
-It is not recommended to use <tt>gosc</tt> for other purposes. 
-This command is mostly written in Scheme. The <tt>i2s</tt> subcommand is written in Guile. The <tt>gos2go</tt> subcommand is written in Racket. The <tt>go2gos</tt> subcommand is written in Go.
+The <tt>scheme2gos</tt> command is the Scheme =&gt; Gos compiler.
+This command is mostly written in Guile. The dialiect of Scheme that this command compiles is somewhat different than the language used by the interpreter. At some point all of these differences will be removed and/or documented somewhere.
+The primary purpose of <tt>scheme2gos</tt> is to build the standard libraries for the interpreter (<tt>dsi</tt>).
+So until the interpreter is working, don't expect much.
+        </p>
+
+        <h3><tt>ds gos2go</tt></h3>
+        <p>
+The <tt>gos2go</tt> command is the Gos =&gt; Go compiler.
+This command is mostly written in Guile. The language accepted by <tt>gos2go</tt> is called <strong>Gos</strong>.
         </p>
         <ul>
           <li>Read the <a href="gos.html">Gos language specification</a>.</li>
-          <li>Read the <a href="gosc.html">gosc documentation</a>.</li>
-          <li>Read the <a href="gos2go.html">gos2go documentation</a>.</li>
-          <li>Read the <a href="go2gos.html">go2gos documentation</a>.</li>
-          <li>Browse the <a href="https://github.com/andydude/droscheme/tree/master/cmd">source code</a>.</li>
+          <li>Read the <a href="gos2go.html"><tt>gos2go</tt> documentation</a>.</li>
+          <li>Read the <a href="go2gos.html"><tt>go2gos</tt> documentation</a>.</li>
+          <li>Browse the <a href="https://github.com/andydude/droscheme/tree/master/scm/gos2go-lib.scm#L624">source code</a>.</li>
         </ul>
         <p>
-Eventually, this logic will be migrated to Droscheme, which shouldn't be too hard since both Guile and Racket are Schemes, and the other command is written in Go, which is the target language. If or when this rewrite is done, then this command will be renamed to '<tt>dsc</tt>'.
+Eventually, this logic will be migrated to Droscheme, which shouldn't be too hard since Guile is Scheme, and the other command (<tt>go2gos</tt>) is written in Go, which is the target language. If or when this rewrite is done, then this command will be renamed to '<tt>dsc</tt>'.
         </p>
       </section>
 
