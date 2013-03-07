@@ -53,8 +53,7 @@ filepath_check="$(/bin/echo -n ${name} | ds mangle - | tr ' ' '/' )"
 
 # mangle check
 if [ x"${filepath}" != x"${filepath_check}" ]; then
-    echo
-    echo "ERROR: Expected a mangled name, but got a unmangled name instead."
+    echo "Error: Expected a mangled name, but got a unmangled name instead."
     echo "Please run this tool again as:"
     echo "    $0 ${filepath_check}"
     exit 1
@@ -71,8 +70,7 @@ echo_makefile "${filename}" > "${path_makefile}"
 # write library
 path_library="${filepath}/${filename}.sld"
 if [ -e "${path_library}" ]; then
-    echo
-    echo "ERROR: Library definition (${filename}.sld) already exists."
+    #echo "Warning: Library definition (${filename}.sld) already exists."
     exit 0
 else
     echo library '>>' "${path_library}"
