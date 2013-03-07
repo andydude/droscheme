@@ -1229,4 +1229,4 @@
 (define *droscheme-path* (make-parameter (droscheme-path)))
 (define droscheme-compile-mode (make-parameter 'library)) ; one-of: import, export, library, program
 (define droscheme-output-mode (make-parameter 'raw)) ; one-of: raw, pretty
-
+(define droscheme-precedence (make-parameter #f))

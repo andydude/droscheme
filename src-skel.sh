@@ -7,10 +7,6 @@ function echo_makefile() {
 LIB = ${filename}
 
 FILES = \\
-	export.gos \\
-	export.go \\
-	import.gos \\
-	import.go \\
 	\$(LIB).gos \\
 	\$(LIB).go
 
@@ -52,7 +48,7 @@ fi
 filepath="$1"
 cd "${DROSCHEME_PATH}/src"
 filename="$(/bin/echo -n ${filepath} | tr '/' '_')"
-name="$(/bin/echo -n ${filepath} | ds unmangle - | tr '/' ' ')"
+name="$(/bin/echo -n ${filepath} | ds demangle - | tr '/' ' ')"
 filepath_check="$(/bin/echo -n ${name} | ds mangle - | tr ' ' '/' )"
 
 # mangle check

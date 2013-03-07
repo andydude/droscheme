@@ -1,0 +1,213 @@
+/*
+ * Droscheme - a Scheme implementation
+ * Copyright © 2012 Andrew Robbins, Daniel Connelly
+ *
+ * This program is free software: it is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
+ */
+package main
+
+import (
+	"bufio"
+	ds "droscheme"
+	"flag"
+	"fmt"
+	"os"
+	"runtime/pprof"
+)
+
+var gProfile string = ""
+var gLibrary string = ""
+var gDontEval bool = false
+var gEnv *ds.Env
+var gExpr string = ""
+var gFilename string = ""
+var gInteract bool = false
+var gMangle string = ""
+var gRootPath string = ""
+var gShell bool = true
+var gUnmangle string = ""
+
+func arguments() {
+	flag.BoolVar(&gDontEval, "d", false, "do not evaluate, just read and write")
+	flag.StringVar(&gExpr, "e", "", "evaluate expr, then exit")
+	flag.StringVar(&gFilename, "f", "", "evaluate file, then exit")
+	flag.BoolVar(&gInteract, "i", false, "interactive mode (default)")
+	flag.StringVar(&gLibrary, "l", "", "load a scheme library")
+	flag.StringVar(&gMangle, "m", "", "mangle a scheme name")
+	flag.StringVar(&gUnmangle, "u", "", "unmangle a go name")
+	flag.StringVar(&gProfile, "p", "", "profiling")
+	flag.Usage = usage
+	flag.Parse()
+}
+
+func usage() {
+	fmt.Printf("Usage of %s:\n"+
+		"  -d       do not evaluate, just read and write\n"+
+		"  -e EXPR  evaluate expr, then exit\n"+
+		"  -f FILE  evaluate file, then exit\n"+
+		"  -i       interactive mode (default)\n"+
+		"  -m NAME  mangle a scheme name\n"+
+		"  -u NAME  unmangle a go name\n", os.Args[0])
+	os.Exit(2)
+}
+
+func process() {
+	// TODO process script, not user input
+}
+
+func getLine(in *bufio.Reader, prompt string) (string, error) {
+	fmt.Printf("%s> ", prompt)
+	return in.ReadString('\n')
+}
+
+func doReadEval(str string) error {
+
+	//R
+	val, lerr := ds.ReadString(str)
+	if lerr != nil {
+		fmt.Println("ReadError: " + lerr.Error())
+		return lerr
+	}
+	
+	if val == nil {
+		return nil
+	}
+	
+	//E
+	_, verr := ds.EvalErr(val, gEnv)
+	if verr != nil {
+		fmt.Println("EvalError: " + verr.Error())
+		return verr
+	}
+
+	return nil
+}
+
+func shell() {
+	defer func() {
+		if x := recover(); x != nil {
+			fmt.Println("droscheme: caught exception:")
+			fmt.Println(x)
+		}
+	}()
+
+	defaultPrompt := "ds"
+	prompt := defaultPrompt
+	lines := ""
+	in := bufio.NewReader(os.Stdin)
+
+	//L
+	for line, rerr := getLine(in, prompt); rerr == nil; line, rerr = getLine(in, prompt) {
+
+		if line == "\n" {
+			lines = ""
+			prompt = defaultPrompt
+			continue
+		} else {
+			lines += line
+		}
+
+		if ds.CountParens(lines) != 0 {
+			prompt = "   -"
+			continue
+		}
+
+		//R
+		val, lerr := ds.ReadString(lines)
+		if lerr != nil {
+			fmt.Println("ReadError: " + lerr.Error())
+			continue
+		}
+
+		if val == nil {
+			continue
+		}
+
+		lines = ""
+		prompt = defaultPrompt
+
+		if gDontEval {
+			outs, ok := val.(fmt.Stringer)
+			if ok && outs.String() != "" {
+				fmt.Println(outs)
+			}
+			continue
+		}
+
+		//E
+		out, verr := ds.EvalErr(val, gEnv)
+		if verr != nil {
+			fmt.Println("EvalError: " + verr.Error())
+			continue
+		}
+
+		//P
+		outs, ok := out.(fmt.Stringer)
+		if ok && outs.String() != "" {
+			fmt.Println(out)
+		}
+	}
+
+	fmt.Println()
+}
+
+func dsMain() {
+	gInteract = true
+
+	arguments()
+
+	//ds.SetCmdLine(os.Args)
+
+	if gProfile != "" {
+        f, err := os.Create(gProfile)
+        if err != nil {
+            //log.Fatal(err)
+			panic(err)
+        }
+        pprof.StartCPUProfile(f)
+        defer pprof.StopCPUProfile()
+    }
+
+	/* This creates a new environment that is empty
+	 * but its parent is the builtin environment.
+	 */
+	//gEnv = ds.BuiltinEnv().Extend()
+	gEnv = _interactionZKenvironment()
+
+	//if gMangle != "" {
+	//	fmt.Printf("%s\n", ds.MangleName(gMangle))
+	//	os.Exit(0)
+	//}
+	//
+	//if gUnmangle != "" {
+	//	fmt.Printf("%s\n", ds.UnmangleName(gUnmangle))
+	//	os.Exit(0)
+	//}
+
+	//if gFilename != "" {
+	//	gShell = false
+	//	_, err := ds.Load(gFilename, gEnv)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//}
+
+	if gExpr != "" {
+		err := doReadEval(gExpr)
+		if err != nil {
+			panic(err)
+		}
+		gShell = false
+	}
+
+	//if gInteract {
+	//	gShell = true
+	//}
+	//
+	//if gShell {
+	//	shell()
+	//}
+}

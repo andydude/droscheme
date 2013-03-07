@@ -2,39 +2,35 @@
 state 0
 	$accept: .datum $end 
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
 	.  error
 
 	datum  goto 1
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
 state 1
 	$accept:  datum.$end 
@@ -56,1121 +52,862 @@ state 3
 
 
 state 4
-	datum:  KSYMBOL.datum 
-
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
-	.  error
-
-	datum  goto 32
-	simpledatum  goto 2
-	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
-
-state 5
-	datum:  keyword.datum 
-
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
-	.  error
-
-	datum  goto 33
-	simpledatum  goto 2
-	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
-
-state 6
 	datum:  comment.datum 
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
 	.  error
 
-	datum  goto 34
+	datum  goto 28
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
+
+state 5
+	simpledatum:  BOOL.    (6)
+
+	.  reduce 6 (src line 136)
+
+
+state 6
+	simpledatum:  NUMBER.    (7)
+
+	.  reduce 7 (src line 141)
+
 
 state 7
-	datum:  LABEL.= datum 
-	datum:  LABEL.# 
+	simpledatum:  CHAR.    (8)
 
-	=  shift 35
-	#  shift 36
-	.  error
+	.  reduce 8 (src line 145)
 
 
 state 8
-	simpledatum:  BOOL.    (11)
+	simpledatum:  STRING.    (9)
 
-	.  reduce 11 (src line 136)
+	.  reduce 9 (src line 149)
 
 
 state 9
-	simpledatum:  NUMBER.    (12)
+	simpledatum:  symbol.    (10)
 
-	.  reduce 12 (src line 141)
+	.  reduce 10 (src line 153)
 
 
 state 10
-	simpledatum:  CHAR.    (13)
+	simpledatum:  u8vector.    (11)
 
-	.  reduce 13 (src line 145)
+	.  reduce 11 (src line 157)
 
 
 state 11
-	simpledatum:  STRING.    (14)
+	compounddatum:  list.    (12)
 
-	.  reduce 14 (src line 149)
+	.  reduce 12 (src line 162)
 
 
 state 12
-	simpledatum:  symbol.    (15)
+	compounddatum:  vector.    (13)
 
-	.  reduce 15 (src line 153)
+	.  reduce 13 (src line 167)
 
 
 state 13
-	simpledatum:  u8vector.    (16)
+	comment:  COMMENT.datum 
 
-	.  reduce 16 (src line 157)
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
+	.  error
 
+	datum  goto 29
+	simpledatum  goto 2
+	compounddatum  goto 3
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
 state 14
-	compounddatum:  list.    (17)
+	symbol:  ID.    (5)
 
-	.  reduce 17 (src line 162)
+	.  reduce 5 (src line 130)
 
 
 state 15
-	compounddatum:  vector.    (18)
+	u8vector:  U8VECTORPAREN.datums0 ) 
+	datums0: .    (25)
 
-	.  reduce 18 (src line 167)
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
+	.  reduce 25 (src line 226)
 
+	datum  goto 32
+	datums1  goto 31
+	datums0  goto 30
+	simpledatum  goto 2
+	compounddatum  goto 3
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
 state 16
-	keyword:  KEYWORD.datum 
+	list:  (.datums0 ) 
+	list:  (.datums2 ) 
+	datums0: .    (25)
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
-	.  error
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
+	.  reduce 25 (src line 226)
 
-	datum  goto 37
+	datum  goto 32
+	datums2  goto 34
+	datums1  goto 35
+	datums0  goto 33
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
 state 17
-	comment:  COMMENT.datum 
+	list:  [.datums0 ] 
+	list:  [.datums2 ] 
+	datums0: .    (25)
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
-	.  error
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
+	.  reduce 25 (src line 226)
 
-	datum  goto 38
+	datum  goto 32
+	datums2  goto 37
+	datums1  goto 35
+	datums0  goto 36
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
 state 18
-	symbol:  ID.    (10)
+	list:  abbreviation.    (18)
 
-	.  reduce 10 (src line 130)
+	.  reduce 18 (src line 189)
 
 
 state 19
-	u8vector:  U8VECTORPAREN.datums0 ) 
-	datums0: .    (30)
+	vector:  VECTORPAREN.datums0 ) 
+	datums0: .    (25)
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
-	.  reduce 30 (src line 226)
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
+	.  reduce 25 (src line 226)
 
-	datum  goto 41
-	datums1  goto 40
-	datums0  goto 39
+	datum  goto 32
+	datums1  goto 31
+	datums0  goto 38
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
 state 20
-	list:  (.datums0 ) 
-	list:  (.datums2 ) 
-	datums0: .    (30)
-
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
-	.  reduce 30 (src line 226)
-
-	datum  goto 41
-	datums2  goto 43
-	datums1  goto 44
-	datums0  goto 42
-	simpledatum  goto 2
-	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
-
-state 21
-	list:  [.datums0 ] 
-	list:  [.datums2 ] 
-	datums0: .    (30)
-
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
-	.  reduce 30 (src line 226)
-
-	datum  goto 41
-	datums2  goto 46
-	datums1  goto 44
-	datums0  goto 45
-	simpledatum  goto 2
-	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
-
-state 22
-	list:  abbreviation.    (23)
-
-	.  reduce 23 (src line 189)
-
-
-state 23
-	vector:  VECTORPAREN.datums0 ) 
-	datums0: .    (30)
-
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
-	.  reduce 30 (src line 226)
-
-	datum  goto 41
-	datums1  goto 40
-	datums0  goto 47
-	simpledatum  goto 2
-	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
-
-state 24
 	abbreviation:  QUOTE.datum 
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
 	.  error
 
-	datum  goto 48
+	datum  goto 39
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
-state 25
+state 21
 	abbreviation:  QQUOTE.datum 
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
 	.  error
 
-	datum  goto 49
+	datum  goto 40
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
-state 26
+state 22
 	abbreviation:  UNQUOTE.datum 
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
 	.  error
 
-	datum  goto 50
+	datum  goto 41
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
-state 27
+state 23
 	abbreviation:  UNQUOTES.datum 
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
 	.  error
 
-	datum  goto 51
+	datum  goto 42
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
-state 28
+state 24
 	abbreviation:  SYNTAX.datum 
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
 	.  error
 
-	datum  goto 52
+	datum  goto 43
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
-state 29
+state 25
 	abbreviation:  QSYNTAX.datum 
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
 	.  error
 
-	datum  goto 53
+	datum  goto 44
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
-state 30
+state 26
 	abbreviation:  UNSYNTAX.datum 
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
 	.  error
 
-	datum  goto 54
+	datum  goto 45
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
-state 31
+state 27
 	abbreviation:  UNSYNTAXS.datum 
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
 	.  error
 
-	datum  goto 55
+	datum  goto 46
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
+
+state 28
+	datum:  comment datum.    (3)
+
+	.  reduce 3 (src line 104)
+
+
+state 29
+	comment:  COMMENT datum.    (4)
+
+	.  reduce 4 (src line 125)
+
+
+state 30
+	u8vector:  U8VECTORPAREN datums0.) 
+
+	)  shift 47
+	.  error
+
+
+state 31
+	datums0:  datums1.    (24)
+
+	.  reduce 24 (src line 221)
+
 
 state 32
-	datum:  KSYMBOL datum.    (3)
+	datums1:  datum.    (21)
+	datums1:  datum.datums1 
+	datums1:  datum.comment 
 
-	.  reduce 3 (src line 94)
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
+	.  reduce 21 (src line 207)
 
+	datum  goto 32
+	datums1  goto 48
+	simpledatum  goto 2
+	compounddatum  goto 3
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 49
 
 state 33
-	datum:  keyword datum.    (4)
+	list:  ( datums0.) 
 
-	.  reduce 4 (src line 99)
+	)  shift 50
+	.  error
 
 
 state 34
-	datum:  comment datum.    (5)
+	list:  ( datums2.) 
 
-	.  reduce 5 (src line 104)
+	)  shift 51
+	.  error
 
 
 state 35
-	datum:  LABEL =.datum 
+	datums2:  datums1.. datum 
+	datums2:  datums1.. datum . datum 
+	datums0:  datums1.    (24)
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
+	.  shift 52
+	.  reduce 24 (src line 221)
+
+
+state 36
+	list:  [ datums0.] 
+
+	]  shift 53
+	.  error
+
+
+state 37
+	list:  [ datums2.] 
+
+	]  shift 54
+	.  error
+
+
+state 38
+	vector:  VECTORPAREN datums0.) 
+
+	)  shift 55
+	.  error
+
+
+state 39
+	abbreviation:  QUOTE datum.    (26)
+
+	.  reduce 26 (src line 231)
+
+
+state 40
+	abbreviation:  QQUOTE datum.    (27)
+
+	.  reduce 27 (src line 236)
+
+
+state 41
+	abbreviation:  UNQUOTE datum.    (28)
+
+	.  reduce 28 (src line 240)
+
+
+state 42
+	abbreviation:  UNQUOTES datum.    (29)
+
+	.  reduce 29 (src line 244)
+
+
+state 43
+	abbreviation:  SYNTAX datum.    (30)
+
+	.  reduce 30 (src line 248)
+
+
+state 44
+	abbreviation:  QSYNTAX datum.    (31)
+
+	.  reduce 31 (src line 252)
+
+
+state 45
+	abbreviation:  UNSYNTAX datum.    (32)
+
+	.  reduce 32 (src line 256)
+
+
+state 46
+	abbreviation:  UNSYNTAXS datum.    (33)
+
+	.  reduce 33 (src line 260)
+
+
+state 47
+	u8vector:  U8VECTORPAREN datums0 ).    (35)
+
+	.  reduce 35 (src line 271)
+
+
+state 48
+	datums1:  datum datums1.    (22)
+
+	.  reduce 22 (src line 212)
+
+
+state 49
+	datum:  comment.datum 
+	datums1:  datum comment.    (23)
+
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
+	.  reduce 23 (src line 216)
+
+	datum  goto 28
+	simpledatum  goto 2
+	compounddatum  goto 3
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
+
+state 50
+	list:  ( datums0 ).    (14)
+
+	.  reduce 14 (src line 172)
+
+
+state 51
+	list:  ( datums2 ).    (16)
+
+	.  reduce 16 (src line 181)
+
+
+state 52
+	datums2:  datums1 ..datum 
+	datums2:  datums1 ..datum . datum 
+
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
 	.  error
 
 	datum  goto 56
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
-
-state 36
-	datum:  LABEL #.    (7)
-
-	.  reduce 7 (src line 114)
-
-
-state 37
-	keyword:  KEYWORD datum.    (8)
-
-	.  reduce 8 (src line 120)
-
-
-state 38
-	comment:  COMMENT datum.    (9)
-
-	.  reduce 9 (src line 125)
-
-
-state 39
-	u8vector:  U8VECTORPAREN datums0.) 
-
-	)  shift 57
-	.  error
-
-
-state 40
-	datums0:  datums1.    (29)
-
-	.  reduce 29 (src line 221)
-
-
-state 41
-	datums1:  datum.    (26)
-	datums1:  datum.datums1 
-	datums1:  datum.comment 
-
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
-	.  reduce 26 (src line 207)
-
-	datum  goto 41
-	datums1  goto 58
-	simpledatum  goto 2
-	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 59
-
-state 42
-	list:  ( datums0.) 
-
-	)  shift 60
-	.  error
-
-
-state 43
-	list:  ( datums2.) 
-
-	)  shift 61
-	.  error
-
-
-state 44
-	datums2:  datums1.. datum 
-	datums2:  datums1.. datum . datum 
-	datums0:  datums1.    (29)
-
-	.  shift 62
-	.  reduce 29 (src line 221)
-
-
-state 45
-	list:  [ datums0.] 
-
-	]  shift 63
-	.  error
-
-
-state 46
-	list:  [ datums2.] 
-
-	]  shift 64
-	.  error
-
-
-state 47
-	vector:  VECTORPAREN datums0.) 
-
-	)  shift 65
-	.  error
-
-
-state 48
-	abbreviation:  QUOTE datum.    (31)
-
-	.  reduce 31 (src line 231)
-
-
-state 49
-	abbreviation:  QQUOTE datum.    (32)
-
-	.  reduce 32 (src line 236)
-
-
-state 50
-	abbreviation:  UNQUOTE datum.    (33)
-
-	.  reduce 33 (src line 240)
-
-
-state 51
-	abbreviation:  UNQUOTES datum.    (34)
-
-	.  reduce 34 (src line 244)
-
-
-state 52
-	abbreviation:  SYNTAX datum.    (35)
-
-	.  reduce 35 (src line 248)
-
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
 state 53
-	abbreviation:  QSYNTAX datum.    (36)
+	list:  [ datums0 ].    (15)
 
-	.  reduce 36 (src line 252)
+	.  reduce 15 (src line 177)
 
 
 state 54
-	abbreviation:  UNSYNTAX datum.    (37)
+	list:  [ datums2 ].    (17)
 
-	.  reduce 37 (src line 256)
+	.  reduce 17 (src line 185)
 
 
 state 55
-	abbreviation:  UNSYNTAXS datum.    (38)
+	vector:  VECTORPAREN datums0 ).    (34)
 
-	.  reduce 38 (src line 260)
+	.  reduce 34 (src line 265)
 
 
 state 56
-	datum:  LABEL = datum.    (6)
+	datums2:  datums1 . datum.    (19)
+	datums2:  datums1 . datum.. datum 
 
-	.  reduce 6 (src line 109)
+	.  shift 57
+	.  reduce 19 (src line 194)
 
 
 state 57
-	u8vector:  U8VECTORPAREN datums0 ).    (40)
-
-	.  reduce 40 (src line 271)
-
-
-state 58
-	datums1:  datum datums1.    (27)
-
-	.  reduce 27 (src line 212)
-
-
-state 59
-	datum:  comment.datum 
-	datums1:  datum comment.    (28)
-
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
-	.  reduce 28 (src line 216)
-
-	datum  goto 34
-	simpledatum  goto 2
-	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
-
-state 60
-	list:  ( datums0 ).    (19)
-
-	.  reduce 19 (src line 172)
-
-
-state 61
-	list:  ( datums2 ).    (21)
-
-	.  reduce 21 (src line 181)
-
-
-state 62
-	datums2:  datums1 ..datum 
-	datums2:  datums1 ..datum . datum 
-
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
-	.  error
-
-	datum  goto 66
-	simpledatum  goto 2
-	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
-
-state 63
-	list:  [ datums0 ].    (20)
-
-	.  reduce 20 (src line 177)
-
-
-state 64
-	list:  [ datums2 ].    (22)
-
-	.  reduce 22 (src line 185)
-
-
-state 65
-	vector:  VECTORPAREN datums0 ).    (39)
-
-	.  reduce 39 (src line 265)
-
-
-state 66
-	datums2:  datums1 . datum.    (24)
-	datums2:  datums1 . datum.. datum 
-
-	.  shift 67
-	.  reduce 24 (src line 194)
-
-
-state 67
 	datums2:  datums1 . datum ..datum 
 
-	ID  shift 18
-	BOOL  shift 8
-	NUMBER  shift 9
-	CHAR  shift 10
-	STRING  shift 11
-	LABEL  shift 7
-	VECTORPAREN  shift 23
-	U8VECTORPAREN  shift 19
-	QUOTE  shift 24
-	QQUOTE  shift 25
-	UNQUOTE  shift 26
-	UNQUOTES  shift 27
-	SYNTAX  shift 28
-	QSYNTAX  shift 29
-	UNSYNTAX  shift 30
-	UNSYNTAXS  shift 31
-	KSYMBOL  shift 4
-	KEYWORD  shift 16
-	COMMENT  shift 17
-	(  shift 20
-	[  shift 21
+	ID  shift 14
+	BOOL  shift 5
+	NUMBER  shift 6
+	CHAR  shift 7
+	STRING  shift 8
+	VECTORPAREN  shift 19
+	U8VECTORPAREN  shift 15
+	QUOTE  shift 20
+	QQUOTE  shift 21
+	UNQUOTE  shift 22
+	UNQUOTES  shift 23
+	SYNTAX  shift 24
+	QSYNTAX  shift 25
+	UNSYNTAX  shift 26
+	UNSYNTAXS  shift 27
+	COMMENT  shift 13
+	(  shift 16
+	[  shift 17
 	.  error
 
-	datum  goto 68
+	datum  goto 58
 	simpledatum  goto 2
 	compounddatum  goto 3
-	keyword  goto 5
-	symbol  goto 12
-	list  goto 14
-	vector  goto 15
-	u8vector  goto 13
-	abbreviation  goto 22
-	comment  goto 6
+	symbol  goto 9
+	list  goto 11
+	vector  goto 12
+	u8vector  goto 10
+	abbreviation  goto 18
+	comment  goto 4
 
-state 68
-	datums2:  datums1 . datum . datum.    (25)
+state 58
+	datums2:  datums1 . datum . datum.    (20)
 
-	.  reduce 25 (src line 199)
+	.  reduce 20 (src line 199)
 
 
-30 terminals, 14 nonterminals
-41 grammar rules, 69/2000 states
+25 terminals, 13 nonterminals
+36 grammar rules, 59/2000 states
 0 shift/reduce, 0 reduce/reduce conflicts reported
-63 working sets used
-memory: parser 285/30000
-36 extra closures
-493 shift entries, 1 exceptions
-39 goto entries
-202 entries saved by goto default
-Optimizer space used: output 96/30000
-96 table entries, 26 zero
-maximum spread: 30, maximum offset: 67
+62 working sets used
+memory: parser 215/30000
+28 extra closures
+350 shift entries, 1 exceptions
+34 goto entries
+148 entries saved by goto default
+Optimizer space used: output 78/30000
+78 table entries, 18 zero
+maximum spread: 25, maximum offset: 57

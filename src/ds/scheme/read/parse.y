@@ -30,11 +30,10 @@
  *                lval field in here to communicate.
  */
 %{
-package ds_any_syntax
+package ds_scheme_read
 
 import (
-.	"ds/any"
-ds	"ds/any/runtime"
+    "ds/any"
 	"fmt"
 )
 
@@ -42,12 +41,13 @@ ds	"ds/any/runtime"
 
 // expands to yySymType
 %union {
-    datum Any;
+    datum interface{};
 	token int; // this is for token identifiers
 }
 
 %type <datum> datum datums2 datums1 datums0 simpledatum compounddatum
-%type <datum> keyword symbol list vector u8vector abbreviation
+%type <datum> symbol list vector u8vector abbreviation
+ //keyword 
 
 // BEGIN tokens
 
@@ -56,7 +56,7 @@ ds	"ds/any/runtime"
 %token <datum> NUMBER
 %token <datum> CHAR
 %token <datum> STRING
-%token <datum> LABEL
+ //%token <datum> LABEL
 %token <token> VECTORPAREN   /* "#(" */
 %token <token> U8VECTORPAREN /* "#u8(" */
 %token <token> QUOTE     /* "'" */
@@ -68,8 +68,8 @@ ds	"ds/any/runtime"
 %token <token> UNSYNTAX  /* "#," */
 %token <token> UNSYNTAXS /* "#,@" */
 %token <token> ELLIPSIS  /* "..." */
-%token <token> KSYMBOL   /* "#%" */
-%token <token> KEYWORD   /* "#:" */
+//%token <token> KSYMBOL   /* "#%" */
+//%token <token> KEYWORD   /* "#:" */
 %token <token> COMMENT   /* "#;" */
 
 %start datum
@@ -91,37 +91,37 @@ datum:
 		$$ = $1
         yylex.(*Lexer).value = $$
 	}
-|   KSYMBOL datum
-	{
-		$$ = ds.NewSymbol("#%" + $2.(Named).Name())
-        yylex.(*Lexer).value = $$
-	}
-|	keyword datum
-	{
-		$$ = ds.NewKeyword($1, $2)
-        yylex.(*Lexer).value = $$
-	}
+//|   KSYMBOL datum
+//	{
+//		$$ = ds_any.Symbol("#%" + $2.(ds_any.Named).Name())
+//        yylex.(*Lexer).value = $$
+//	}
+//|	keyword datum
+//	{
+//		$$ = ds_any.Keyword($1, $2)
+//        yylex.(*Lexer).value = $$
+//	}
 |	comment datum
 	{
 		$$ = $2
         yylex.(*Lexer).value = $$
 	}
-|	LABEL '=' datum
-	{
-        $$ = NewLabel($1, $3)
-        yylex.(*Lexer).value = $$
-	}
-|	LABEL '#'
-	{
-		$$ = $1
-        yylex.(*Lexer).value = $$
-	}
+//|	LABEL '=' datum
+//	{
+//        $$ = Label($1, $3)
+//        yylex.(*Lexer).value = $$
+//	}
+//|	LABEL '#'
+//	{
+//		$$ = $1
+//        yylex.(*Lexer).value = $$
+//	}
 
-keyword:
-	KEYWORD datum
-	{
-        $$ = $2
-	}
+//keyword:
+//	KEYWORD datum
+//	{
+//        $$ = $2
+//	}
 comment:
 	COMMENT datum
 	{
@@ -194,28 +194,28 @@ list:
 datums2:
 	datums1 '.' datum
 	{
-        $$ = _listZI($1, $3)
+        $$ = listZI($1, $3)
 	}
 |	datums1 '.' datum '.' datum
 	{
-        if _length($1).(int) != 1 {
+        if length($1).(int) != 1 {
             panic("double-dotted-lists must have 3 elements")
         }
-        $$ = _list($3, _car($1), $5)
+        $$ = list($3, car($1), $5)
 	}
 
 datums1:
 	datum
 	{
-        $$ = _list($1)
+        $$ = list($1)
 	}
 |	datum datums1
 	{
-        $$ = _cons($1, $2)
+        $$ = cons($1, $2)
 	}
 |	datum comment
 	{
-        $$ = _list($1)
+        $$ = list($1)
 	}
 
 datums0:
@@ -225,53 +225,53 @@ datums0:
 	}
 |	/*empty*/
 	{
-        $$ = _null()
+        $$ = null()
 	}
 
 abbreviation:
 	QUOTE datum
 	{
-        $$ = _list(ds.NewSymbol("quote"), $2)
+        $$ = list(ds_any.Symbol("quote"), $2)
 	}
 |	QQUOTE datum
 	{
-        $$ = _list(ds.NewSymbol("quasiquote"), $2)
+        $$ = list(ds_any.Symbol("quasiquote"), $2)
 	}
 |	UNQUOTE datum
 	{
-        $$ = _list(ds.NewSymbol("unquote"), $2)
+        $$ = list(ds_any.Symbol("unquote"), $2)
 	}
 |	UNQUOTES datum
 	{
-        $$ = _list(ds.NewSymbol("unquote-splicing"), $2)
+        $$ = list(ds_any.Symbol("unquote-splicing"), $2)
 	}
 |	SYNTAX datum
 	{
-        $$ = _list(ds.NewSymbol("syntax"), $2)
+        $$ = list(ds_any.Symbol("syntax"), $2)
 	}
 |	QSYNTAX datum
 	{
-        $$ = _list(ds.NewSymbol("quasisyntax"), $2)
+        $$ = list(ds_any.Symbol("quasisyntax"), $2)
 	}
 |	UNSYNTAX datum
 	{
-        $$ = _list(ds.NewSymbol("unsyntax"), $2)
+        $$ = list(ds_any.Symbol("unsyntax"), $2)
 	}
 |	UNSYNTAXS datum
 	{
-        $$ = _list(ds.NewSymbol("unsyntax-splicing"), $2)
+        $$ = list(ds_any.Symbol("unsyntax-splicing"), $2)
 	}
 
 vector:
 	VECTORPAREN datums0 ')'
 	{
-        $$ = _listZKZRvector($2)
+        $$ = listZKZRvector($2)
 	}
 
 u8vector:
 	U8VECTORPAREN datums0 ')'
 	{
-        $$ = _u8ZKlistZKZRbytevector($2)
+        $$ = u8ZKlistZKZRbytevector($2)
 	}
 
 // END grammar

@@ -1,0 +1,45 @@
+package main
+
+import (
+	//ds "droscheme"
+)
+
+type (
+	Any interface{}
+	Env struct {
+		it map[string]Any
+		parent *Env
+	}
+	Proc struct {
+		call Any
+		name string
+		emit string
+	}
+)
+
+func NewEnv() *Env {
+	return nil
+}
+
+func (env *Env) Ref(name string) Any {
+	return &Proc{
+		call: nil,
+		name: "hi",
+		emit: "blabla",
+	}
+}
+
+// exp - slice of export-specs
+// imp - slice of import-specs
+// begin - slice of command-or-definition
+// other - slice of library-declaration (like include, cond-expand)
+func EmitDefineLibrary(exp, imp, begin, other []Any) {
+	// func init()
+	// func Export
+}
+
+var bla = NewEnv().Ref("bla")
+var S_bla = bla.(*Proc).call.(func(a, b Any)Any)
+
+func main() {
+}

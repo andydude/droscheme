@@ -1,10 +1,10 @@
 #!/bin/bash
 
 PKGS="\
+	ds/any/error\
+	ds/any/char\
 	ds/any\
-	ds/scheme/base\
-	ds/scheme/eval\
-	ds/scheme/procedure\
+	ds/port\
 	ds/scheme/parameter\
 	ds/scheme/read\
 	ds/scheme/write"

@@ -1,0 +1,305 @@
+(go:package
+  ds_scheme_write
+  (go:import "ds/any")
+  (go:var
+    (go:= _ds_any ((go:dot ds_any Export)))
+    (go:= append
+          (go:as (go:index _ds_any "append")
+                 (go:func
+                   (#(a go:any) #(rest (go:ellipsis go:any)))
+                   go:any)))
+    (go:= apply
+          (go:as (go:index _ds_any "apply")
+                 (go:func
+                   (#(proc go:any) #(args (go:ellipsis go:any)))
+                   go:any)))
+    (go:= apply-list
+          (go:as (go:index _ds_any "apply-list")
+                 (go:func (#(proc go:any) #(args go:any)) go:any)))
+    (go:= apply-vector
+          (go:as (go:index _ds_any "apply-vector")
+                 (go:func (#(proc go:any) #(args go:any)) go:any)))
+    (go:= primitive-apply-vector
+          (go:as (go:index _ds_any "primitive-apply-vector")
+                 (go:func (#(proc go:any) #(args go:any)) go:any)))
+    (go:= boolean-and
+          (go:as (go:index _ds_any "boolean-and")
+                 (go:func (#(rest (go:ellipsis go:any))) go:any)))
+    (go:= boolean-or
+          (go:as (go:index _ds_any "boolean-or")
+                 (go:func (#(rest (go:ellipsis go:any))) go:any)))
+    (go:= boolean=?
+          (go:as (go:index _ds_any "boolean=?")
+                 (go:func (#(a go:any) #(b go:any)) go:any)))
+    (go:= boolean?
+          (go:as (go:index _ds_any "boolean?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= boolean
+          (go:as (go:index _ds_any "boolean")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= bytevector->u8-list
+          (go:as (go:index _ds_any "bytevector->u8-list")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= bytevector->u8-vector
+          (go:as (go:index _ds_any "bytevector->u8-vector")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= bytevector?
+          (go:as (go:index _ds_any "bytevector?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= call
+          (go:as (go:index _ds_any "call")
+                 (go:func
+                   (#(proc go:any) #(rest (go:ellipsis go:any)))
+                   go:any)))
+    (go:= car
+          (go:as (go:index _ds_any "car")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= cdr
+          (go:as (go:index _ds_any "cdr")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= cons
+          (go:as (go:index _ds_any "cons")
+                 (go:func (#(a go:any) #(b go:any)) go:any)))
+    (go:= eof-object
+          (go:as (go:index _ds_any "eof-object")
+                 (go:func () go:any)))
+    (go:= eof-object?
+          (go:as (go:index _ds_any "eof-object?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= equal?
+          (go:as (go:index _ds_any "equal?")
+                 (go:func (#(a go:any) #(b go:any)) go:any)))
+    (go:= append!
+          (go:as (go:index _ds_any "append!")
+                 (go:func (#(rest (go:ellipsis go:any))) go:any)))
+    (go:= cdrs
+          (go:as (go:index _ds_any "cdrs")
+                 (go:func (#(lists go:any)) go:any)))
+    (go:= cars
+          (go:as (go:index _ds_any "cars")
+                 (go:func (#(lists go:any)) go:any)))
+    (go:= cars+
+          (go:as (go:index _ds_any "cars+")
+                 (go:func
+                   (#(lists go:any) #(last-elt go:any))
+                   go:any)))
+    (go:= fold-right
+          (go:as (go:index _ds_any "fold-right")
+                 (go:func
+                   (#(kons go:any)
+                    #(knil go:any)
+                    #(lis1 go:any)
+                    #(lists (go:ellipsis go:any)))
+                   go:any)))
+    (go:= imm-list?
+          (go:as (go:index _ds_any "imm-list?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= imm-null
+          (go:as (go:index _ds_any "imm-null")
+                 (go:func (#(o (go:ellipsis go:any))) go:any)))
+    (go:= imm-null?
+          (go:as (go:index _ds_any "imm-null?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= imm-pair?
+          (go:as (go:index _ds_any "imm-pair?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= imm-star?
+          (go:as (go:index _ds_any "imm-star?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= imm-star-length
+          (go:as (go:index _ds_any "imm-star-length")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= length
+          (go:as (go:index _ds_any "length")
+                 (go:func (#(ls go:any)) go:any)))
+    (go:= list
+          (go:as (go:index _ds_any "list")
+                 (go:func (#(o (go:ellipsis go:any))) go:any)))
+    (go:= list*
+          (go:as (go:index _ds_any "list*")
+                 (go:func (#(o (go:ellipsis go:any))) go:any)))
+    (go:= list+
+          (go:as (go:index _ds_any "list+")
+                 (go:func
+                   (#(first go:any) #(rest (go:ellipsis go:any)))
+                   go:any)))
+    (go:= list->string
+          (go:as (go:index _ds_any "list->string")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= list->vector
+          (go:as (go:index _ds_any "list->vector")
+                 (go:func (#(ls go:any)) go:any)))
+    (go:= list?
+          (go:as (go:index _ds_any "list?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= map1
+          (go:as (go:index _ds_any "map1")
+                 (go:func (#(proc go:any) #(ls go:any)) go:any)))
+    (go:= map
+          (go:as (go:index _ds_any "map")
+                 (go:func
+                   (#(proc go:any) #(rest (go:ellipsis go:any)))
+                   go:any)))
+    (go:= any1
+          (go:as (go:index _ds_any "any1")
+                 (go:func (#(pred go:any) #(ls go:any)) go:any)))
+    (go:= any
+          (go:as (go:index _ds_any "any")
+                 (go:func
+                   (#(pred go:any) #(rest (go:ellipsis go:any)))
+                   go:any)))
+    (go:= every1
+          (go:as (go:index _ds_any "every1")
+                 (go:func (#(pred go:any) #(ls go:any)) go:any)))
+    (go:= every
+          (go:as (go:index _ds_any "every")
+                 (go:func
+                   (#(pred go:any) #(rest (go:ellipsis go:any)))
+                   go:any)))
+    (go:= m-null?
+          (go:as (go:index _ds_any "m-null?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= m-pair?
+          (go:as (go:index _ds_any "m-pair?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= m-star?
+          (go:as (go:index _ds_any "m-star?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= m-string?
+          (go:as (go:index _ds_any "m-string?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= make-bytevector
+          (go:as (go:index _ds_any "make-bytevector")
+                 (go:func (#(k go:any)) go:any)))
+    (go:= make-environment
+          (go:as (go:index _ds_any "make-environment")
+                 (go:func () go:any)))
+    (go:= make-string
+          (go:as (go:index _ds_any "make-string")
+                 (go:func (#(k go:any)) go:any)))
+    (go:= make-vector
+          (go:as (go:index _ds_any "make-vector")
+                 (go:func (#(k go:any)) go:any)))
+    (go:= not
+          (go:as (go:index _ds_any "not")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= null
+          (go:as (go:index _ds_any "null")
+                 (go:func (#(o (go:ellipsis go:any))) go:any)))
+    (go:= null?
+          (go:as (go:index _ds_any "null?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= object-equal?
+          (go:as (go:index _ds_any "object-equal?")
+                 (go:func (#(a go:any) #(b go:any)) go:any)))
+    (go:= pair?
+          (go:as (go:index _ds_any "pair?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= s8?
+          (go:as (go:index _ds_any "s8?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= s16?
+          (go:as (go:index _ds_any "s16?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= s32?
+          (go:as (go:index _ds_any "s32?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= s64?
+          (go:as (go:index _ds_any "s64?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= string-append
+          (go:as (go:index _ds_any "string-append")
+                 (go:func (#(rest (go:ellipsis go:any))) go:any)))
+    (go:= imm-string->string
+          (go:as (go:index _ds_any "imm-string->string")
+                 (go:func (#(str go:any)) go:any)))
+    (go:= string->imm-string
+          (go:as (go:index _ds_any "string->imm-string")
+                 (go:func (#(str go:any)) go:any)))
+    (go:= symbol->string
+          (go:as (go:index _ds_any "symbol->string")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= symbol=?
+          (go:as (go:index _ds_any "symbol=?")
+                 (go:func (#(a go:any) #(b go:any)) go:any)))
+    (go:= symbol?
+          (go:as (go:index _ds_any "symbol?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= type-check
+          (go:as (go:index _ds_any "type-check")
+                 (go:func
+                   (#(expected go:any) #(irrs (go:ellipsis go:any)))
+                   go:any)))
+    (go:= type-error
+          (go:as (go:index _ds_any "type-error")
+                 (go:func
+                   (#(expected go:any) #(irr go:any))
+                   go:any)))
+    (go:= u8-list->bytevector
+          (go:as (go:index _ds_any "u8-list->bytevector")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= u8-vector->bytevector
+          (go:as (go:index _ds_any "u8-vector->bytevector")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= u8?
+          (go:as (go:index _ds_any "u8?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= u16?
+          (go:as (go:index _ds_any "u16?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= u32?
+          (go:as (go:index _ds_any "u32?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= u64?
+          (go:as (go:index _ds_any "u64?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= vector
+          (go:as (go:index _ds_any "vector")
+                 (go:func (#(o (go:ellipsis go:any))) go:any)))
+    (go:= vector->list
+          (go:as (go:index _ds_any "vector->list")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= vector->string
+          (go:as (go:index _ds_any "vector->string")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= vector-length
+          (go:as (go:index _ds_any "vector-length")
+                 (go:func (#(vc go:any)) go:any)))
+    (go:= vector-map
+          (go:as (go:index _ds_any "vector-map")
+                 (go:func (#(proc go:any) #(vc go:any)) go:any)))
+    (go:= vector?
+          (go:as (go:index _ds_any "vector?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= void
+          (go:as (go:index _ds_any "void")
+                 (go:func () go:any)))
+    (go:= void?
+          (go:as (go:index _ds_any "void?")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= ->imm-string
+          (go:as (go:index _ds_any "->imm-string")
+                 (go:func (#(str go:any)) go:any)))
+    (go:= ->scheme-string
+          (go:as (go:index _ds_any "->scheme-string")
+                 (go:func (#(a go:any)) go:any)))
+    (go:= ->string
+          (go:as (go:index _ds_any "->string")
+                 (go:func (#(str go:any)) go:any))))
+  (go:func
+    Export
+    ()
+    go:internal:frame
+    (go:return
+      (go:make: go:internal:frame (go:: "write" write))))
+  (go:func
+    display
+    (#(str go:any))
+    go:any
+    (go:print str)
+    (go:return go:nil))
+  (go:func
+    write
+    (#(obj go:any) #(port go:any))
+    go:any
+    (go:return (display (->scheme-string obj)))))

@@ -1,10 +1,13 @@
 (define-library
  (ds scheme read)
  (import
-  (only (ds scheme param)
+  (ds any)
+  (ds any error)
+  (ds port)
+  (only (ds scheme parameter)
         current-input-port
         current-output-port
-        current-prompt
+        current-prompt))
  (export
   read-data
   read-lines
@@ -26,21 +29,30 @@
 
   ;; private
   (define (read-state #(state State) port)
-    (ReadLexer (newLexerWithState port state)))
+    (go::= (value err) (read-lexer (newLexerWithState (go:as port ds_port.TIPort) state)))
+    (go:when (go:!= err go:nil) (go:panic err))
+    value)
 
   ;; read until end of file object
-  (define (read-data port))
+  (define (read-data port)
+    (read port))
 
   ;; read until datum parses
-  (define (read-with-prompt (port (current-input-port))
-                            (output-port (current-output-port))
-                            (prompt (current-prompt))))
+  (define (read-with-prompt (prompt (current-prompt))
+                            (port (current-input-port))
+                            (output-port (current-output-port)))
+    (read port))
 
   ;; read until expression parses
-  (define (read-expression port  prompt))
+  (define (read-expression port prompt))
+
+  (define (read-lines port)
+    (read-with-prompt "    " port (current-output-port)))
 
   (define (read (port (current-input-port)))
-    (go::= (value err) (Read (go:as port TIPort)))
+    (go::= (value err) (read-lexer (newLexer (go:as port ds_port.TIPort))))
     (go:when (go:!= err go:nil) (go:panic err))
-    value)))
+    value)
 
+ )
+)

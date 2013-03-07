@@ -1,35 +1,235 @@
-; -*- mode: scheme -*-
-; (ds port)
-(package droscheme
-
-  (define (call-with-input-file filename proc)
-    (call-with-port (open-input-file filename) proc))
-
-  (define (call-with-port port proc)
-    (if1 (not (port? port))
-         (error "call-with-port expected port"))
-    (defer (close-port port))
-    (as proc Applier (Apply port)))
-
-  (define-bool (char-ready? #(port (current-input-port)))
-    (as port RunePeeker (ReadyRune)))
-
-  (define (close-input-port port)
-    (if1 (not (port? port))
-         (error "close-input-port expected port"))
-    (if1 (not (input-port? port)) 
-         (error "close-input-port expected input-port"))
-    (close-port port))
-
-  (define (close-output-port port)
-    (if1 (not (port? port)) 
-         (error "close-output-port expected port"))
-    (if1 (not (output-port? port))
-         (error "close-output-port expected output-port"))
-    (close-port port))
-
-  (define (close-port a)
-    (call-go error1panic (as a Port (Close)))
-    (void))
-
-);package
+(go:package
+  ds_port
+  (go:import "bufio" "os")
+  (go:var)
+  (go:func
+    Export
+    ()
+    go:internal:frame
+    (go:return
+      (go:make:
+        go:internal:frame
+        (go:: "standard-error-port" standard-error-port)
+        (go:: "standard-input-port" standard-input-port)
+        (go:: "standard-output-port"
+              standard-output-port)
+        (go:: "open-binary-input-file"
+              open-binary-input-file)
+        (go:: "open-binary-output-file"
+              open-binary-output-file)
+        (go:: "open-input-file" open-input-file)
+        (go:: "open-output-file" open-output-file)
+        (go:: "port?" port?)
+        (go:: "binary-port?" binary-port?)
+        (go:: "textual-port?" textual-port?)
+        (go:: "output-port?" output-port?)
+        (go:: "input-port?" input-port?))))
+  (go:func
+    standard-error-port
+    ()
+    go:any
+    (go:return gStdErrorPort))
+  (go:func
+    standard-input-port
+    ()
+    go:any
+    (go:return gStdInputPort))
+  (go:func
+    standard-output-port
+    ()
+    go:any
+    (go:return gStdOutputPort))
+  (go:func
+    open-binary-input-file
+    (#(filename go:any) #(fileopt go:any))
+    go:any
+    (go:var #(file (go:ptr os.File)) #(err go:error))
+    (go:when
+      (go:as (port? fileopt) go:bool)
+      (go:= file (go:as fileopt (go:ptr os.File))))
+    (go:unless
+      (go:as (port? fileopt) go:bool)
+      (go:= (file err)
+            (os.Open (go:as filename go:string)))
+      (go:when (go:!= err go:nil) (go:panic err)))
+    (go::= port
+           (go:new:
+             FilePort
+             (go:: name (go:as filename go:string))
+             (go:: kind KindByteIn)))
+    (go:= port.fl file)
+    (go:= port.rd (bufio.NewReader port.fl))
+    (go:return port))
+  (go:func
+    open-binary-output-file
+    (#(filename go:any) #(fileopt go:any))
+    go:any
+    (go:var #(file (go:ptr os.File)) #(err go:error))
+    (go:when
+      (go:as (port? fileopt) go:bool)
+      (go:= file (go:as fileopt (go:ptr os.File))))
+    (go:unless
+      (go:as (port? fileopt) go:bool)
+      (go:= (file err)
+            (os.Create (go:as filename go:string)))
+      (go:when (go:!= err go:nil) (go:panic err)))
+    (go::= port
+           (go:new:
+             FilePort
+             (go:: name (go:as filename go:string))
+             (go:: kind KindByteOut)))
+    (go:= port.fl file)
+    (go:= port.wr (bufio.NewWriter port.fl))
+    (go:return port))
+  (go:func
+    open-bytevector-input-port
+    ()
+    go:any
+    (go:return #f))
+  (go:func
+    open-bytevector-output-port
+    ()
+    go:any
+    (go:return #f))
+  (go:func
+    open-file-input-port
+    ()
+    go:any
+    (go:return #f))
+  (go:func
+    open-file-output-port
+    ()
+    go:any
+    (go:return #f))
+  (go:func
+    open-input-bytevector
+    ()
+    go:any
+    (go:return #f))
+  (go:func
+    open-input-file
+    (#(filename go:any) #(opt (go:ellipsis go:any)))
+    go:any
+    (go:var #(file (go:ptr os.File)) #(err go:error))
+    (go:case!
+      (go:len opt)
+      ((0)
+       (go:= (file err)
+             (os.Open (go:as filename go:string)))
+       (go:when (go:!= err go:nil) (go:panic err)))
+      ((1)
+       (go:= file
+             (go:as (go:index opt 0) (go:ptr os.File)))))
+    (go::= port (go:new FilePort))
+    (go:= port.name (go:as filename go:string))
+    (go:= port.kind KindCharIn)
+    (go:= port.fl file)
+    (go:= port.rd (bufio.NewReader port.fl))
+    (go:return port))
+  (go:func
+    open-input-string
+    ()
+    go:any
+    (go:return #f))
+  (go:func
+    open-output-bytevector
+    ()
+    go:any
+    (go:return #f))
+  (go:func
+    open-output-file
+    (#(filename go:any) #(opt (go:ellipsis go:any)))
+    go:any
+    (go:var #(file (go:ptr os.File)) #(err go:error))
+    (go:case!
+      (go:len opt)
+      ((0)
+       (go:= (file err)
+             (os.Create (go:as filename go:string)))
+       (go:when (go:!= err go:nil) (go:panic err)))
+      ((1)
+       (go:= file
+             (go:as (go:index opt 0) (go:ptr os.File)))))
+    (go::= port
+           (go:new:
+             FilePort
+             (go:: name (go:as filename go:string))
+             (go:: kind KindCharOut)))
+    (go:= port.fl file)
+    (go:= port.wr (bufio.NewWriter port.fl))
+    (go:return port))
+  (go:func
+    open-output-string
+    ()
+    go:any
+    (go:return #f))
+  (go:func
+    open-string-input-port
+    ()
+    go:any
+    (go:return #f))
+  (go:func
+    open-string-output-port
+    ()
+    go:any
+    (go:return #f))
+  (go:func
+    port?
+    (#(a go:any))
+    go:any
+    (go::= (_ ok) (go:as a PortKinder))
+    (go:return ok))
+  (go:func
+    binary-port?
+    (#(a go:any))
+    go:any
+    (go:when*
+      (go::= (p ok) (go:as a PortKinder))
+      ok
+      (go:case!
+        (p.PortKind)
+        ((KindByteIn) (go:return #t))
+        ((KindByteOut) (go:return #t))
+        ((KindByteInOut) (go:return #t))))
+    (go:return #f))
+  (go:func
+    textual-port?
+    (#(a go:any))
+    go:any
+    (go:when*
+      (go::= (p ok) (go:as a PortKinder))
+      ok
+      (go:case!
+        (p.PortKind)
+        ((KindCharIn) (go:return #t))
+        ((KindCharOut) (go:return #t))
+        ((KindCharInOut) (go:return #t))))
+    (go:return #f))
+  (go:func
+    output-port?
+    (#(a go:any))
+    go:any
+    (go:when*
+      (go::= (p ok) (go:as a PortKinder))
+      ok
+      (go:case!
+        (p.PortKind)
+        ((KindByteOut) (go:return #t))
+        ((KindByteInOut) (go:return #t))
+        ((KindCharOut) (go:return #t))
+        ((KindCharInOut) (go:return #t))))
+    (go:return #f))
+  (go:func
+    input-port?
+    (#(a go:any))
+    go:any
+    (go:when*
+      (go::= (p ok) (go:as a PortKinder))
+      ok
+      (go:case!
+        (p.PortKind)
+        ((KindByteIn) (go:return #t))
+        ((KindByteInOut) (go:return #t))
+        ((KindCharIn) (go:return #t))
+        ((KindCharInOut) (go:return #t))))
+    (go:return #f)))

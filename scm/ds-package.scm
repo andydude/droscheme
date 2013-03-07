@@ -134,7 +134,7 @@
          (un (string->symbol (string-append "_" fn)))
          (symbols (ds-package-import-symbols pi)))
     (define (per-package)
-      `(go:= ,un (go:dot ,(string->symbol fn) Export)))
+      `(go:= ,un ((go:dot ,(string->symbol fn) Export))))
     (define (per-symbol pe)
       (let* ((name (symbol->string (ds-package-export-gos-name pe)))
              (gos-name (ds-package-export-gos-name pe))

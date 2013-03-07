@@ -1,0 +1,65 @@
+(go:package
+  ds_any_error
+  (go:import)
+  (go:var)
+  (go:func
+    Export
+    ()
+    go:internal:frame
+    (go:return
+      (go:make:
+        go:internal:frame
+        (go:: "make-error-object" make-error-object)
+        (go:: "error-object?" error-object?)
+        (go:: "error-object-message"
+              error-object-message)
+        (go:: "error-object-irritants"
+              error-object-irritants)
+        (go:: "error" error)
+        (go:: "raise" raise)
+        (go:: "raise-continuable" raise-continuable))))
+  (go:func
+    make-error-object
+    (#(msg go:any) #(irrs (go:ellipsis go:any)))
+    go:any
+    (go:return
+      (go:make:
+        ErrorObject
+        (go:: message (go:as msg go:string))
+        (go:: irritants irrs))))
+  (go:func
+    error-object?
+    (#(obj go:any))
+    go:any
+    (go::= (_ ok) (go:as obj ErrorObject))
+    (go:return ok))
+  (go:func
+    error-object-message
+    (#(obj go:any))
+    go:any
+    (go:return
+      ((go:dot (go:as obj ErrorObject) Message))))
+  (go:func
+    error-object-irritants
+    (#(obj go:any))
+    go:any
+    (go:return
+      ((go:dot (go:as obj ErrorObject) Irritants))))
+  (go:func
+    error
+    (#(msg go:any) #(irrs (go:ellipsis go:any)))
+    go:any
+    (go:return
+      (raise (go:apply make-error-object msg irrs))))
+  (go:func
+    raise
+    (#(obj go:any))
+    go:any
+    (go:panic obj)
+    (go:return go:nil))
+  (go:func
+    raise-continuable
+    (#(obj go:any))
+    go:any
+    (go:panic obj)
+    (go:return go:nil)))

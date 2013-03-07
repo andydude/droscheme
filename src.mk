@@ -27,3 +27,4 @@ main.gos: main.scm
 
 %.go: %.gos
 	ds gos2go $< $@
+	go fmt

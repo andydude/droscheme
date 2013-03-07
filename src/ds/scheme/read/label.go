@@ -1,35 +1,34 @@
-package ds_any_syntax
+package ds_scheme_read
 
 import (
-.	"ds/any"
-	"ds/any/runtime"
+	"ds/any"
 	"fmt"
 )
 
 type Label struct {
-	it    Any
+	it    interface{}
 	label int
 }
 
-func NewLabel(l, d Any) Any {
-    return Label{it: d, label: int(l.(Label).it.(int))}
+func NewLabel(l, d interface{}) interface{} {
+	return Label{it: d, label: int(l.(Label).it.(int))}
 }
 
-func (o Label) GetHash() uintptr {
-    return 0
+func (o Label) Hash() uintptr {
+	return 0
 }
 
-func (o Label) GetType() int {
-    return ds_any_runtime.TypeCodeLabel
+func (o Label) Kind() int {
+	return ds_any.KindLabel
 }
 
-func (o Label) Equal(a Any) bool {
-    return false
+func (o Label) Equal(a interface{}) bool {
+	return false
 }
 
 func (o Label) String() string {
-    if o.it == nil {
-        return fmt.Sprintf("#%d#", o.label)
-    }
-    return fmt.Sprintf("#%d=%s", o.label, o.it)
+	if o.it == nil {
+		return fmt.Sprintf("#%d#", o.label)
+	}
+	return fmt.Sprintf("#%d=%s", o.label, o.it)
 }

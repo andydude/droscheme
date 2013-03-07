@@ -1,0 +1,22 @@
+package main
+
+import (
+.	"ds/any"
+	"ds/any/runtime"
+)
+
+var _ds_any_runtime = ds_any_runtime.Export()
+var interactionZKenvironment = _ds_any_runtime.Ref("interaction-environment")
+var _interactionZKenvironment = FuncOf(interactionZKenvironment).(func(Any)Any)
+var eval= _ds_any_runtime.Ref("eval")
+var _eval = FuncOf(eval).(func(Any)Any)
+var read = _ds_any_runtime.Ref("read")
+var _read = FuncOf(read).(func(Any)Any)
+var write = _ds_any_runtime.Ref("write")
+var _write = FuncOf(write).(func(Any)Any)
+
+var _ds_port_runtime = ds_port_runtime.Export()
+var standardZKinputZKport = _ds_port_runtime.Ref("standard-input-port")
+var _standardZKinputZKport = FuncOf(standardZKinputZKport).(func()Any)
+var standardZKoutputZKport = _ds_port_runtime.Ref("standard-output-port")
+var _standardZKoutputZKport = FuncOf(standardZKoutputZKport).(func()Any)

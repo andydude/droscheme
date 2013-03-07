@@ -27,7 +27,7 @@ function usage() {
     echo "  i2s"
     echo "  install"
     echo "  mangle"
-    echo "  unmangle"
+    echo "  demangle"
     echo "  scheme2go"
     echo "  scheme2gos"
 }
@@ -162,11 +162,11 @@ function mangle() {
     fi
 }
 
-function unmangle() {
+function demangle() {
     if [ x"$OPT_IN" = x"/dev/stdin" ]; then
-        $GUILE -s $DROSCHEME_PATH/scm/unmangle-guile.scm "$@" "$(cat)"
+        $GUILE -s $DROSCHEME_PATH/scm/demangle-guile.scm "$@" "$(cat)"
     else
-        $GUILE -s $DROSCHEME_PATH/scm/unmangle-guile.scm "$@" "$OPT_IN"
+        $GUILE -s $DROSCHEME_PATH/scm/demangle-guile.scm "$@" "$OPT_IN"
     fi
 }
 
@@ -179,7 +179,7 @@ case $COMMAND in
     go2gos|gos2go|i2s|s2s|scheme2go|scheme2gos)
         $COMMAND $OPT_REST < "$OPT_IN" > "$OPT_OUT";;
 
-    build|clean|doc|install|run|mangle|unmangle)
+    build|clean|doc|install|run|mangle|demangle)
         $COMMAND;;
 
     *)

@@ -1,0 +1,396 @@
+(go:package
+  ds_any_char
+  (go:import "unicode")
+  (go:var)
+  (go:func
+    Export
+    ()
+    go:internal:frame
+    (go:return
+      (go:make:
+        go:internal:frame
+        (go:: "char->integer" char->integer)
+        (go:: "char-alphabetic?" char-alphabetic?)
+        (go:: "char-bin-digit?" char-bin-digit?)
+        (go:: "char-ci<=?" char-ci<=?)
+        (go:: "char-ci<?" char-ci<?)
+        (go:: "char-ci=?" char-ci=?)
+        (go:: "char-ci>=?" char-ci>=?)
+        (go:: "char-ci>?" char-ci>?)
+        (go:: "char-digit?" char-digit?)
+        (go:: "char-downcase" char-downcase)
+        (go:: "char-foldcase" char-foldcase)
+        (go:: "char-hex-digit?" char-hex-digit?)
+        (go:: "char-lower-case?" char-lower-case?)
+        (go:: "char-numeric?" char-numeric?)
+        (go:: "char-octal-digit?" char-octal-digit?)
+        (go:: "char-punctuation?" char-punctuation?)
+        (go:: "char-symbolic?" char-symbolic?)
+        (go:: "char-title-case?" char-title-case?)
+        (go:: "char-titlecase" char-titlecase)
+        (go:: "char-upcase" char-upcase)
+        (go:: "char-upper-case?" char-upper-case?)
+        (go:: "char-whitespace?" char-whitespace?)
+        (go:: "char<=?" char<=?)
+        (go:: "char<?" char<?)
+        (go:: "char=?" char=?)
+        (go:: "char>=?" char>=?)
+        (go:: "char>?" char>?)
+        (go:: "digit-value" digit-value)
+        (go:: "hex-digit-value" hex-digit-value)
+        (go:: "integer->char" integer->char))))
+  (go:func
+    char->integer
+    (#(ch go:any))
+    go:any
+    (go:return (go:int64 (go:as ch go:rune))))
+  (go:func
+    char-alphabetic?
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (unicode.IsLetter cp)))
+  (go:func
+    char-bin-digit?
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (go:or (go:== 48 cp) (go:== cp 49))))
+  (go:func
+    char-ci<=?
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:<= (go:as (char-foldcase (go:index rest 0)) go:rune)
+                (go:as (char-foldcase (go:index rest 1)) go:rune)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:<= (go:as (char-foldcase (go:index rest i)) go:rune)
+               (go:as (char-foldcase (go:index rest (go:+ i 1)))
+                      go:rune))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    char-ci<?
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:< (go:as (char-foldcase (go:index rest 0)) go:rune)
+               (go:as (char-foldcase (go:index rest 1)) go:rune)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:< (go:as (char-foldcase (go:index rest i)) go:rune)
+              (go:as (char-foldcase (go:index rest (go:+ i 1)))
+                     go:rune))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    char-ci=?
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:== (go:as (char-foldcase (go:index rest 0)) go:rune)
+                (go:as (char-foldcase (go:index rest 1)) go:rune)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:== (go:as (char-foldcase (go:index rest i)) go:rune)
+               (go:as (char-foldcase (go:index rest (go:+ i 1)))
+                      go:rune))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    char-ci>=?
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:>= (go:as (char-foldcase (go:index rest 0)) go:rune)
+                (go:as (char-foldcase (go:index rest 1)) go:rune)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:>= (go:as (char-foldcase (go:index rest i)) go:rune)
+               (go:as (char-foldcase (go:index rest (go:+ i 1)))
+                      go:rune))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    char-ci>?
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:> (go:as (char-foldcase (go:index rest 0)) go:rune)
+               (go:as (char-foldcase (go:index rest 1)) go:rune)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:> (go:as (char-foldcase (go:index rest i)) go:rune)
+              (go:as (char-foldcase (go:index rest (go:+ i 1)))
+                     go:rune))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    char-digit?
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (unicode.IsDigit cp)))
+  (go:func
+    char-downcase
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (unicode.ToLower cp)))
+  (go:func
+    char-foldcase
+    (#(ch go:any))
+    go:any
+    (go:return (char-downcase (char-upcase ch))))
+  (go:func
+    char-hex-digit?
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return
+      (unicode.IsOneOf
+        (go:make:
+          (go:slice (go:ptr unicode.RangeTable))
+          unicode.Hex_Digit)
+        cp)))
+  (go:func
+    char-lower-case?
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (unicode.IsLower cp)))
+  (go:func
+    char-numeric?
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (unicode.IsNumber cp)))
+  (go:func
+    char-octal-digit?
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (go:and (go:<= 48 cp) (go:<= 55 cp))))
+  (go:func
+    char-punctuation?
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (unicode.IsPunct cp)))
+  (go:func
+    char-symbolic?
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (unicode.IsSymbol cp)))
+  (go:func
+    char-title-case?
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (unicode.IsTitle cp)))
+  (go:func
+    char-titlecase
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (unicode.ToTitle cp)))
+  (go:func
+    char-upcase
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (unicode.ToUpper cp)))
+  (go:func
+    char-upper-case?
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (unicode.IsUpper cp)))
+  (go:func
+    char-whitespace?
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:return (unicode.IsSpace cp)))
+  (go:func
+    char<=?
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:<= (go:as (go:index rest 0) go:rune)
+                (go:as (go:index rest 1) go:rune)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:<= (go:as (go:index rest i) go:rune)
+               (go:as (go:index rest (go:+ i 1)) go:rune))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    char<?
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:< (go:as (go:index rest 0) go:rune)
+               (go:as (go:index rest 1) go:rune)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:< (go:as (go:index rest i) go:rune)
+              (go:as (go:index rest (go:+ i 1)) go:rune))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    char=?
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:== (go:as (go:index rest 0) go:rune)
+                (go:as (go:index rest 1) go:rune)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:== (go:as (go:index rest i) go:rune)
+               (go:as (go:index rest (go:+ i 1)) go:rune))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    char>=?
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:>= (go:as (go:index rest 0) go:rune)
+                (go:as (go:index rest 1) go:rune)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:>= (go:as (go:index rest i) go:rune)
+               (go:as (go:index rest (go:+ i 1)) go:rune))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    char>?
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:> (go:as (go:index rest 0) go:rune)
+               (go:as (go:index rest 1) go:rune)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:> (go:as (go:index rest i) go:rune)
+              (go:as (go:index rest (go:+ i 1)) go:rune))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    char?
+    (#(a go:any))
+    go:any
+    (go::= (_ ok) (go:as a go:rune))
+    (go:return ok))
+  (go:func
+    digit-value
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:when
+      (go:and (go:<= 48 cp) (go:<= cp 57))
+      (go:return (go:- (go:int64 cp) 48)))
+    (go:return #f))
+  (go:func
+    hex-digit-value
+    (#(ch go:any))
+    go:any
+    (go::= cp (go:as ch go:rune))
+    (go:when
+      (go:and (go:<= 48 cp) (go:<= cp 57))
+      (go:return (go:- (go:int64 cp) 48)))
+    (go:when
+      (go:and (go:<= 65 cp) (go:<= cp 70))
+      (go:return (go:- (go:int64 cp) 55)))
+    (go:when
+      (go:and (go:<= 97 cp) (go:<= cp 102))
+      (go:return (go:- (go:int64 cp) 87)))
+    (go:return #f))
+  (go:func
+    integer->char
+    (#(cp go:any))
+    go:any
+    (go:return (go:rune (go:as cp go:int64)))))

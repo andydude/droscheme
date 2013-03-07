@@ -59,4 +59,8 @@ type (
 	Transformer interface {
 		Transform(syntax interface{}, env *Env) interface{}
 	}
+
+	SchemeStringer interface {
+		SchemeString() string
+	}
 )

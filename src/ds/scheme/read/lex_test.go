@@ -1,4 +1,4 @@
-package ds_any_syntax
+package ds_scheme_read
 
 import "testing"
 

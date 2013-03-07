@@ -1,19 +1,16 @@
-
 //line parse.y:33
-package ds_any_syntax
+package ds_scheme_read
 
 import (
-.	"ds/any"
-ds	"ds/any/runtime"
+	"ds/any"
 	"fmt"
 )
 
-
-//line parse.y:44
+//line parse.y:43
 type yySymType struct {
-	yys int
-    datum Any;
-	token int; // this is for token identifiers
+	yys   int
+	datum interface{}
+	token int // this is for token identifiers
 }
 
 const ID = 57346
@@ -21,21 +18,18 @@ const BOOL = 57347
 const NUMBER = 57348
 const CHAR = 57349
 const STRING = 57350
-const LABEL = 57351
-const VECTORPAREN = 57352
-const U8VECTORPAREN = 57353
-const QUOTE = 57354
-const QQUOTE = 57355
-const UNQUOTE = 57356
-const UNQUOTES = 57357
-const SYNTAX = 57358
-const QSYNTAX = 57359
-const UNSYNTAX = 57360
-const UNSYNTAXS = 57361
-const ELLIPSIS = 57362
-const KSYMBOL = 57363
-const KEYWORD = 57364
-const COMMENT = 57365
+const VECTORPAREN = 57351
+const U8VECTORPAREN = 57352
+const QUOTE = 57353
+const QQUOTE = 57354
+const UNQUOTE = 57355
+const UNQUOTES = 57356
+const SYNTAX = 57357
+const QSYNTAX = 57358
+const UNSYNTAX = 57359
+const UNSYNTAXS = 57360
+const ELLIPSIS = 57361
+const COMMENT = 57362
 
 var yyToknames = []string{
 	"ID",
@@ -43,7 +37,6 @@ var yyToknames = []string{
 	"NUMBER",
 	"CHAR",
 	"STRING",
-	"LABEL",
 	"VECTORPAREN",
 	"U8VECTORPAREN",
 	"QUOTE",
@@ -55,8 +48,6 @@ var yyToknames = []string{
 	"UNSYNTAX",
 	"UNSYNTAXS",
 	"ELLIPSIS",
-	"KSYMBOL",
-	"KEYWORD",
 	"COMMENT",
 }
 var yyStatenames = []string{}
@@ -89,96 +80,88 @@ var yyExca = []int{
 	-2, 0,
 }
 
-const yyNprod = 41
+const yyNprod = 36
 const yyPrivate = 57344
 
 var yyTokenNames []string
 var yyStates []string
 
-const yyLast = 96
+const yyLast = 78
 
 var yyAct = []int{
 
-	41, 1, 67, 62, 64, 32, 33, 34, 63, 65,
-	61, 60, 57, 35, 36, 6, 22, 37, 38, 13,
-	15, 14, 12, 5, 3, 48, 49, 50, 51, 52,
-	53, 54, 55, 2, 0, 0, 56, 18, 8, 9,
-	10, 11, 7, 23, 19, 24, 25, 26, 27, 28,
-	29, 30, 31, 40, 4, 16, 17, 59, 39, 20,
-	34, 21, 43, 66, 0, 0, 0, 0, 68, 0,
-	0, 0, 0, 0, 44, 44, 0, 0, 0, 42,
-	45, 0, 47, 0, 46, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 58,
+	32, 1, 57, 52, 54, 28, 53, 55, 51, 50,
+	47, 18, 10, 12, 29, 11, 4, 9, 3, 2,
+	0, 39, 40, 41, 42, 43, 44, 45, 46, 14,
+	5, 6, 7, 8, 19, 15, 20, 21, 22, 23,
+	24, 25, 26, 27, 31, 13, 16, 30, 17, 49,
+	28, 34, 0, 56, 0, 0, 0, 0, 58, 0,
+	0, 35, 35, 0, 33, 36, 0, 38, 0, 37,
+	0, 0, 0, 0, 0, 0, 0, 48,
 }
 var yyPact = []int{
 
-	33, -1000, -1000, -1000, 33, 33, 33, -11, -1000, -1000,
-	-1000, -1000, -1000, -1000, -1000, -1000, 33, 33, -1000, 33,
-	33, 33, -1000, 33, 33, 33, 33, 33, 33, 33,
-	33, 33, -1000, -1000, -1000, 33, -1000, -1000, -1000, -15,
-	-1000, 33, -16, -17, -27, -21, -25, -18, -1000, -1000,
-	-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 33,
-	-1000, -1000, 33, -1000, -1000, -1000, -28, 33, -1000,
+	25, -1000, -1000, -1000, 25, -1000, -1000, -1000, -1000, -1000,
+	-1000, -1000, -1000, 25, -1000, 25, 25, 25, -1000, 25,
+	25, 25, 25, 25, 25, 25, 25, 25, -1000, -1000,
+	-12, -1000, 25, -13, -14, -22, -18, -20, -15, -1000,
+	-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 25,
+	-1000, -1000, 25, -1000, -1000, -1000, -23, 25, -1000,
 }
 var yyPgo = []int{
 
-	0, 0, 62, 53, 58, 33, 24, 23, 22, 21,
-	20, 19, 16, 15,
+	0, 0, 51, 44, 47, 19, 18, 17, 15, 13,
+	12, 11, 16,
 }
 var yyR1 = []int{
 
-	0, 1, 1, 1, 1, 1, 1, 1, 7, 13,
-	8, 5, 5, 5, 5, 5, 5, 6, 6, 9,
-	9, 9, 9, 9, 2, 2, 3, 3, 3, 4,
-	4, 12, 12, 12, 12, 12, 12, 12, 12, 10,
-	11,
+	0, 1, 1, 1, 12, 7, 5, 5, 5, 5,
+	5, 5, 6, 6, 8, 8, 8, 8, 8, 2,
+	2, 3, 3, 3, 4, 4, 11, 11, 11, 11,
+	11, 11, 11, 11, 9, 10,
 }
 var yyR2 = []int{
 
-	0, 1, 1, 2, 2, 2, 3, 2, 2, 2,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 3,
-	3, 3, 3, 1, 3, 5, 1, 2, 2, 1,
-	0, 2, 2, 2, 2, 2, 2, 2, 2, 3,
-	3,
+	0, 1, 1, 2, 2, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 3, 3, 3, 3, 1, 3,
+	5, 1, 2, 2, 1, 0, 2, 2, 2, 2,
+	2, 2, 2, 2, 3, 3,
 }
 var yyChk = []int{
 
-	-1000, -1, -5, -6, 21, -7, -13, 9, 5, 6,
-	7, 8, -8, -11, -9, -10, 22, 23, 4, 11,
-	26, 28, -12, 10, 12, 13, 14, 15, 16, 17,
-	18, 19, -1, -1, -1, 24, 25, -1, -1, -4,
-	-3, -1, -4, -2, -3, -4, -2, -4, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, 27, -3, -13,
-	27, 27, 30, 29, 29, 27, -1, 30, -1,
+	-1000, -1, -5, -6, -12, 5, 6, 7, 8, -7,
+	-10, -8, -9, 20, 4, 10, 21, 23, -11, 9,
+	11, 12, 13, 14, 15, 16, 17, 18, -1, -1,
+	-4, -3, -1, -4, -2, -3, -4, -2, -4, -1,
+	-1, -1, -1, -1, -1, -1, -1, 22, -3, -12,
+	22, 22, 25, 24, 24, 22, -1, 25, -1,
 }
 var yyDef = []int{
 
-	0, -2, 1, 2, 0, 0, 0, 0, 11, 12,
-	13, 14, 15, 16, 17, 18, 0, 0, 10, 30,
-	30, 30, 23, 30, 0, 0, 0, 0, 0, 0,
-	0, 0, 3, 4, 5, 0, 7, 8, 9, 0,
-	29, 26, 0, 0, 29, 0, 0, 0, 31, 32,
-	33, 34, 35, 36, 37, 38, 6, 40, 27, 28,
-	19, 21, 0, 20, 22, 39, 24, 0, 25,
+	0, -2, 1, 2, 0, 6, 7, 8, 9, 10,
+	11, 12, 13, 0, 5, 25, 25, 25, 18, 25,
+	0, 0, 0, 0, 0, 0, 0, 0, 3, 4,
+	0, 24, 21, 0, 0, 24, 0, 0, 0, 26,
+	27, 28, 29, 30, 31, 32, 33, 35, 22, 23,
+	14, 16, 0, 15, 17, 34, 19, 0, 20,
 }
 var yyTok1 = []int{
 
 	1, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 25, 3, 3, 3, 3,
-	26, 27, 3, 3, 3, 3, 30, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 24, 3, 3, 3, 3, 3, 3, 3, 3,
+	21, 22, 3, 3, 3, 3, 25, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 28, 3, 29,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 23, 3, 24,
 }
 var yyTok2 = []int{
 
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-	12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-	22, 23,
+	12, 13, 14, 15, 16, 17, 18, 19, 20,
 }
 var yyTok3 = []int{
 	0,
@@ -412,210 +395,181 @@ yydefault:
 		//line parse.y:85
 		{
 			yyVAL.datum = yyS[yypt-0].datum
-	        yylex.(*Lexer).value = yyVAL.datum
+			yylex.(*Lexer).value = yyVAL.datum
 		}
 	case 2:
 		//line parse.y:90
 		{
 			yyVAL.datum = yyS[yypt-0].datum
-	        yylex.(*Lexer).value = yyVAL.datum
+			yylex.(*Lexer).value = yyVAL.datum
 		}
 	case 3:
-		//line parse.y:95
-		{
-			yyVAL.datum = ds.NewSymbol("#%" + yyS[yypt-0].datum.(Named).Name())
-	        yylex.(*Lexer).value = yyVAL.datum
-		}
-	case 4:
-		//line parse.y:100
-		{
-			yyVAL.datum = ds.NewKeyword(yyS[yypt-1].datum, yyS[yypt-0].datum)
-	        yylex.(*Lexer).value = yyVAL.datum
-		}
-	case 5:
 		//line parse.y:105
 		{
 			yyVAL.datum = yyS[yypt-0].datum
-	        yylex.(*Lexer).value = yyVAL.datum
+			yylex.(*Lexer).value = yyVAL.datum
 		}
-	case 6:
-		//line parse.y:110
-		{
-	        yyVAL.datum = NewLabel(yyS[yypt-2].datum, yyS[yypt-0].datum)
-	        yylex.(*Lexer).value = yyVAL.datum
-		}
-	case 7:
-		//line parse.y:115
-		{
-			yyVAL.datum = yyS[yypt-1].datum
-	        yylex.(*Lexer).value = yyVAL.datum
-		}
-	case 8:
-		//line parse.y:122
-		{
-	        yyVAL.datum = yyS[yypt-0].datum
-		}
-	case 9:
+	case 4:
 		//line parse.y:127
 		{
 		}
-	case 10:
+	case 5:
 		//line parse.y:132
 		{
-	        yyVAL.datum = yyS[yypt-0].datum
+			yyVAL.datum = yyS[yypt-0].datum
 		}
-	case 11:
+	case 6:
 		//line parse.y:138
 		{
-	        yyVAL.datum = yyS[yypt-0].datum
+			yyVAL.datum = yyS[yypt-0].datum
 		}
-	case 12:
+	case 7:
 		//line parse.y:142
 		{
-	        yyVAL.datum = yyS[yypt-0].datum
-	    }
-	case 13:
+			yyVAL.datum = yyS[yypt-0].datum
+		}
+	case 8:
 		//line parse.y:146
 		{
-	        yyVAL.datum = yyS[yypt-0].datum
+			yyVAL.datum = yyS[yypt-0].datum
 		}
-	case 14:
+	case 9:
 		//line parse.y:150
 		{
-	        yyVAL.datum = yyS[yypt-0].datum
+			yyVAL.datum = yyS[yypt-0].datum
 		}
-	case 15:
+	case 10:
 		//line parse.y:154
 		{
-	        yyVAL.datum = yyS[yypt-0].datum
+			yyVAL.datum = yyS[yypt-0].datum
 		}
-	case 16:
+	case 11:
 		//line parse.y:158
 		{
-	        yyVAL.datum = yyS[yypt-0].datum
+			yyVAL.datum = yyS[yypt-0].datum
 		}
-	case 17:
+	case 12:
 		//line parse.y:164
 		{
-	        yyVAL.datum = yyS[yypt-0].datum
+			yyVAL.datum = yyS[yypt-0].datum
 		}
-	case 18:
+	case 13:
 		//line parse.y:168
 		{
-	        yyVAL.datum = yyS[yypt-0].datum
+			yyVAL.datum = yyS[yypt-0].datum
 		}
-	case 19:
+	case 14:
 		//line parse.y:174
 		{
-	        yyVAL.datum = yyS[yypt-1].datum
+			yyVAL.datum = yyS[yypt-1].datum
 		}
-	case 20:
+	case 15:
 		//line parse.y:178
 		{
-	        yyVAL.datum = yyS[yypt-1].datum
+			yyVAL.datum = yyS[yypt-1].datum
 		}
-	case 21:
+	case 16:
 		//line parse.y:182
 		{
-	        yyVAL.datum = yyS[yypt-1].datum
+			yyVAL.datum = yyS[yypt-1].datum
 		}
-	case 22:
+	case 17:
 		//line parse.y:186
 		{
-	        yyVAL.datum = yyS[yypt-1].datum
+			yyVAL.datum = yyS[yypt-1].datum
 		}
-	case 23:
+	case 18:
 		//line parse.y:190
 		{
-	        yyVAL.datum = yyS[yypt-0].datum
-	    }
-	case 24:
+			yyVAL.datum = yyS[yypt-0].datum
+		}
+	case 19:
 		//line parse.y:196
 		{
-	        yyVAL.datum = _listZI(yyS[yypt-2].datum, yyS[yypt-0].datum)
+			yyVAL.datum = listZI(yyS[yypt-2].datum, yyS[yypt-0].datum)
 		}
-	case 25:
+	case 20:
 		//line parse.y:200
 		{
-	        if _length(yyS[yypt-4].datum).(int) != 1 {
-	            panic("double-dotted-lists must have 3 elements")
-	        }
-	        yyVAL.datum = _list(yyS[yypt-2].datum, _car(yyS[yypt-4].datum), yyS[yypt-0].datum)
+			if length(yyS[yypt-4].datum).(int) != 1 {
+				panic("double-dotted-lists must have 3 elements")
+			}
+			yyVAL.datum = list(yyS[yypt-2].datum, car(yyS[yypt-4].datum), yyS[yypt-0].datum)
 		}
-	case 26:
+	case 21:
 		//line parse.y:209
 		{
-	        yyVAL.datum = _list(yyS[yypt-0].datum)
+			yyVAL.datum = list(yyS[yypt-0].datum)
 		}
-	case 27:
+	case 22:
 		//line parse.y:213
 		{
-	        yyVAL.datum = _cons(yyS[yypt-1].datum, yyS[yypt-0].datum)
+			yyVAL.datum = cons(yyS[yypt-1].datum, yyS[yypt-0].datum)
 		}
-	case 28:
+	case 23:
 		//line parse.y:217
 		{
-	        yyVAL.datum = _list(yyS[yypt-1].datum)
+			yyVAL.datum = list(yyS[yypt-1].datum)
 		}
-	case 29:
+	case 24:
 		//line parse.y:223
 		{
-	        yyVAL.datum = yyS[yypt-0].datum
+			yyVAL.datum = yyS[yypt-0].datum
 		}
-	case 30:
+	case 25:
 		//line parse.y:227
 		{
-	        yyVAL.datum = _null()
+			yyVAL.datum = null()
 		}
-	case 31:
+	case 26:
 		//line parse.y:233
 		{
-	        yyVAL.datum = _list(ds.NewSymbol("quote"), yyS[yypt-0].datum)
+			yyVAL.datum = list(ds_any.Symbol("quote"), yyS[yypt-0].datum)
 		}
-	case 32:
+	case 27:
 		//line parse.y:237
 		{
-	        yyVAL.datum = _list(ds.NewSymbol("quasiquote"), yyS[yypt-0].datum)
+			yyVAL.datum = list(ds_any.Symbol("quasiquote"), yyS[yypt-0].datum)
 		}
-	case 33:
+	case 28:
 		//line parse.y:241
 		{
-	        yyVAL.datum = _list(ds.NewSymbol("unquote"), yyS[yypt-0].datum)
+			yyVAL.datum = list(ds_any.Symbol("unquote"), yyS[yypt-0].datum)
 		}
-	case 34:
+	case 29:
 		//line parse.y:245
 		{
-	        yyVAL.datum = _list(ds.NewSymbol("unquote-splicing"), yyS[yypt-0].datum)
+			yyVAL.datum = list(ds_any.Symbol("unquote-splicing"), yyS[yypt-0].datum)
 		}
-	case 35:
+	case 30:
 		//line parse.y:249
 		{
-	        yyVAL.datum = _list(ds.NewSymbol("syntax"), yyS[yypt-0].datum)
+			yyVAL.datum = list(ds_any.Symbol("syntax"), yyS[yypt-0].datum)
 		}
-	case 36:
+	case 31:
 		//line parse.y:253
 		{
-	        yyVAL.datum = _list(ds.NewSymbol("quasisyntax"), yyS[yypt-0].datum)
+			yyVAL.datum = list(ds_any.Symbol("quasisyntax"), yyS[yypt-0].datum)
 		}
-	case 37:
+	case 32:
 		//line parse.y:257
 		{
-	        yyVAL.datum = _list(ds.NewSymbol("unsyntax"), yyS[yypt-0].datum)
+			yyVAL.datum = list(ds_any.Symbol("unsyntax"), yyS[yypt-0].datum)
 		}
-	case 38:
+	case 33:
 		//line parse.y:261
 		{
-	        yyVAL.datum = _list(ds.NewSymbol("unsyntax-splicing"), yyS[yypt-0].datum)
+			yyVAL.datum = list(ds_any.Symbol("unsyntax-splicing"), yyS[yypt-0].datum)
 		}
-	case 39:
+	case 34:
 		//line parse.y:267
 		{
-	        yyVAL.datum = _listZKZRvector(yyS[yypt-1].datum)
+			yyVAL.datum = listZKZRvector(yyS[yypt-1].datum)
 		}
-	case 40:
+	case 35:
 		//line parse.y:273
 		{
-	        yyVAL.datum = _u8ZKlistZKZRbytevector(yyS[yypt-1].datum)
+			yyVAL.datum = u8ZKlistZKZRbytevector(yyS[yypt-1].datum)
 		}
 	}
 	goto yystack /* stack new state and value */

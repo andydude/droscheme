@@ -242,6 +242,7 @@
           ("go:internal:vector" . "[]interface{}")   ; required by Apply()
           ("go:internal:string" . "[]rune")
           ("go:internal:binary" . "[]byte")
+          ("go:type" . "type")
 
           ; go types
           ("go:bool" . "bool")
@@ -397,20 +398,24 @@
      ((mul-op? op) (mul-op? qo))))
   (define (emit1 expr)
     ;; simple precedence rules
-    (if (and (pair? expr)
-             (op<=? op (car expr)))
-        (emit-expr expr)
-        (parameterize
-         ((*binary-context* #t))
-         (emit-expr expr))))
+    (if (droscheme-precedence)
+        (if (and (pair? expr)
+                 (op<=? op (car expr)))
+            (emit-expr expr)
+            (parameterize
+             ((*binary-context* #t))
+             (emit-expr expr)))
+        (emit-expr expr)))
   (define (emit2 opstr)
     (if (= (length vals) 1)
         (string-append opstr (emit-expr (car vals)))
         (string-join (map emit1 vals)
                      (string-append " " opstr " "))))
-  (if (*binary-context*)
-      (string-append "(" (emit2 (emit-op op)) ")")
-      (emit2 (emit-op op))))
+  (if (droscheme-precedence)
+      (if (*binary-context*)
+          (string-append "(" (emit2 (emit-op op)) ")")
+          (emit2 (emit-op op)))
+      (string-append "(" (emit2 (emit-op op)) ")")))
 
 (define (emit-parens kw proc rest)
   ;(display "\nemit-parens")
@@ -487,7 +492,7 @@
 
 (define (emit-range a)
   (define (emit sym lhs . rhs)
-    (if (eqv? sym ':=)
+    (if (eqv? sym 'go::=)
         (apply emit-assign ":= range " lhs rhs)
         (error "emit-range expected :=, got" sym)))
   (apply emit a))

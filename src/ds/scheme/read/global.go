@@ -1,7 +1,9 @@
-package ds_any_syntax
+package ds_scheme_read
 
 var (
-	//     _eofZKobjectZS
-	gEOF = _eofZKobject()
-	gEOL = _errorZKobject("end-of-line").(error)
+	//    (eof-object)
+	gEOF = eofZKobject().(rune)
+
+	//    (make-error-object)
+	gEOL = makeZKerrorZKobject("end-of-line").(error)
 )

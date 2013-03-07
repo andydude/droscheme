@@ -7,42 +7,40 @@
 // FITNESS FOR A PARTICULAR PURPOSE. You can redistribute it and/or modify it under the
 // terms of the GNU Lesser General Public License (LGPLv3): <http://www.gnu.org/licenses/>.
 //
-package ds_any_syntax
+package ds_scheme_read
 
 import (
-	"io"
 	"fmt"
+	"io"
 	"math"
-//	"math/big"
+	//	"math/big"
+	"ds/any"
+	"ds/port"
 	"strconv"
 	"strings"
-.	"ds/any"
-	"ds/any/runtime"
-.	"ds/port"
 	//"ds/port/runtime"
 	//"runtime/debug"
 )
 
 //ds_any_runtime.ds_any_runtime.Char
-
-//_eofZKobject
-//_eofZKobjectZS
-//const eof = _eofZKobject rune(-1)
+//eofZKobject
+//eofZKobjectZS
+//const eof = eofZKobject rune(-1)
 
 // [AJR] Yes, I watched Rob Pike
 type State func(*Lexer) State
 type Lexer struct {
 	buffer            []rune
-	input             TIPort
+	input             ds_port.TIPort
 	start, pos, width int
 	tokens            chan *yySymType
 	state             State
 	ch                rune
 	pcount            int
 	base, sign        int
-    inexact           bool
-    err               error
-	value             Any
+	inexact           bool
+	err               error
+	value             interface{}
 }
 
 //func newLexer(input string) *Lexer {
@@ -69,13 +67,13 @@ func emptyTokens() chan *yySymType {
 	return make(chan *yySymType, 4)
 }
 
-func newLexer(rd TIPort) *Lexer {
+func newLexer(rd ds_port.TIPort) *Lexer {
 	return newLexerWithState(rd, (*Lexer).lexToken)
 }
 
-func newLexerWithBase(rd TIPort, base int) *Lexer {
+func newLexerWithBase(rd ds_port.TIPort, base int) *Lexer {
 	lex := &Lexer{
-	    buffer: []rune{},
+		buffer: []rune{},
 		input:  rd,
 		tokens: emptyTokens(),
 		state:  (*Lexer).lexNumber,
@@ -86,9 +84,9 @@ func newLexerWithBase(rd TIPort, base int) *Lexer {
 	return lex
 }
 
-func newLexerWithState(rd TIPort, state State) *Lexer {
+func newLexerWithState(rd ds_port.TIPort, state State) *Lexer {
 	lex := &Lexer{
-	    buffer: []rune{},
+		buffer: []rune{},
 		input:  rd,
 		tokens: emptyTokens(),
 		state:  state,
@@ -99,7 +97,7 @@ func newLexerWithState(rd TIPort, state State) *Lexer {
 	return lex
 }
 
-func newToken(token int, datum Any) *yySymType {
+func newToken(token int, datum interface{}) *yySymType {
 	tok := &yySymType{
 		token: token,
 		datum: datum,
@@ -115,22 +113,22 @@ func (t *yySymType) String() string {
 // lexer methods
 //
 
-func (lex *Lexer) emitLabel(label int) {
-	lex.emitDatum(LABEL, NewLabel(label, nil))
-}
+//func (lex *Lexer) emitLabel(label int) {
+//	lex.emitDatum(LABEL, NewLabel(label, nil))
+//}
 
-func (lex *Lexer) emitDatum(token int, datum Any) {
+func (lex *Lexer) emitDatum(token int, datum interface{}) {
 	//fmt.Printf("emit(%d, %v)\n", token, datum)
 	lex.tokens <- newToken(token, datum)
 	lex.consume()
 }
 
-func (lex *Lexer) emitNum(datum Any) {
+func (lex *Lexer) emitNum(datum interface{}) {
 	lex.emitDatum(NUMBER, datum)
 }
 
 func (lex *Lexer) emitId(name string) {
-	lex.emitDatum(ID, ds_any_runtime.NewSymbol(name))
+	lex.emitDatum(ID, ds_any.Symbol(name))
 }
 
 func (lex *Lexer) emit(token int) {
@@ -163,7 +161,7 @@ func (lex *Lexer) backup() {
 	}()
 	lex.pos -= lex.width
 	if len(lex.buffer) > 0 {
-		lex.buffer = lex.buffer[0:len(lex.buffer) - 1]
+		lex.buffer = lex.buffer[0 : len(lex.buffer)-1]
 	}
 	//error1panic(lex.input.UnreadRune())
 	err := lex.input.UnreadRune()
@@ -223,11 +221,11 @@ func (lex *Lexer) nextToken() *yySymType {
 // this is like consume() and eat()
 func (lex *Lexer) next() rune {
 	const debug = false
-	if _eofZKobjectZS(lex.ch).(bool) {
+	if eofZKobjectZS(lex.ch).(bool) {
 		lex.err = io.EOF
 		lex.consume()
 		//fmt.Printf("--- next(%d) = '%s'\n", lex.ch, lex.buffer)
-		return rune(_eofZKobject().(ds_any_runtime.Char))
+		return gEOF
 	}
 	var err error
 	lex.ch, lex.width, err = lex.input.ReadRune()
@@ -235,7 +233,7 @@ func (lex *Lexer) next() rune {
 		if err != io.EOF {
 			panic(err)
 		}
-		lex.ch, lex.width = rune(_eofZKobject().(ds_any_runtime.Char)), 0
+		lex.ch, lex.width = gEOF, 0
 		if debug {
 			fmt.Printf("--- next(%d) = '%s'\n", lex.ch, lex.buffer)
 		}
@@ -251,9 +249,9 @@ func (lex *Lexer) next() rune {
 
 func (lex *Lexer) peek() rune {
 	const debug = false
-	if _eofZKobjectZS(lex.ch).(bool) {
+	if eofZKobjectZS(lex.ch).(bool) {
 		//fmt.Printf("--- peek(%d)\n", eof)
-		return rune(_eofZKobject().(ds_any_runtime.Char))
+		return gEOF
 	}
 	var err error
 	lex.ch, lex.width, err = lex.input.PeekRune()
@@ -261,7 +259,7 @@ func (lex *Lexer) peek() rune {
 		if err != io.EOF {
 			panic(err)
 		}
-		lex.ch, lex.width = rune(_eofZKobject().(ds_any_runtime.Char)), 0
+		lex.ch, lex.width = gEOF, 0
 	}
 	if debug {
 		fmt.Printf("--- peek(%d)\n", lex.ch)
@@ -290,7 +288,7 @@ func (lex *Lexer) lexSpace() State {
 
 func (lex *Lexer) lexToken() State {
 	switch r := lex.peek(); {
-	case _eofZKobjectZS(r).(bool):
+	case eofZKobjectZS(r).(bool):
 		return nil
 	case r == 0:
 		return nil
@@ -388,7 +386,7 @@ func (lex *Lexer) lexString() State {
 	lex.backup()
 	lex.match1('"')
 
-	lex.emitDatum(STRING, ds_any_runtime.String(contents))
+	lex.emitDatum(STRING, contents)
 	return (*Lexer).lexToken
 }
 
@@ -403,21 +401,21 @@ func (lex *Lexer) lexChar() State {
 	case ch == 'e' && pk == 's': // esc
 	case ch == 'l' && pk == 'i': // linefeed
 		lex.match("inefeed")
-		lex.emitDatum(CHAR, ds_any_runtime.Char('\n'))
+		lex.emitDatum(CHAR, rune('\n'))
 	case ch == 'n' && pk == 'e': // newline
 		lex.match("ewline")
-		lex.emitDatum(CHAR, ds_any_runtime.Char('\n'))
+		lex.emitDatum(CHAR, rune('\n'))
 	case ch == 'v' && pk == 't': // vtab
 	case ch == 'p' && pk == 'a': // page
 	case ch == 'r' && pk == 'e': // return
 		lex.match("eturn")
-		lex.emitDatum(CHAR, ds_any_runtime.Char('\r'))
+		lex.emitDatum(CHAR, rune('\r'))
 	case ch == 's' && pk == 'p': // space
 		lex.match("pace")
-		lex.emitDatum(CHAR, ds_any_runtime.Char(' '))
+		lex.emitDatum(CHAR, rune(' '))
 	case ch == 't' && pk == 'a': // tab
 		lex.match("ab")
-		lex.emitDatum(CHAR, ds_any_runtime.Char('\t'))
+		lex.emitDatum(CHAR, rune('\t'))
 	case ch == 'x' && lex.isDigit16():
 		lex.peek()
 		lex.consume()
@@ -427,9 +425,9 @@ func (lex *Lexer) lexChar() State {
 		lex.backup()
 		lex.base = 16
 		ret := lex.getInt().(int)
-		lex.emitDatum(CHAR, ds_any_runtime.Char(ret))
+		lex.emitDatum(CHAR, rune(ret))
 	default:
-		lex.emitDatum(CHAR, ds_any_runtime.Char(ch))
+		lex.emitDatum(CHAR, rune(ch))
 	}
 	return (*Lexer).lexToken
 }
@@ -488,12 +486,12 @@ func (lex *Lexer) lexHash() State {
 	//fmt.Printf("\n-- lexHash() --\n")
 
 	switch lex.next() {
-	case ':':
-		lex.emit(KEYWORD)
-		return (*Lexer).lexToken
-	case '%':
-		lex.emit(KSYMBOL)
-		return (*Lexer).lexToken
+	//case ':':
+	//	lex.emit(KEYWORD)
+	//	return (*Lexer).lexToken
+	//case '%':
+	//	lex.emit(KSYMBOL)
+	//	return (*Lexer).lexToken
 	case '\'':
 		lex.emit(SYNTAX)
 		return (*Lexer).lexToken
@@ -552,17 +550,18 @@ func (lex *Lexer) lexHash() State {
 		return (*Lexer).lexToken
 	}
 
-	if lex.isDigit10() {
-		lex.peek()
-		lex.consume()
-		for lex.isDigit10() {
-			lex.next()
-		}
-		lex.backup()
-		lex.base = 10
-		label := lex.getInt().(int)
-		lex.emitLabel(int(label))
-	}
+	// #0=#0# label support
+	//if lex.isDigit10() {
+	//	lex.peek()
+	//	lex.consume()
+	//	for lex.isDigit10() {
+	//		lex.next()
+	//	}
+	//	lex.backup()
+	//	lex.base = 10
+	//	label := lex.getInt().(int)
+	//	lex.emitLabel(int(label))
+	//}
 
 	// readtable support could go here
 
@@ -597,7 +596,7 @@ func (lex *Lexer) lexSigns() State {
 		fallthrough
 	case r == ')':
 		fallthrough
-	case _eofZKobjectZS(r).(bool):
+	case eofZKobjectZS(r).(bool):
 		lex.emitId(string([]rune{s}))
 		return (*Lexer).lexToken
 	case r == 'i': // inf.0 or i
@@ -618,7 +617,7 @@ func (lex *Lexer) lexSigns() State {
 func (lex *Lexer) lexLineComment() State {
 	// we have read ';' or
 	// we have read '#!'
-	for lex.ch != '\n' && !_eofZKobjectZS(lex.ch).(bool) {
+	for lex.ch != '\n' && !eofZKobjectZS(lex.ch).(bool) {
 		lex.next()
 	}
 	lex.backup()
@@ -658,8 +657,8 @@ func (lex *Lexer) lexId() State {
 
 // <number>
 func (lex *Lexer) lexNumber() State {
-	//var re Any
-	//var im Any
+	//var re interface{}
+	//var im interface{}
 
 	//fmt.Printf("--lexNumber(%s...)--\n", lex.input[lex.start:lex.start+2])
 	p := lex.peek()
@@ -701,40 +700,40 @@ func (lex *Lexer) lexNumber() State {
 			return nil
 		}
 	}
-/*
-	lex.acceptSign()
-	if lex.isI() {
-		lex.next()
-		lex.emitNum(NewComplex(NewRational64(0, 1), NewRational64(int64(lex.sign), 1)))
-		return (*Lexer).lexToken
-	}
-	re = lex.getReal()
-	switch lex.peek() {
-	case '+', '-':
-		lex.matchSign()
+	/*
+		lex.acceptSign()
 		if lex.isI() {
 			lex.next()
-			lex.emitNum(NewComplex(re, NewRational64(int64(lex.sign), 1)))
+			lex.emitNum(NewComplex(NewRational64(0, 1), NewRational64(int64(lex.sign), 1)))
 			return (*Lexer).lexToken
 		}
-		im = lex.getReal()
-		lex.match1('i')
-		lex.emitNum(NewComplex(re, im))
-	case '@':
-		lex.next()
-		lex.consume()
-		lex.acceptSign()
-		im = lex.getReal()
-		lex.emitNum(NewComplexPolar(re, im))
-	case 'i':
-		if lex.isI() {
+		re = lex.getReal()
+		switch lex.peek() {
+		case '+', '-':
+			lex.matchSign()
+			if lex.isI() {
+				lex.next()
+				lex.emitNum(NewComplex(re, NewRational64(int64(lex.sign), 1)))
+				return (*Lexer).lexToken
+			}
+			im = lex.getReal()
+			lex.match1('i')
+			lex.emitNum(NewComplex(re, im))
+		case '@':
 			lex.next()
-			lex.emitNum(NewComplex(NewRational64(0, 1), re))
+			lex.consume()
+			lex.acceptSign()
+			im = lex.getReal()
+			lex.emitNum(NewComplexPolar(re, im))
+		case 'i':
+			if lex.isI() {
+				lex.next()
+				lex.emitNum(NewComplex(NewRational64(0, 1), re))
+			}
+		default:
+			lex.emitNum(re)
 		}
-	default:
-		lex.emitNum(re)
-	}
-*/
+	*/
 	return (*Lexer).lexToken
 }
 
@@ -787,7 +786,7 @@ func (lex *Lexer) acceptSign() {
 
 // <ureal> / <infinity>
 // should only be called by lexNumber
-func (lex *Lexer) getReal() Any {
+func (lex *Lexer) getReal() interface{} {
 	switch lex.peek() {
 	case 'i': // must be inf.0
 		lex.match("inf.0")
@@ -812,10 +811,10 @@ func (lex *Lexer) getReal() Any {
 }
 
 // should only be called by lexNumber
-func (lex *Lexer) getDecimal() Any {
+func (lex *Lexer) getDecimal() interface{} {
 	//fmt.Printf("--getDecimal(%d)--\n", base)
 	if lex.base != 10 {
-		_error("only decimal fractions supported")
+		panic("only decimal fractions supported")
 	}
 	if lex.peek() == '.' {
 		// form .#
@@ -841,8 +840,10 @@ func (lex *Lexer) getDecimal() Any {
 	return lex.getInt()
 }
 
+// TODO: replace with (digit-value)
+// TODO: replace with (hex-digit-value)
 // should only be called by lexNumber
-func (lex *Lexer) getInt() Any {
+func (lex *Lexer) getInt() interface{} {
 	//if lex.pos-lex.start > 18 {
 	//	return lex.getBigint()
 	//}
@@ -972,18 +973,22 @@ func (lex *Lexer) isLetter() bool {
 	return 'a' <= lex.ch && lex.ch <= 'z' || 'A' <= lex.ch && lex.ch <= 'Z'
 }
 
+// TODO: replace with char-bin-digit?
 func (lex *Lexer) isDigit2() bool {
 	return '0' == lex.ch || lex.ch == '1'
 }
 
+// TODO: replace with char-octal-digit?
 func (lex *Lexer) isDigit8() bool {
 	return '0' <= lex.ch && lex.ch <= '7'
 }
 
+// TODO: replace with char-digit?
 func (lex *Lexer) isDigit10() bool {
 	return '0' <= lex.ch && lex.ch <= '9'
 }
 
+// TODO: replace with char-hex-digit?
 func (lex *Lexer) isDigit16() bool {
 	if lex.isDigit10() {
 		return true

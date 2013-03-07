@@ -1,0 +1,72 @@
+define-library
+ ds scheme eval
+ import
+  prefix (gos) go:
+  ds any
+ export
+  apply
+  apply-list
+  apply-vector
+  eval
+  eval-list
+  eval-literal
+  eval-syntax
+  eval-vector
+  syntax-list?
+  vector-car+cdr
+ begin
+
+  define (apply proc . args)
+    apply-list proc (apply-list list* args)
+
+  define (apply-list proc args)
+    apply-vector proc (list->vector args)
+
+  define (apply-vector proc args)
+    go:when* (go::= (applier ok) (go:as proc Applier)) ok
+      go:return ((dot applier Apply) env)
+    ; TODO figure out call convention
+
+  define (eval exp env)
+    go:when (not-pair? exp)
+      go:return (eval-literal exp env)
+    go:when (syntax-list? exp env)
+      go:return (eval-syntax exp env)
+    eval-list exp env
+
+  define (eval-list exp env)
+    eval-vector (list->vector (eval-literal exp env)) env
+
+  define (eval-literal exp env)
+    go:when* (go::= (evaler ok) (go:as exp Evaler)) ok
+      go:return ((dot evaler Eval) env)
+    exp
+
+  define (eval-syntax exp env)
+    go:when* (go::= (transer ok) (go:as exp Transformer)) ok
+      go:return ((dot transer Transform) env)
+    ; TODO figure out call convention
+
+  define (eval-vector exp env)
+    go::= (car cdr) (vector-car+cdr exp)
+    apply-vector car cdr
+
+  define (syntax-keyword? kw env)
+    go:and (environment-has env kw)
+      syntax? (environment-ref env kw)
+
+  define (syntax-list? exp env)
+    go:when (not-pair? exp)
+      go:return #f
+    go::= kw (car exp)
+    go:when (not (symbol? kw))
+      go:return #f
+    go:when (not (syntax-keyword? kw env))
+      go:return #f
+    #t
+
+  go:func vector-car+cdr (obj) (car cdr)
+    go::= vec (->vector obj)
+    go:= car (index vec 0)
+    go:= cdr (index vec 1 #f)
+    go:return

@@ -1,7 +1,6 @@
 package ds_port
 
 import (
-.	"ds/any"
 	"io"
 )
 
@@ -36,7 +35,6 @@ import (
  *
  */
 
-
 // abstract interfaces
 
 type Closer interface {
@@ -56,13 +54,13 @@ type Peeker interface {
 
 type BytePeeker interface {
 	PeekByte() (c byte, err error)
-    ReadyByte() bool
+	ReadyByte() bool
 	UnreadByte() error
 }
 
 type RunePeeker interface {
 	PeekRune() (r rune, size int, err error)
-    ReadyRune() bool
+	ReadyRune() bool
 	UnreadRune() error
 }
 
@@ -131,8 +129,11 @@ type OPort interface {
 	Flusher
 }
 
+type PortKinder interface {
+	PortKind() int
+}
+
 type Port interface {
-	Any
-	GetPortType() int
+	PortKinder
 	Closer
 }
