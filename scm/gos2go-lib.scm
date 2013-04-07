@@ -304,6 +304,7 @@
           ("go:bitwise-or=" . "|=")
           ("go:bitwise-xor" . "^")
           ("go:bitwise-xor=" . "^=")
+          ("go:bitwise-not" . "^")
           ("go:and" . "&&")
           ("go:dot" . ".")
           ("go:not" . "!")
@@ -660,6 +661,7 @@
     (('go:bitwise-or= vars . vals)  (apply emit-assign expr))
     (('go:bitwise-xor . vals)       (apply emit-binary expr))
     (('go:bitwise-xor= vars . vals) (apply emit-assign expr))
+    (('go:bitwise-not vars . vals)  (apply emit-binary expr))
 
     ;; other operators
     (('go:++ expr) `(,expr "++"))

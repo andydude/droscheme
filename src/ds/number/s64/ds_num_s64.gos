@@ -1,0 +1,685 @@
+(go:package
+  ds_num_s64
+  (go:import)
+  (go:var)
+  (go:func
+    Export
+    ()
+    go:internal:frame
+    (go:return
+      (go:make:
+        go:internal:frame
+        (go:: "+" +)
+        (go:: "-" -)
+        (go:: "*" *)
+        (go:: "+/carry" +/carry)
+        (go:: "-/carry" -/carry)
+        (go:: "*/carry" */carry)
+        (go:: "=" =)
+        (go:: "<" <)
+        (go:: "<=" <=)
+        (go:: ">" >)
+        (go:: ">=" >=)
+        (go:: "abs" abs)
+        (go:: "bit-and" bit-and)
+        (go:: "bit-count" bit-count)
+        (go:: "bit-eqv" bit-eqv)
+        (go:: "bit-field" bit-field)
+        (go:: "bit-if" bit-if)
+        (go:: "bit-implies" bit-implies)
+        (go:: "bit-nif" bit-nif)
+        (go:: "bit-nimplies" bit-nimplies)
+        (go:: "bit-not" bit-not)
+        (go:: "bit-or" bit-or)
+        (go:: "bit-set?" bit-set?)
+        (go:: "bit-xor" bit-xor)
+        (go:: "complex?" complex?)
+        (go:: "copy-bit" copy-bit)
+        (go:: "copy-bit-field" copy-bit-field)
+        (go:: "euc/" euc/)
+        (go:: "euc%" euc%)
+        (go:: "even?" even?)
+        (go:: "exact?" exact?)
+        (go:: "first-bit-set" first-bit-set)
+        (go:: "greatest" greatest)
+        (go:: "inexact?" inexact?)
+        (go:: "integer?" integer?)
+        (go:: "least" least)
+        (go:: "length" length)
+        (go:: "max" max)
+        (go:: "min" min)
+        (go:: "negative?" negative?)
+        (go:: "number?" number?)
+        (go:: "odd?" odd?)
+        (go:: "positive?" positive?)
+        (go:: "rational?" rational?)
+        (go:: "real?" real?)
+        (go:: "reverse-bit-field" reverse-bit-field)
+        (go:: "rotate-bit-field" rotate-bit-field)
+        (go:: "rtz/" rtz/)
+        (go:: "rtz%" rtz%)
+        (go:: "rtn/" rtn/)
+        (go:: "rtn%" rtn%)
+        (go:: "rtp/" rtp/)
+        (go:: "rtp%" rtp%)
+        (go:: "rta/" rta/)
+        (go:: "rta%" rta%)
+        (go:: "rnz/" rnz/)
+        (go:: "rnz%" rnz%)
+        (go:: "rnn/" rnn/)
+        (go:: "rnn%" rnn%)
+        (go:: "rnp/" rnp/)
+        (go:: "rnp%" rnp%)
+        (go:: "rna/" rna/)
+        (go:: "rna%" rna%)
+        (go:: "rte/" rte/)
+        (go:: "rte%" rte%)
+        (go:: "shift" shift)
+        (go:: "shift-left" shift-left)
+        (go:: "shift-right" shift-right)
+        (go:: "width" width)
+        (go:: "zero?" zero?))))
+  (go:func
+    +
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:return 0))
+      ((1)
+       (go:return (go:as (go:index rest 0) go:int64)))
+      ((2)
+       (go:return
+         (go:+ (go:as (go:index rest 0) go:int64)
+               (go:as (go:index rest 1) go:int64)))))
+    (go::= rv (go:as (go:index rest 0) go:int64))
+    (go:for
+      (go::= i 1)
+      (go:< i (go:len rest))
+      (go:++ i)
+      (go::= it (go:as (go:index rest i) go:int64))
+      (go:+= rv it))
+    (go:return rv))
+  (go:func
+    -
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1)
+       (go:return
+         (go:- (go:as (go:index rest 0) go:int64))))
+      ((2)
+       (go:return
+         (go:- (go:as (go:index rest 0) go:int64)
+               (go:as (go:index rest 1) go:int64)))))
+    (go:return
+      (- (go:index rest 0)
+         (go:apply + (go:index rest 1 #f)))))
+  (go:func
+    *
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:return 1))
+      ((1) (go:return (go:index rest 0)))
+      ((2)
+       (go:return
+         (go:* (go:as (go:index rest 0) go:int64)
+               (go:as (go:index rest 1) go:int64)))))
+    (go::= rv (go:as (go:index rest 0) go:int64))
+    (go:for
+      (go::= i 1)
+      (go:< i (go:len rest))
+      (go:++ i)
+      (go::= it (go:as (go:index rest i) go:int64))
+      (go:*= rv it))
+    (go:return rv))
+  (go:func
+    +/carry
+    (#(a go:any) #(b go:any) #(c go:any))
+    go:any
+    (go:return #f))
+  (go:func
+    -/carry
+    (#(a go:any) #(b go:any) #(c go:any))
+    go:any
+    (go:return #f))
+  (go:func
+    */carry
+    (#(a go:any) #(b go:any) #(c go:any))
+    go:any
+    (go:return #f))
+  (go:func
+    =
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:== (go:as (go:index rest 0) go:int64)
+                (go:as (go:index rest 1) go:int64)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:== (go:as (go:index rest i) go:int64)
+               (go:as (go:index rest (go:+ i 1)) go:int64))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    <
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:< (go:as (go:index rest 0) go:int64)
+               (go:as (go:index rest 1) go:int64)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:< (go:as (go:index rest i) go:int64)
+              (go:as (go:index rest (go:+ i 1)) go:int64))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    <=
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:<= (go:as (go:index rest 0) go:int64)
+                (go:as (go:index rest 1) go:int64)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:<= (go:as (go:index rest i) go:int64)
+               (go:as (go:index rest (go:+ i 1)) go:int64))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    >
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:> (go:as (go:index rest 0) go:int64)
+               (go:as (go:index rest 1) go:int64)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go:unless
+        (go:> (go:as (go:index rest i) go:int64)
+              (go:as (go:index rest (go:+ i 1)) go:int64))
+        (go:return #f)))
+    (go:return #t))
+  (go:func
+    >=
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1) (go:panic "nothing to compare to"))
+      ((2)
+       (go:return
+         (go:>= (go:as (go:index rest 0) go:int64)
+                (go:as (go:index rest 1) go:int64)))))
+    (go:for
+      (go::= i 0)
+      (go:< i (go:- (go:len rest) 1))
+      (go:++ i)
+      (go::= a (go:as (go:index rest i) go:int64))
+      (go::= b
+             (go:as (go:index rest (go:+ i 1)) go:int64))
+      (go:unless (go:>= a b) (go:return #f)))
+    (go:return #t))
+  (go:func
+    abs
+    (#(a go:any))
+    go:any
+    (go:when
+      (go:< (go:as a go:int64) 0)
+      (go:return (- a)))
+    (go:return a))
+  (go:func
+    bit-and
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:return (go:int64 -1)))
+      ((1)
+       (go:return (go:as (go:index rest 0) go:int64))))
+    (go::= rv (go:as (go:index rest 0) go:int64))
+    (go:for
+      (go::= i 1)
+      (go:< i (go:len rest))
+      (go:++ i)
+      (go::= it (go:as (go:index rest i) go:int64))
+      (go:bitwise-and= rv it))
+    (go:return rv))
+  (go:func bit-count () go:any (go:return #f))
+  (go:func
+    bit-eqv
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:return (go:int64 -1)))
+      ((1)
+       (go:return (go:as (go:index rest 0) go:int64))))
+    (go::= rv (go:as (go:index rest 0) go:int64))
+    (go:for
+      (go::= i 1)
+      (go:< i (go:len rest))
+      (go:++ i)
+      (go::= it (go:as (go:index rest i) go:int64))
+      (go:= rv (go:bitwise-not (go:bitwise-xor rv it))))
+    (go:return rv))
+  (go:func bit-field () go:any (go:return #f))
+  (go:func
+    bit-if
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return (bit-not (bit-nimplies b a))))
+  (go:func
+    bit-implies
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return (bit-not (bit-nimplies a b))))
+  (go:func
+    bit-nif
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return (bit-nimplies b a)))
+  (go:func
+    bit-nimplies
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return
+      (go:bitwise-but
+        (go:as a go:int64)
+        (go:as b go:int64))))
+  (go:func
+    bit-not
+    (#(a go:any))
+    go:any
+    (go:return (go:bitwise-not (go:as a go:int64))))
+  (go:func
+    bit-or
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:return (go:int64 -1)))
+      ((1)
+       (go:return (go:as (go:index rest 0) go:int64))))
+    (go::= rv (go:as (go:index rest 0) go:int64))
+    (go:for
+      (go::= i 1)
+      (go:< i (go:len rest))
+      (go:++ i)
+      (go::= it (go:as (go:index rest i) go:int64))
+      (go:bitwise-or= rv it))
+    (go:return rv))
+  (go:func bit-set? () go:any (go:return #f))
+  (go:func
+    bit-xor
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:return (go:int64 -1)))
+      ((1)
+       (go:return (go:as (go:index rest 0) go:int64))))
+    (go::= rv (go:as (go:index rest 0) go:int64))
+    (go:for
+      (go::= i 1)
+      (go:< i (go:len rest))
+      (go:++ i)
+      (go::= it (go:as (go:index rest i) go:int64))
+      (go:bitwise-xor= rv it))
+    (go:return rv))
+  (go:func
+    complex?
+    (#(a go:any))
+    go:any
+    (go:return #t))
+  (go:func copy-bit () go:any (go:return #f))
+  (go:func copy-bit-field () go:any (go:return #f))
+  (go:func
+    euc/
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return (rtz/ (- a (euc% a b)) b)))
+  (go:func
+    euc%
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:cond!
+      ((go:as (negative? (rtz% a b)) go:bool)
+       (go:return (+ (rtz% a b) (abs b)))))
+    (go:return (rtz% a b)))
+  (go:func
+    even?
+    (#(a go:any))
+    go:any
+    (go:return (go:== (go:% (go:as a go:int64) 2) 0)))
+  (go:func
+    exact?
+    (#(a go:any))
+    go:any
+    (go:return #t))
+  (go:func first-bit-set () go:any (go:return #f))
+  (go:func
+    greatest
+    ()
+    go:any
+    (go:return (go:int64 9223372036854775807)))
+  (go:func
+    inexact?
+    (#(a go:any))
+    go:any
+    (go:return #f))
+  (go:func
+    integer?
+    (#(a go:any))
+    go:any
+    (go:return #t))
+  (go:func
+    least
+    ()
+    go:any
+    (go:return (go:int64 -9223372036854775808)))
+  (go:func
+    length
+    (#(a go:any))
+    go:any
+    (go:return
+      ((go:func
+         ()
+         go:any
+         (go:when
+           (go:as (negative? a) go:bool)
+           (go:return (length (- a))))
+         (go:return #t)))))
+  (go:func
+    max
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1)
+       (go:return (go:as (go:index rest 0) go:int64))))
+    (go::= rv (go:as (go:index rest 0) go:int64))
+    (go:for
+      (go::= i 1)
+      (go:< i (go:len rest))
+      (go:++ i)
+      (go::= it (go:as (go:index rest i) go:int64))
+      (go:when (go:> it rv) (go:= rv it)))
+    (go:return rv))
+  (go:func
+    min
+    (#(rest (go:ellipsis go:any)))
+    go:any
+    (go:case!
+      (go:len rest)
+      ((0) (go:panic "no arguments"))
+      ((1)
+       (go:return (go:as (go:index rest 0) go:int64))))
+    (go::= rv (go:as (go:index rest 0) go:int64))
+    (go:for
+      (go::= i 1)
+      (go:< i (go:len rest))
+      (go:++ i)
+      (go::= it (go:as (go:index rest i) go:int64))
+      (go:when (go:< it rv) (go:= rv it)))
+    (go:return rv))
+  (go:func
+    negative?
+    (#(a go:any))
+    go:any
+    (go:return (go:< (go:as a go:int64) 0)))
+  (go:func
+    number?
+    (#(a go:any))
+    go:any
+    (go:return #t))
+  (go:func
+    odd?
+    (#(a go:any))
+    go:any
+    (go:return (go:!= (go:% (go:as a go:int64) 2) 0)))
+  (go:func
+    positive?
+    (#(a go:any))
+    go:any
+    (go:return (go:> (go:as a go:int64) 0)))
+  (go:func
+    rational?
+    (#(a go:any))
+    go:any
+    (go:return #t))
+  (go:func
+    real?
+    (#(a go:any))
+    go:any
+    (go:return #t))
+  (go:func
+    reverse-bit-field
+    ()
+    go:any
+    (go:return #f))
+  (go:func
+    rotate-bit-field
+    ()
+    go:any
+    (go:return #f))
+  (go:func
+    rtz/
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return
+      (go:/ (go:as a go:int64) (go:as b go:int64))))
+  (go:func
+    rtz%
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return
+      (go:% (go:as a go:int64) (go:as b go:int64))))
+  (go:func
+    rtn/
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return (rtz/ (- a (rtn% a b)) b)))
+  (go:func
+    rtn%
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:cond!
+      ((go:== (go:as (rtz% a b) go:int64) 0)
+       (go:break))
+      ((go:as (negative? (* a b)) go:bool)
+       (go:return
+         (go:+ (go:as (rtz% a b) go:int64)
+               (go:as b go:int64)))))
+    (go:return (rtz% a b)))
+  (go:func
+    rtp/
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return (rtz/ (- a (rtp% a b)) b)))
+  (go:func
+    rtp%
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return (rtn% a (- b))))
+  (go:func
+    rta/
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return (rtz/ (- a (rta% a b)) b)))
+  (go:func
+    rta%
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:cond!
+      ((go:== (go:as (rtz% a b) go:int64) 0)
+       (go:break))
+      ((go:as (positive? (* a b)) go:bool)
+       (go:return
+         (go:- (go:as (rtz% a b) go:int64)
+               (go:as b go:int64))))
+      ((go:as (negative? (* a b)) go:bool)
+       (go:return
+         (go:+ (go:as (rtz% a b) go:int64)
+               (go:as b go:int64)))))
+    (go:return (rtz% a b)))
+  (go:func
+    rnz/
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return (rtz/ (- a (rnz% a b)) b)))
+  (go:func
+    rnz%
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:var (go:= #(two go:int64) 2))
+    (go:cond!
+      ((go:as (zero? (rtz% a b)) go:bool) (go:break))
+      ((go:as (= (rtz% (* two a) (* two b)) b) go:bool)
+       (go:break))
+      ((go:as (= (rta% (* two a) (* two b)) b) go:bool)
+       (go:break))
+      ((go:as (> (rtn% (* two a) (* two b)) b) go:bool)
+       (go:when
+         (go:as (positive? a) go:bool)
+         (go:cond!
+           ((go:as (positive? b) go:bool)
+            (go:return (- (rtz% a b) b)))
+           (go:else (go:return (+ (rtz% a b) b)))))
+       (go:break))
+      ((go:as (< (rtn% (* two a) (* two b)) b) go:bool)
+       (go:when
+         (go:as (negative? a) go:bool)
+         (go:cond!
+           ((go:as (negative? b) go:bool)
+            (go:return (- (rtz% a b) b)))
+           (go:else (go:return (+ (rtz% a b) b)))))
+       (go:break)))
+    (go:return (rtz% a b)))
+  (go:func
+    rnn/
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:var (go:= #(two go:int64) 2))
+    (go:cond!
+      ((go:as (zero? (rtz% a b)) go:bool) (go:break))
+      ((go:as (= (rtz% (* two a) (* two b)) b) go:bool)
+       (go:return (rtn/ a b)))
+      ((go:as (= (rta% (* two a) (* two b)) b) go:bool)
+       (go:return (rtn/ a b))))
+    (go:return (rnz/ a b)))
+  (go:func
+    rnn%
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return (- a (* b (rnn/ a b)))))
+  (go:func
+    rnp/
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:var (go:= #(two go:int64) 2))
+    (go:cond!
+      ((go:as (zero? (rtz% a b)) go:bool) (go:break))
+      ((go:as (= (rtz% (* two a) (* two b)) b) go:bool)
+       (go:return (rtp/ a b)))
+      ((go:as (= (rta% (* two a) (* two b)) b) go:bool)
+       (go:return (rtp/ a b))))
+    (go:return (rnz/ a b)))
+  (go:func
+    rnp%
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return (- a (* b (rnp/ a b)))))
+  (go:func
+    rna/
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:var (go:= #(two go:int64) 2))
+    (go:cond!
+      ((go:as (zero? (rtz% a b)) go:bool) (go:break))
+      ((go:as (= (rtz% (* two a) (* two b)) b) go:bool)
+       (go:return (rta/ a b)))
+      ((go:as (= (rta% (* two a) (* two b)) b) go:bool)
+       (go:return (rta/ a b))))
+    (go:return (rnz/ a b)))
+  (go:func
+    rna%
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return (- a (* b (rna/ a b)))))
+  (go:func
+    rte/
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:func
+      force-rte/
+      (#(a go:any) #(b go:any))
+      go:any
+      (go:return
+        (* (go:int64 2)
+           (rtn/ (+ (rnn/ a b) (go:int64 1)) (go:int64 2)))))
+    (go:var (go:= #(two go:int64) 2))
+    (go:cond!
+      ((go:as (zero? (rtz% a b)) go:bool) (go:break))
+      ((go:as (= (rtz% (* two a) (* two b)) b) go:bool)
+       (go:return (force-rte/ a b)))
+      ((go:as (= (rta% (* two a) (* two b)) b) go:bool)
+       (go:return (force-rte/ a b))))
+    (go:return (rnz/ a b)))
+  (go:func
+    rte%
+    (#(a go:any) #(b go:any))
+    go:any
+    (go:return
+      (go:% (go:as a go:int64) (go:as b go:int64))))
+  (go:func shift () go:any (go:return #f))
+  (go:func shift-left () go:any (go:return #f))
+  (go:func shift-right () go:any (go:return #f))
+  (go:func
+    width
+    ()
+    go:any
+    (go:return (go:int64 64)))
+  (go:func
+    zero?
+    (#(a go:any))
+    go:any
+    (go:return (go:== (go:as a go:int64) 0))))

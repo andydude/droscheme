@@ -1,4 +1,0 @@
-(package hi
-(func hypot (#(x y &float64)) &float64
-  (return (math.sqrt (+       (* x x) (* y y)))))
-);package

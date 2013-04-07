@@ -1,4 +1,0 @@
-Known Bugs
-==========
-
-* emitBasicLit is supposed to preserve "\n", but it doesn't.
