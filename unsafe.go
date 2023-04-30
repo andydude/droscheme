@@ -42,8 +42,9 @@ func PointerEqual(x, y Any) bool {
 }
 
 type Cont uintptr
-func GetCC(dummy *byte) Cont
-func SetCC(dummy *byte, cont Cont)
+
+//func GetCC(dummy *byte) Cont
+//func SetCC(dummy *byte, cont Cont)
 
 //func GetCC() *Cont {
 //	var dummy byte
@@ -69,7 +70,7 @@ func Dump() {
 	debug.PrintStack()
 }
 
-func DumpInternals()
+//func DumpInternals()
 
 func GetFE(pc uintptr) uintptr {
 	return runtime.FuncForPC(pc).Entry()

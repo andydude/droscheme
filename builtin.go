@@ -123,11 +123,11 @@ func KdumpZKenvironment(kw, st Any, env *Env) Any {
 	return Void()
 }
 
-// (dump-internals) -- for debug only
-func KdumpZKinternals(kw, st Any, env *Env) Any {
-	DumpInternals()
-	return Void()
-}
+// // (dump-internals) -- for debug only
+// func KdumpZKinternals(kw, st Any, env *Env) Any {
+// 	//DumpInternals()
+// 	return Void()
+// }
 
 // (if c texpr)
 // (if c texpr fexpr)
@@ -1420,7 +1420,7 @@ func DnullZKenvironment(a Any) Any {
 		env.registerSyntax(KcurrentZKenvironment)
 		env.registerSyntax(KdefineZKmacro)
 		env.registerSyntax(KdumpZKenvironment)
-		env.registerSyntax(KdumpZKinternals)
+		//env.registerSyntax(KdumpZKinternals)
 		fallthrough
 	case v == 7:
 		env.registerSyntax(KdefineZKlibrary)
